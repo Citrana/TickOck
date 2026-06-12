@@ -8,7 +8,9 @@
  * @module
  */
 
+import type * as _helpers_audit from "../_helpers/audit.js";
 import type * as _helpers_permissions from "../_helpers/permissions.js";
+import type * as roles from "../roles.js";
 
 import type {
   ApiFromModules,
@@ -17,7 +19,9 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "_helpers/audit": typeof _helpers_audit;
   "_helpers/permissions": typeof _helpers_permissions;
+  roles: typeof roles;
 }>;
 
 /**
