@@ -1,0 +1,85 @@
+{
+  "nav": {
+    "home": "Home",
+    "events": "Events",
+    "tickets": "My Tickets",
+    "account": "Account",
+    "admin": "Admin",
+    "login": "Log in",
+    "register": "Sign up",
+    "logout": "Log out",
+    "languageToggle": "FR"
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "emailLabel": "Email address",
+      "passwordLabel": "Password",
+      "submitButton": "Log in",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Sign up"
+    },
+    "register": {
+      "title": "Create account",
+      "nameLabel": "Full name",
+      "emailLabel": "Email address",
+      "passwordLabel": "Password",
+      "submitButton": "Create account",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Log in"
+    }
+  },
+  "events": {
+    "title": "Events",
+    "noEvents": "No events found.",
+    "search": "Search events",
+    "detail": {
+      "tickets": "Tickets",
+      "buyButton": "Buy Tickets",
+      "date": "Date",
+      "location": "Location",
+      "organizer": "Organizer"
+    }
+  },
+  "tickets": {
+    "title": "My Tickets",
+    "noTickets": "You have no tickets yet.",
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "cancelled": "Cancelled"
+    },
+    "downloadPdf": "Download PDF",
+    "cancelButton": "Cancel Ticket"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "orderSummary": "Order Summary",
+    "paymentInstructions": "Payment Instructions",
+    "uploadProof": "Upload Payment Proof",
+    "submitButton": "Submit Order",
+    "total": "Total"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "recentOrders": "Recent Orders",
+    "upcomingEvents": "Upcoming Events"
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "events": "Manage Events",
+    "users": "Manage Users",
+    "payments": "Payments",
+    "createEvent": "Create Event",
+    "pendingPayments": "Pending Payments",
+    "auditLog": "Audit Log"
+  },
+  "errors": {
+    "notFound": "Page not found",
+    "unauthorized": "You are not authorized to view this page",
+    "serverError": "Something went wrong",
+    "tryAgain": "Try again",
+    "goHome": "Go home"
+  }
+}

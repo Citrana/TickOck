@@ -1,0 +1,85 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "events": "Événements",
+    "tickets": "Mes billets",
+    "account": "Compte",
+    "admin": "Admin",
+    "login": "Se connecter",
+    "register": "S'inscrire",
+    "logout": "Se déconnecter",
+    "languageToggle": "EN"
+  },
+  "auth": {
+    "login": {
+      "title": "Se connecter",
+      "emailLabel": "Adresse e-mail",
+      "passwordLabel": "Mot de passe",
+      "submitButton": "Se connecter",
+      "noAccount": "Vous n'avez pas de compte ?",
+      "registerLink": "S'inscrire"
+    },
+    "register": {
+      "title": "Créer un compte",
+      "nameLabel": "Nom complet",
+      "emailLabel": "Adresse e-mail",
+      "passwordLabel": "Mot de passe",
+      "submitButton": "Créer un compte",
+      "hasAccount": "Vous avez déjà un compte ?",
+      "loginLink": "Se connecter"
+    }
+  },
+  "events": {
+    "title": "Événements",
+    "noEvents": "Aucun événement trouvé.",
+    "search": "Rechercher des événements",
+    "detail": {
+      "tickets": "Billets",
+      "buyButton": "Acheter des billets",
+      "date": "Date",
+      "location": "Lieu",
+      "organizer": "Organisateur"
+    }
+  },
+  "tickets": {
+    "title": "Mes billets",
+    "noTickets": "Vous n'avez pas encore de billets.",
+    "status": {
+      "active": "Actif",
+      "pending": "En attente",
+      "cancelled": "Annulé"
+    },
+    "downloadPdf": "Télécharger le PDF",
+    "cancelButton": "Annuler le billet"
+  },
+  "checkout": {
+    "title": "Paiement",
+    "orderSummary": "Récapitulatif de commande",
+    "paymentInstructions": "Instructions de paiement",
+    "uploadProof": "Télécharger la preuve de paiement",
+    "submitButton": "Soumettre la commande",
+    "total": "Total"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "welcome": "Bon retour",
+    "recentOrders": "Commandes récentes",
+    "upcomingEvents": "Événements à venir"
+  },
+  "admin": {
+    "title": "Panneau d'administration",
+    "events": "Gérer les événements",
+    "users": "Gérer les utilisateurs",
+    "payments": "Paiements",
+    "createEvent": "Créer un événement",
+    "pendingPayments": "Paiements en attente",
+    "auditLog": "Journal d'audit"
+  },
+  "errors": {
+    "notFound": "Page introuvable",
+    "unauthorized": "Vous n'êtes pas autorisé à voir cette page",
+    "serverError": "Une erreur s'est produite",
+    "tryAgain": "Réessayer",
+    "goHome": "Aller à l'accueil"
+  }
+}
