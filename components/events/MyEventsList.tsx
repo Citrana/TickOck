@@ -96,13 +96,21 @@ export default function MyEventsList({limit}: Props) {
               )}
 
               {/* Actions */}
-              <div className="mt-3 flex items-center gap-2">
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 <Link
                   href={`/events/${event._id}`}
                   className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
                 >
                   {t('actions.view')}
                 </Link>
+                {(event.status === 'live' || event.status === 'pending_approval') && (
+                  <Link
+                    href={`/events/${event._id}/manage`}
+                    className="rounded-lg border border-orange-200 px-3 py-1.5 text-xs font-medium text-orange-700 transition-colors hover:bg-orange-50"
+                  >
+                    {t('actions.manage')}
+                  </Link>
+                )}
                 {canEdit && (
                   <Link
                     href={`/events/${event._id}/edit`}

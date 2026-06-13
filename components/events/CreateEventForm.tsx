@@ -113,7 +113,7 @@ async function uploadFile(
 // Component
 // ---------------------------------------------------------------------------
 
-export default function CreateEventForm({existingEventId, locale}: Props) {
+export default function CreateEventForm({existingEventId, locale: _locale}: Props) {
   const t = useTranslations('eventCreate');
   const router = useRouter();
 
@@ -259,11 +259,6 @@ export default function CreateEventForm({existingEventId, locale}: Props) {
   // ---------------------------------------------------------------------------
 
   function buildEventArgs(current: EventFormData) {
-    const totalTickets = current.tiers.reduce((sum, tier) => {
-      const qty = parseInt(tier.quantity, 10);
-      return sum + (isNaN(qty) ? 0 : qty);
-    }, 0);
-
     const feeResult =
       pricingRules && pricingRules.length > 0
         ? calculatePlatformFee(current.tiers, pricingRules)

@@ -99,6 +99,7 @@ export default defineSchema({
       v.literal('used'),
       v.literal('expired'),
     ),
+    ticketNumber: v.optional(v.string()),
     qrSignature: v.optional(v.string()),
     scannedBy: v.optional(v.id('users')),
     scannedAt: v.optional(v.number()),
@@ -107,7 +108,8 @@ export default defineSchema({
     .index('by_userId', ['userId'])
     .index('by_eventId', ['eventId'])
     .index('by_tierId', ['tierId'])
-    .index('by_eventId_and_userId', ['eventId', 'userId']),
+    .index('by_eventId_and_userId', ['eventId', 'userId'])
+    .index('by_ticketNumber', ['ticketNumber']),
 
   payments: defineTable({
     ticketId: v.id('tickets'),

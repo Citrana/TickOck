@@ -88,7 +88,17 @@
   "events": {
     "title": "Événements",
     "noEvents": "Aucun événement trouvé.",
+    "noEventsFiltered": "Aucun événement ne correspond à vos filtres.",
+    "clearFilters": "Effacer les filtres",
     "search": "Rechercher des événements",
+    "filterCategory": "Catégorie",
+    "filterCity": "Ville",
+    "filterDate": "À partir du",
+    "allCategories": "Toutes les catégories",
+    "free": "Gratuit",
+    "soldOut": "Complet",
+    "from": "à partir de",
+    "available": "disponible(s)",
     "detail": {
       "tickets": "Billets",
       "buyButton": "Acheter des billets",
@@ -100,21 +110,69 @@
   "tickets": {
     "title": "Mes billets",
     "noTickets": "Vous n'avez pas encore de billets.",
+    "browseEvents": "Parcourir les événements",
     "status": {
+      "pending_payment": "Paiement en attente",
+      "confirmed": "Confirmé",
+      "cancelled": "Annulé",
+      "used": "Utilisé",
+      "expired": "Expiré",
       "active": "Actif",
-      "pending": "En attente",
-      "cancelled": "Annulé"
+      "pending": "En attente"
     },
     "downloadPdf": "Télécharger le PDF",
-    "cancelButton": "Annuler le billet"
+    "cancelButton": "Annuler le billet",
+    "cancelConfirm": "Êtes-vous sûr de vouloir annuler ce billet ? Cette action est irréversible.",
+    "cancelSuccess": "Billet annulé.",
+    "cancelFailed": "Impossible d'annuler le billet.",
+    "uploadProofButton": "Télécharger la preuve de paiement",
+    "proofUploaded": "✓ Preuve soumise",
+    "awaitingConfirmation": "En attente de confirmation",
+    "tier": "Niveau",
+    "price": "Prix",
+    "qrCode": "Code QR",
+    "orderDate": "Commandé"
   },
   "checkout": {
     "title": "Paiement",
     "orderSummary": "Récapitulatif de commande",
     "paymentInstructions": "Instructions de paiement",
     "uploadProof": "Télécharger la preuve de paiement",
-    "submitButton": "Soumettre la commande",
-    "total": "Total"
+    "submitButton": "Passer la commande",
+    "total": "Total",
+    "selectTier": "Choisissez un niveau de billet",
+    "quantity": "Quantité",
+    "quantityLabel": "Combien de billets ?",
+    "perTicket": "par billet",
+    "free": "Gratuit",
+    "remaining": "restant(s)",
+    "soldOut": "Complet",
+    "manualPaymentNote": "Cet événement utilise le paiement manuel. Après avoir passé votre commande, effectuez le virement et téléchargez votre preuve de paiement ci-dessous.",
+    "transferInstruction": "Transférez {amount} {currency} à l'organisateur de l'événement.",
+    "proofLabel": "Capture d'écran du paiement",
+    "proofHint": "Téléchargez une capture d'écran ou un PDF de votre virement bancaire.",
+    "proofButton": "Choisir un fichier",
+    "proofUploaded": "✓ Preuve téléchargée",
+    "submitting": "Commande en cours…",
+    "confirmOrder": "Confirmer la commande",
+    "uploadingProof": "Envoi…",
+    "submitProof": "Soumettre la preuve de paiement",
+    "orderPlaced": "Commande passée !",
+    "orderPlacedMessage": "Vos billets sont réservés.",
+    "manualNextStep": "Téléchargez votre preuve de paiement pour confirmer votre commande.",
+    "freeOrderMessage": "Vos billets sont confirmés — aucun paiement requis.",
+    "viewTickets": "Voir mes billets",
+    "eventNotFound": "Événement introuvable.",
+    "eventNotLive": "Cet événement n'accepte pas de commandes pour le moment.",
+    "noTiersAvailable": "Aucun niveau de billet disponible.",
+    "errors": {
+      "tierRequired": "Veuillez choisir un niveau de billet.",
+      "quantityRequired": "Veuillez sélectionner au moins 1 billet.",
+      "noStock": "Pas assez de billets disponibles.",
+      "generic": "Impossible de passer la commande. Veuillez réessayer.",
+      "proofRequired": "Veuillez télécharger votre preuve de paiement.",
+      "proofFailed": "Échec du téléchargement. Veuillez réessayer."
+    }
   },
   "dashboard": {
     "title": "Mon compte",
@@ -134,7 +192,8 @@
     "rejected": "Rejeté",
     "actions": {
       "view": "Voir",
-      "edit": "Modifier"
+      "edit": "Modifier",
+      "manage": "Gérer"
     }
   },
   "eventDetail": {
@@ -152,6 +211,7 @@
     "free": "Gratuit",
     "buyButton": "Obtenir des billets",
     "speakers": "Intervenants & invités",
+    "manageButton": "Gérer l'événement",
     "editButton": "Modifier l'événement",
     "pendingReview": "En cours d'examen",
     "rejectedTitle": "Événement rejeté",
@@ -166,7 +226,8 @@
       "pendingEvents": "Événements en attente",
       "pricing": "Tarification",
       "users": "Utilisateurs",
-      "auditLog": "Journal d'audit"
+      "auditLog": "Journal d'audit",
+      "reports": "Rapports d'événements"
     },
     "cards": {
       "pendingEvents": "Examiner et approuver les soumissions d'événements",
@@ -243,6 +304,197 @@
       "confirmReject": "Confirmer le rejet",
       "cancel": "Annuler",
       "processing": "Traitement…"
+    },
+    "reports": {
+      "navLabel": "Rapports d'événements",
+      "pageTitle": "Rapports d'événements",
+      "pageSubtitle": "Consultez et filtrez tous les événements de la plateforme.",
+      "loading": "Chargement des événements…",
+      "empty": "Aucun événement ne correspond à vos filtres.",
+      "emptySubtitle": "Essayez d'ajuster ou de supprimer les filtres.",
+      "filterButton": "Filtrer",
+      "columnsButton": "Colonnes",
+      "clearFilters": "Effacer les filtres",
+      "resultsCount": "{count} événements",
+      "filterPanel": {
+        "title": "Filtres",
+        "name": "Nom de l'événement",
+        "namePlaceholder": "Rechercher par nom…",
+        "status": "Statut",
+        "dateFrom": "Date du",
+        "dateTo": "Date au",
+        "category": "Catégorie",
+        "categoryPlaceholder": "Toute catégorie",
+        "city": "Ville",
+        "cityPlaceholder": "Toute ville",
+        "visibility": "Visibilité",
+        "paymentMode": "Mode de paiement",
+        "all": "Tous",
+        "clearAll": "Tout effacer",
+        "close": "Fermer"
+      },
+      "cols": {
+        "title": "Titre",
+        "status": "Statut",
+        "date": "Date",
+        "startTime": "Heure de début",
+        "city": "Ville",
+        "owner": "Propriétaire",
+        "category": "Catégorie",
+        "venue": "Lieu",
+        "visibility": "Visibilité",
+        "paymentMode": "Mode de paiement",
+        "tierCount": "Niveaux",
+        "createdAt": "Créé le"
+      },
+      "status": {
+        "draft": "Brouillon",
+        "pending_approval": "En attente",
+        "live": "En ligne",
+        "rejected": "Rejeté"
+      },
+      "visibility": {
+        "public": "Public",
+        "private": "Privé",
+        "unlisted": "Non répertorié"
+      },
+      "paymentMode": {
+        "online": "En ligne",
+        "manual": "Manuel"
+      }
+    }
+  },
+  "manage": {
+    "title": "Gérer l'événement",
+    "backToEvent": "← Retour à l'événement",
+    "accessDenied": "Vous n'avez pas la permission de gérer cet événement.",
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "payments": "Paiements",
+      "attendees": "Participants",
+      "staff": "Équipe",
+      "checkin": "Contrôle"
+    },
+    "overview": {
+      "confirmedRevenue": "Revenus confirmés",
+      "pendingRevenue": "En attente",
+      "ticketsSold": "Billets vendus",
+      "ticketsAvailable": "Encore disponibles",
+      "tierBreakdown": "Détail par niveau",
+      "tierName": "Niveau",
+      "tierPrice": "Prix",
+      "tierSold": "Vendus",
+      "tierAvailable": "Disponibles",
+      "tierRevenue": "Revenus",
+      "noTiers": "Aucun niveau de billet configuré.",
+      "free": "Gratuit"
+    },
+    "payments": {
+      "empty": "Aucun paiement pour l'instant.",
+      "emptyFiltered": "Aucun paiement ne correspond à ce filtre.",
+      "filterAll": "Tous",
+      "filterPending": "En attente",
+      "filterConfirmed": "Confirmés",
+      "filterRejected": "Rejetés",
+      "buyer": "Acheteur",
+      "amount": "Montant",
+      "method": "Méthode",
+      "status": "Statut",
+      "proof": "Preuve",
+      "viewProof": "Voir la preuve",
+      "noProof": "Aucune preuve",
+      "methodManual": "Manuel",
+      "methodOnline": "En ligne",
+      "statusPending": "En attente",
+      "statusConfirmed": "Confirmé",
+      "statusRejected": "Rejeté",
+      "statusRefunded": "Remboursé",
+      "confirm": "Confirmer",
+      "reject": "Rejeter",
+      "confirmTitle": "Confirmer le paiement",
+      "rejectTitle": "Rejeter le paiement",
+      "rejectReasonPlaceholder": "Motif du rejet (optionnel)",
+      "processing": "Traitement…",
+      "cancel": "Annuler",
+      "confirmSuccess": "Paiement confirmé.",
+      "rejectSuccess": "Paiement rejeté.",
+      "error": "Impossible de traiter le paiement."
+    },
+    "attendees": {
+      "empty": "Aucun participant pour l'instant.",
+      "emptyFiltered": "Aucun participant ne correspond à ce filtre.",
+      "filterAll": "Tous",
+      "filterConfirmed": "Confirmés",
+      "filterPending": "Paiement en attente",
+      "filterUsed": "Utilisés",
+      "filterCancelled": "Annulés",
+      "name": "Participant",
+      "tier": "Niveau",
+      "status": "Statut",
+      "date": "Date",
+      "statusPendingPayment": "En attente",
+      "statusConfirmed": "Confirmé",
+      "statusCancelled": "Annulé",
+      "statusUsed": "Utilisé",
+      "statusExpired": "Expiré"
+    },
+    "staff": {
+      "empty": "Aucun co-gestionnaire. Ajoutez des membres d'équipe pour vous aider à gérer cet événement.",
+      "addTitle": "Ajouter un membre",
+      "emailLabel": "Adresse e-mail",
+      "emailPlaceholder": "equipe@exemple.com",
+      "roleLabel": "Rôle",
+      "roles": {
+        "co_organizer": "Co-organisateur",
+        "scanner": "Contrôleur de billets",
+        "finance": "Gestionnaire financier"
+      },
+      "roleDescriptions": {
+        "co_organizer": "Peut voir les participants, scanner les billets et gérer les paiements",
+        "scanner": "Peut accueillir les participants en scannant leurs billets",
+        "finance": "Peut voir les participants et confirmer ou rejeter les paiements"
+      },
+      "addButton": "Ajouter",
+      "adding": "Ajout…",
+      "removeButton": "Retirer",
+      "removing": "Suppression…",
+      "memberName": "Nom",
+      "memberEmail": "E-mail",
+      "memberRole": "Permissions",
+      "permissionTicketsRead": "Voir les participants",
+      "permissionTicketsScan": "Scanner les billets",
+      "permissionPaymentsView": "Voir les paiements",
+      "permissionPaymentsConfirm": "Confirmer les paiements",
+      "permissionPaymentsReject": "Rejeter les paiements",
+      "addSuccess": "Membre ajouté.",
+      "removeSuccess": "Membre retiré.",
+      "errors": {
+        "emailRequired": "Veuillez saisir une adresse e-mail.",
+        "addFailed": "Impossible d'ajouter le membre.",
+        "removeFailed": "Impossible de supprimer le membre."
+      }
+    },
+    "checkin": {
+      "title": "Contrôle des participants",
+      "description": "Saisissez un numéro de billet ou le contenu QR (TOCK:…) pour enregistrer un participant.",
+      "inputPlaceholder": "Numéro de billet ou contenu QR",
+      "lookupButton": "Rechercher",
+      "checkInButton": "Valider l'entrée",
+      "checkingIn": "Validation…",
+      "notFound": "Aucun billet trouvé pour cet événement.",
+      "success": "Entrée validée avec succès !",
+      "tier": "Niveau",
+      "alreadyUsedAt": "Déjà utilisé à {time}",
+      "recentTitle": "Dernières entrées",
+      "noRecent": "Aucune entrée pour l'instant.",
+      "errorGeneric": "Échec du contrôle. Veuillez réessayer.",
+      "status": {
+        "confirmed": "Prêt",
+        "used": "Déjà utilisé",
+        "cancelled": "Annulé",
+        "pending_payment": "Paiement manquant",
+        "expired": "Expiré"
+      }
     }
   },
   "errors": {

@@ -503,17 +503,148 @@ export const listMine = query({
   },
 });
 
-// Returns up to 20 recent live public events for the discovery feed.
+/**
+ * Returns live public events for the discovery feed, optionally filtered by
+ * category, city substring, or start date. Returns up to 20 results enriched
+ * with cover image URL and minimum tier price.
+ */
 export const listLive = query({
-  args: {},
-  handler: async ctx => {
-    return await ctx.db
+  args: {
+    category: v.optional(v.string()),
+    city: v.optional(v.string()),
+    dateFrom: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // Fetch more than the limit so filters can narrow the set
+    const events = await ctx.db
       .query('events')
       .withIndex('by_status_and_visibility', q =>
         q.eq('status', 'live').eq('visibility', 'public'),
       )
-      .order('desc')
-      .take(20);
+      .order('asc')
+      .take(100);
+
+    let filtered = events;
+
+    if (args.category) {
+      filtered = filtered.filter(e => e.category === args.category);
+    }
+    if (args.city) {
+      const city = args.city.toLowerCase();
+      filtered = filtered.filter(e => e.venue.city.toLowerCase().includes(city));
+    }
+    if (args.dateFrom !== undefined) {
+      filtered = filtered.filter(e => e.date >= args.dateFrom!);
+    }
+
+    return await Promise.all(
+      filtered.slice(0, 20).map(async event => {
+        const [coverImageUrl, tiers] = await Promise.all([
+          event.coverImageStorageId
+            ? ctx.storage.getUrl(event.coverImageStorageId)
+            : Promise.resolve(null),
+          ctx.db
+            .query('ticketTiers')
+            .withIndex('by_eventId', q => q.eq('eventId', event._id))
+            .take(20),
+        ]);
+
+        const prices = tiers.map(t => t.price);
+        const minPrice = prices.length > 0 ? Math.min(...prices) : null;
+        const tierCurrency = tiers[0]?.currency ?? null;
+        const totalAvailable = tiers.reduce(
+          (sum, t) => sum + (t.quantity - t.quantitySold),
+          0,
+        );
+
+        return {
+          ...event,
+          coverImageUrl,
+          minPrice,
+          tierCurrency,
+          totalAvailable,
+          tierCount: tiers.length,
+        };
+      }),
+    );
+  },
+});
+
+/**
+ * Returns aggregated sales stats for an event. Accessible to the event owner
+ * and any event staff member.
+ */
+export const getStats = query({
+  args: {eventId: v.id('events')},
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return null;
+
+    const event = await ctx.db.get(args.eventId);
+    if (!event) return null;
+
+    const isOwner = event.ownerId === userId;
+    if (!isOwner) {
+      const staff = await ctx.db
+        .query('eventStaff')
+        .withIndex('by_eventId_and_userId', q =>
+          q.eq('eventId', args.eventId).eq('userId', userId),
+        )
+        .unique();
+      if (!staff) return null;
+    }
+
+    const [tiers, tickets, payments] = await Promise.all([
+      ctx.db
+        .query('ticketTiers')
+        .withIndex('by_eventId', q => q.eq('eventId', args.eventId))
+        .collect(),
+      ctx.db
+        .query('tickets')
+        .withIndex('by_eventId', q => q.eq('eventId', args.eventId))
+        .take(1000),
+      ctx.db
+        .query('payments')
+        .withIndex('by_eventId', q => q.eq('eventId', args.eventId))
+        .take(1000),
+    ]);
+
+    const ticketCounts = {
+      pending_payment: 0,
+      confirmed: 0,
+      cancelled: 0,
+      used: 0,
+      expired: 0,
+    } as Record<string, number>;
+    for (const t of tickets) ticketCounts[t.status] = (ticketCounts[t.status] ?? 0) + 1;
+
+    let totalRevenue = 0;
+    let pendingRevenue = 0;
+    const paymentCounts = {pending: 0, confirmed: 0, rejected: 0, refunded: 0} as Record<string, number>;
+    for (const p of payments) {
+      paymentCounts[p.status] = (paymentCounts[p.status] ?? 0) + 1;
+      if (p.status === 'confirmed') totalRevenue += p.amount;
+      if (p.status === 'pending') pendingRevenue += p.amount;
+    }
+
+    const currency = tiers[0]?.currency ?? null;
+
+    return {
+      currency,
+      totalRevenue,
+      pendingRevenue,
+      ticketCounts,
+      paymentCounts,
+      tiers: tiers.map(t => ({
+        _id: t._id,
+        name: t.name,
+        price: t.price,
+        currency: t.currency,
+        quantity: t.quantity,
+        quantitySold: t.quantitySold,
+        available: t.quantity - t.quantitySold,
+      })),
+    };
   },
 });
 
