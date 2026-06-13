@@ -12,6 +12,12 @@ const nextConfig = {
         hostname: '*.convex.cloud',
         pathname: '/api/storage/**',
       },
+      {
+        // QR code generation for ticket display
+        protocol: 'https',
+        hostname: 'api.qrserver.com',
+        pathname: '/v1/create-qr-code/**',
+      },
     ],
   },
 };

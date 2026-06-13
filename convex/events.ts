@@ -503,17 +503,70 @@ export const listMine = query({
   },
 });
 
-// Returns up to 20 recent live public events for the discovery feed.
+/**
+ * Returns live public events for the discovery feed, optionally filtered by
+ * category, city substring, or start date. Returns up to 20 results enriched
+ * with cover image URL and minimum tier price.
+ */
 export const listLive = query({
-  args: {},
-  handler: async ctx => {
-    return await ctx.db
+  args: {
+    category: v.optional(v.string()),
+    city: v.optional(v.string()),
+    dateFrom: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // Fetch more than the limit so filters can narrow the set
+    const events = await ctx.db
       .query('events')
       .withIndex('by_status_and_visibility', q =>
         q.eq('status', 'live').eq('visibility', 'public'),
       )
-      .order('desc')
-      .take(20);
+      .order('asc')
+      .take(100);
+
+    let filtered = events;
+
+    if (args.category) {
+      filtered = filtered.filter(e => e.category === args.category);
+    }
+    if (args.city) {
+      const city = args.city.toLowerCase();
+      filtered = filtered.filter(e => e.venue.city.toLowerCase().includes(city));
+    }
+    if (args.dateFrom !== undefined) {
+      filtered = filtered.filter(e => e.date >= args.dateFrom!);
+    }
+
+    return await Promise.all(
+      filtered.slice(0, 20).map(async event => {
+        const [coverImageUrl, tiers] = await Promise.all([
+          event.coverImageStorageId
+            ? ctx.storage.getUrl(event.coverImageStorageId)
+            : Promise.resolve(null),
+          ctx.db
+            .query('ticketTiers')
+            .withIndex('by_eventId', q => q.eq('eventId', event._id))
+            .take(20),
+        ]);
+
+        const prices = tiers.map(t => t.price);
+        const minPrice = prices.length > 0 ? Math.min(...prices) : null;
+        const tierCurrency = tiers[0]?.currency ?? null;
+        const totalAvailable = tiers.reduce(
+          (sum, t) => sum + (t.quantity - t.quantitySold),
+          0,
+        );
+
+        return {
+          ...event,
+          coverImageUrl,
+          minPrice,
+          tierCurrency,
+          totalAvailable,
+          tierCount: tiers.length,
+        };
+      }),
+    );
   },
 });
 

@@ -10,12 +10,15 @@
 
 import type * as _helpers_audit from "../_helpers/audit.js";
 import type * as _helpers_permissions from "../_helpers/permissions.js";
+import type * as _helpers_qr from "../_helpers/qr.js";
 import type * as auth from "../auth.js";
 import type * as emailVerification from "../emailVerification.js";
 import type * as events from "../events.js";
 import type * as http from "../http.js";
+import type * as payments from "../payments.js";
 import type * as platformPricing from "../platformPricing.js";
 import type * as roles from "../roles.js";
+import type * as tickets from "../tickets.js";
 import type * as users from "../users.js";
 
 import type {
@@ -27,12 +30,15 @@ import type {
 declare const fullApi: ApiFromModules<{
   "_helpers/audit": typeof _helpers_audit;
   "_helpers/permissions": typeof _helpers_permissions;
+  "_helpers/qr": typeof _helpers_qr;
   auth: typeof auth;
   emailVerification: typeof emailVerification;
   events: typeof events;
   http: typeof http;
+  payments: typeof payments;
   platformPricing: typeof platformPricing;
   roles: typeof roles;
+  tickets: typeof tickets;
   users: typeof users;
 }>;
 
