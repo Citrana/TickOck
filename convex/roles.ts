@@ -80,6 +80,58 @@ export const initSystemRoles = mutation({
   },
 });
 
+// One-time bootstrap called from the Convex dashboard to create system roles
+// AND assign super_admin to a specific user email.
+// No-ops if a super_admin is already assigned — safe to call repeatedly.
+export const bootstrapSuperAdmin = mutation({
+  args: {email: v.string()},
+  handler: async (ctx, args) => {
+    // Guard: abort if any user already has super_admin
+    const superAdminRole = await ctx.db
+      .query('roles')
+      .withIndex('by_name', q => q.eq('name', 'super_admin'))
+      .unique();
+
+    if (superAdminRole) {
+      const alreadyAssigned = await ctx.db
+        .query('users')
+        .withIndex('by_platformRoleId', q =>
+          q.eq('platformRoleId', superAdminRole._id),
+        )
+        .first();
+      if (alreadyAssigned) {
+        return {ok: false, message: 'A super_admin already exists — bootstrap skipped.'};
+      }
+    }
+
+    // Seed system roles if they don't exist yet
+    let roleId = superAdminRole?._id;
+    if (!roleId) {
+      for (const role of SYSTEM_ROLES) {
+        const id = await ctx.db.insert('roles', {
+          name: role.name,
+          permissionSlugs: [...role.permissionSlugs],
+          isSystem: role.isSystem,
+        });
+        if (role.name === 'super_admin') roleId = id;
+      }
+    }
+
+    // Find the target user by email
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_email', q => q.eq('email', args.email))
+      .unique();
+    if (!user) {
+      return {ok: false, message: `No user found with email "${args.email}". Register first, then run this again.`};
+    }
+
+    await ctx.db.patch(user._id, {platformRoleId: roleId});
+
+    return {ok: true, message: `"${args.email}" is now super_admin.`};
+  },
+});
+
 // Internal variant for use by other Convex functions (e.g. a cron or startup action).
 export const seedSystemRolesInternal = internalMutation({
   args: {},

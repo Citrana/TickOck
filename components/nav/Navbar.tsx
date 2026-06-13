@@ -46,6 +46,12 @@ export default async function Navbar() {
             >
               {t('pricing')}
             </Link>
+            <Link
+              href="/events/create"
+              className="text-sm font-medium text-rose-600 transition-colors hover:text-rose-800"
+            >
+              {t('createEvent')}
+            </Link>
           </nav>
 
           {/* Right actions */}

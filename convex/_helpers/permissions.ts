@@ -10,6 +10,7 @@ export type PermissionSlug =
   | 'events:edit'
   | 'events:delete'
   | 'events:view'
+  | 'events:approve'
   | 'tickets:create'
   | 'tickets:cancel'
   | 'tickets:read'
@@ -26,6 +27,7 @@ export type PermissionSlug =
   | 'roles:assign'
   | 'roles:view'
   | 'staff:manage'
+  | 'platform:configure'
   | 'auditlogs:view';
 
 function slugMatches(granted: string[], required: PermissionSlug): boolean {
