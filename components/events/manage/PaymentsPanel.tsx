@@ -3,8 +3,10 @@
 import {useState} from 'react';
 import {useQuery, useMutation} from 'convex/react';
 import {useTranslations} from 'next-intl';
+import {toast} from 'sonner';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
+import {parseConvexError} from '@/lib/errors';
 
 type Props = {eventId: Id<'events'>};
 
@@ -27,7 +29,6 @@ export default function PaymentsPanel({eventId}: Props) {
   const [rejecting, setRejecting] = useState<Id<'payments'> | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [processing, setProcessing] = useState<Id<'payments'> | null>(null);
-  const [error, setError] = useState('');
 
   if (payments === undefined) {
     return (
@@ -50,26 +51,26 @@ export default function PaymentsPanel({eventId}: Props) {
   ];
 
   async function handleConfirm(paymentId: Id<'payments'>) {
-    setError('');
     setProcessing(paymentId);
     try {
       await confirmPayment({paymentId});
+      toast.success(t('confirmSuccess'));
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
+      toast.error(parseConvexError(err, t('error')));
     } finally {
       setProcessing(null);
     }
   }
 
   async function handleReject(paymentId: Id<'payments'>) {
-    setError('');
     setProcessing(paymentId);
     try {
       await rejectPayment({paymentId, reason: rejectReason || undefined});
       setRejecting(null);
       setRejectReason('');
+      toast.success(t('rejectSuccess'));
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
+      toast.error(parseConvexError(err, t('error')));
     } finally {
       setProcessing(null);
     }
@@ -98,10 +99,6 @@ export default function PaymentsPanel({eventId}: Props) {
           </button>
         ))}
       </div>
-
-      {error && (
-        <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>
-      )}
 
       {filtered.length === 0 ? (
         <p className="py-12 text-center text-sm text-gray-400">

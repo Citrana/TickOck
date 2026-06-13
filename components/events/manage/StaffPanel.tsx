@@ -3,9 +3,11 @@
 import {useState} from 'react';
 import {useQuery, useMutation} from 'convex/react';
 import {useTranslations} from 'next-intl';
+import {toast} from 'sonner';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 import {STAFF_PRESETS, type StaffPreset} from '@/convex/eventStaff';
+import {parseConvexError} from '@/lib/errors';
 
 type Props = {eventId: Id<'events'>};
 
@@ -29,7 +31,6 @@ export default function StaffPanel({eventId}: Props) {
   const [preset, setPreset] = useState<StaffPreset>('co_organizer');
   const [adding, setAdding] = useState(false);
   const [removingId, setRemovingId] = useState<Id<'eventStaff'> | null>(null);
-  const [addError, setAddError] = useState('');
 
   if (staff === undefined) {
     return (
@@ -43,10 +44,9 @@ export default function StaffPanel({eventId}: Props) {
 
   async function handleAdd() {
     if (!email.trim()) {
-      setAddError(t('errors.emailRequired'));
+      toast.error(t('errors.emailRequired'));
       return;
     }
-    setAddError('');
     setAdding(true);
     try {
       await addStaffMutation({
@@ -55,8 +55,9 @@ export default function StaffPanel({eventId}: Props) {
         permissionSlugs: [...STAFF_PRESETS[preset]],
       });
       setEmail('');
+      toast.success(t('addSuccess'));
     } catch (err: unknown) {
-      setAddError(err instanceof Error ? err.message : t('errors.addFailed'));
+      toast.error(parseConvexError(err, t('errors.addFailed')));
     } finally {
       setAdding(false);
     }
@@ -66,8 +67,9 @@ export default function StaffPanel({eventId}: Props) {
     setRemovingId(staffId);
     try {
       await removeStaffMutation({staffId});
-    } catch {
-      // silent
+      toast.success(t('removeSuccess'));
+    } catch (err: unknown) {
+      toast.error(parseConvexError(err, t('errors.removeFailed')));
     } finally {
       setRemovingId(null);
     }
@@ -89,6 +91,9 @@ export default function StaffPanel({eventId}: Props) {
               placeholder={t('emailPlaceholder')}
               value={email}
               onChange={e => setEmail(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') handleAdd();
+              }}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
             />
           </div>
@@ -122,10 +127,6 @@ export default function StaffPanel({eventId}: Props) {
               ))}
             </div>
           </div>
-
-          {addError && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{addError}</p>
-          )}
 
           <button
             onClick={handleAdd}

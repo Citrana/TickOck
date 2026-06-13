@@ -17,7 +17,8 @@
     "next-intl": "^3.26.5",
     "pdf-lib": "^1.17.1",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
     "@next/swc-darwin-arm64": "^16.2.9",

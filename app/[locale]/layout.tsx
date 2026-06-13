@@ -9,6 +9,7 @@ import Navbar from '@/components/nav/Navbar';
 import {ConvexClientProvider} from '@/components/providers/ConvexClientProvider';
 import {AuthGuard} from '@/components/auth/AuthGuard';
 import {routing} from '@/i18n/routing';
+import {Toaster} from 'sonner';
 
 const geistSans = localFont({
   src: '../fonts/GeistVF.woff',
@@ -60,6 +61,7 @@ export default async function LocaleLayout({
               <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 {children}
               </main>
+              <Toaster position="top-right" richColors />
             </ConvexClientProvider>
           </NextIntlClientProvider>
         </body>

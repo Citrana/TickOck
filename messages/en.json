@@ -356,7 +356,10 @@
       "rejectTitle": "Reject payment",
       "rejectReasonPlaceholder": "Reason for rejection (optional)",
       "processing": "Processing…",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "confirmSuccess": "Payment confirmed.",
+      "rejectSuccess": "Payment rejected.",
+      "error": "Failed to process payment."
     },
     "attendees": {
       "empty": "No attendees yet.",
@@ -404,6 +407,8 @@
       "permissionPaymentsView": "View payments",
       "permissionPaymentsConfirm": "Confirm payments",
       "permissionPaymentsReject": "Reject payments",
+      "addSuccess": "Team member added.",
+      "removeSuccess": "Team member removed.",
       "errors": {
         "emailRequired": "Please enter an email address.",
         "addFailed": "Failed to add team member.",

@@ -356,7 +356,10 @@
       "rejectTitle": "Rejeter le paiement",
       "rejectReasonPlaceholder": "Motif du rejet (optionnel)",
       "processing": "Traitement…",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "confirmSuccess": "Paiement confirmé.",
+      "rejectSuccess": "Paiement rejeté.",
+      "error": "Impossible de traiter le paiement."
     },
     "attendees": {
       "empty": "Aucun participant pour l'instant.",
@@ -404,6 +407,8 @@
       "permissionPaymentsView": "Voir les paiements",
       "permissionPaymentsConfirm": "Confirmer les paiements",
       "permissionPaymentsReject": "Rejeter les paiements",
+      "addSuccess": "Membre ajouté.",
+      "removeSuccess": "Membre retiré.",
       "errors": {
         "emailRequired": "Veuillez saisir une adresse e-mail.",
         "addFailed": "Impossible d'ajouter le membre.",

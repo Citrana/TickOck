@@ -4,9 +4,11 @@ import {useState} from 'react';
 import Image from 'next/image';
 import {useMutation} from 'convex/react';
 import {useTranslations} from 'next-intl';
+import {toast} from 'sonner';
 import {Link} from '@/lib/navigation';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
+import {parseConvexError} from '@/lib/errors';
 
 type TicketStatus = 'pending_payment' | 'confirmed' | 'cancelled' | 'used' | 'expired';
 
@@ -51,7 +53,6 @@ export default function TicketCard({ticket}: TicketCardProps) {
   const cancelMutation = useMutation(api.tickets.cancel);
 
   const [cancelling, setCancelling] = useState(false);
-  const [cancelError, setCancelError] = useState('');
   const [showQr, setShowQr] = useState(false);
 
   const event = ticket.event;
@@ -75,12 +76,12 @@ export default function TicketCard({ticket}: TicketCardProps) {
 
   async function handleCancel() {
     if (!confirm(t('cancelConfirm'))) return;
-    setCancelError('');
     setCancelling(true);
     try {
       await cancelMutation({ticketId: ticket._id});
+      toast.success(t('cancelSuccess'));
     } catch (err: unknown) {
-      setCancelError(err instanceof Error ? err.message : t('cancelFailed'));
+      toast.error(parseConvexError(err, t('cancelFailed')));
     } finally {
       setCancelling(false);
     }
@@ -205,20 +206,15 @@ export default function TicketCard({ticket}: TicketCardProps) {
       )}
 
       {/* Actions */}
-      {(canCancel || cancelError) && (
+      {canCancel && (
         <div className="border-t border-gray-100 px-4 py-3">
-          {cancelError && (
-            <p className="mb-2 text-xs text-red-600">{cancelError}</p>
-          )}
-          {canCancel && (
-            <button
-              onClick={handleCancel}
-              disabled={cancelling}
-              className="text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
-            >
-              {cancelling ? '…' : t('cancelButton')}
-            </button>
-          )}
+          <button
+            onClick={handleCancel}
+            disabled={cancelling}
+            className="text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+          >
+            {cancelling ? '…' : t('cancelButton')}
+          </button>
         </div>
       )}
     </div>

@@ -3,8 +3,10 @@
 import {useState} from 'react';
 import {useQuery, useMutation} from 'convex/react';
 import {useTranslations} from 'next-intl';
+import {toast} from 'sonner';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
+import {parseConvexError} from '@/lib/errors';
 
 type Props = {eventId: Id<'events'>};
 
@@ -12,8 +14,6 @@ export default function CheckInPanel({eventId}: Props) {
   const t = useTranslations('manage.checkin');
   const [input, setInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [lastResult, setLastResult] = useState<{name: string; tier: string} | null>(null);
-  const [error, setError] = useState('');
   const [checking, setChecking] = useState(false);
 
   const preview = useQuery(
@@ -24,22 +24,19 @@ export default function CheckInPanel({eventId}: Props) {
   const checkInMutation = useMutation(api.tickets.checkIn);
 
   function handleLookup() {
-    setError('');
-    setLastResult(null);
     setSearchTerm(input.trim());
   }
 
   async function handleCheckIn() {
     if (!searchTerm) return;
-    setError('');
     setChecking(true);
     try {
       const result = await checkInMutation({eventId, identifier: searchTerm});
-      setLastResult({name: result.buyerName, tier: result.tierName});
+      toast.success(t('success'), {description: `${result.buyerName} · ${result.tierName}`});
       setInput('');
       setSearchTerm('');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('errorGeneric'));
+      toast.error(parseConvexError(err, t('errorGeneric')));
     } finally {
       setChecking(false);
     }
@@ -66,8 +63,6 @@ export default function CheckInPanel({eventId}: Props) {
             value={input}
             onChange={e => {
               setInput(e.target.value.toUpperCase());
-              setError('');
-              setLastResult(null);
               if (!e.target.value) setSearchTerm('');
             }}
             onKeyDown={e => {
@@ -86,23 +81,8 @@ export default function CheckInPanel({eventId}: Props) {
           </button>
         </div>
 
-        {/* Success flash */}
-        {lastResult && (
-          <div className="mt-4 rounded-xl bg-green-50 p-4 text-sm text-green-800">
-            <p className="font-semibold">{t('success')}</p>
-            <p className="mt-0.5 text-xs">
-              {lastResult.name} · {lastResult.tier}
-            </p>
-          </div>
-        )}
-
-        {/* Error */}
-        {error && (
-          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>
-        )}
-
         {/* Preview card */}
-        {searchTerm && preview !== undefined && !lastResult && (
+        {searchTerm && preview !== undefined && (
           <div className="mt-4">
             {preview === null ? (
               <p className="text-sm text-gray-500">{t('notFound')}</p>
