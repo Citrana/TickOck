@@ -12,11 +12,12 @@ import SalesOverview from './SalesOverview';
 import PaymentsPanel from './PaymentsPanel';
 import AttendeesPanel from './AttendeesPanel';
 import StaffPanel from './StaffPanel';
+import CheckInPanel from './CheckInPanel';
 
 type Props = {eventId: Id<'events'>};
 
-type Tab = 'overview' | 'payments' | 'attendees' | 'staff';
-const TABS: Tab[] = ['overview', 'payments', 'attendees', 'staff'];
+type Tab = 'overview' | 'payments' | 'attendees' | 'staff' | 'checkin';
+const OWNER_TABS: Tab[] = ['overview', 'payments', 'attendees', 'staff', 'checkin'];
 
 export default function ManageDashboard({eventId}: Props) {
   const t = useTranslations('manage');
@@ -24,10 +25,11 @@ export default function ManageDashboard({eventId}: Props) {
   const {user} = useCurrentUser();
 
   const event = useQuery(api.events.get, {eventId});
+  const myAccess = useQuery(api.eventStaff.getMyAccess, {eventId});
   const [activeTab, setActiveTab] = useState<Tab>('overview');
 
   // Loading skeleton
-  if (event === undefined || user === null) {
+  if (event === undefined || user === null || myAccess === undefined) {
     return (
       <div className="space-y-6">
         <div className="h-10 w-1/2 animate-pulse rounded-lg bg-gray-100" />
@@ -47,9 +49,11 @@ export default function ManageDashboard({eventId}: Props) {
     );
   }
 
-  // Only the event owner or event staff may access the dashboard
   const isOwner = user._id === event.ownerId;
-  if (!isOwner) {
+  const perms = myAccess?.permissionSlugs ?? [];
+  const hasAnyAccess = isOwner || myAccess !== null;
+
+  if (!hasAnyAccess) {
     return (
       <div className="py-20 text-center">
         <p className="text-gray-500">{t('accessDenied')}</p>
@@ -60,7 +64,19 @@ export default function ManageDashboard({eventId}: Props) {
     );
   }
 
-  const canEdit = event.status === 'draft' || event.status === 'rejected';
+  // Build tab list based on permissions
+  const hasAll = isOwner || perms.includes('*');
+  const visibleTabs = OWNER_TABS.filter(tab => {
+    if (hasAll) return true;
+    if (tab === 'overview') return true;
+    if (tab === 'payments') return perms.some(p => p.startsWith('payments:'));
+    if (tab === 'attendees') return perms.includes('tickets:read') || perms.includes('tickets:scan');
+    if (tab === 'checkin') return perms.includes('tickets:scan');
+    if (tab === 'staff') return false; // owner-only
+    return false;
+  });
+
+  const canEdit = isOwner && (event.status === 'draft' || event.status === 'rejected');
   const formattedDate = new Date(event.date).toLocaleDateString(undefined, {
     weekday: 'short',
     month: 'short',
@@ -112,7 +128,7 @@ export default function ManageDashboard({eventId}: Props) {
       {/* Tab bar */}
       <div className="border-b border-gray-200">
         <div className="-mb-px flex gap-0.5 overflow-x-auto">
-          {TABS.map(tab => (
+          {visibleTabs.map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -134,6 +150,7 @@ export default function ManageDashboard({eventId}: Props) {
         {activeTab === 'payments' && <PaymentsPanel eventId={eventId} />}
         {activeTab === 'attendees' && <AttendeesPanel eventId={eventId} />}
         {activeTab === 'staff' && <StaffPanel eventId={eventId} />}
+        {activeTab === 'checkin' && <CheckInPanel eventId={eventId} />}
       </div>
     </div>
   );

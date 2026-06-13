@@ -1,10 +1,30 @@
 import {v} from 'convex/values';
-import {mutation, query, QueryCtx} from './_generated/server';
+import {mutation, query, MutationCtx, QueryCtx} from './_generated/server';
 import {Id} from './_generated/dataModel';
 import {getAuthUserId} from '@convex-dev/auth/server';
 import {getCallerUserId, requirePermission} from './_helpers/permissions';
 import {writeAuditLog} from './_helpers/audit';
 import {signTicketQr, buildQrData} from './_helpers/qr';
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+const TICKET_NUM_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+async function generateUniqueTicketNumber(ctx: MutationCtx): Promise<string> {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const arr = new Uint8Array(6);
+    crypto.getRandomValues(arr);
+    const num = Array.from(arr, b => TICKET_NUM_CHARS[b % TICKET_NUM_CHARS.length]).join('');
+    const existing = await ctx.db
+      .query('tickets')
+      .withIndex('by_ticketNumber', q => q.eq('ticketNumber', num))
+      .unique();
+    if (!existing) return num;
+  }
+  throw new Error('Could not generate unique ticket number');
+}
 
 // ---------------------------------------------------------------------------
 // Mutations
@@ -56,11 +76,13 @@ export const purchase = mutation({
     const ticketIds: Id<'tickets'>[] = [];
 
     for (let i = 0; i < args.quantity; i++) {
+      const ticketNumber = await generateUniqueTicketNumber(ctx);
       const ticketId = await ctx.db.insert('tickets', {
         eventId: args.eventId,
         tierId: args.tierId,
         userId,
         status: isFree ? 'confirmed' : 'pending_payment',
+        ticketNumber,
         createdAt: now,
       });
 
@@ -347,5 +369,258 @@ export const listByEvent = query({
         };
       }),
     );
+  },
+});
+
+/**
+ * Returns all ticket data needed to generate a PDF. Accessible to the ticket
+ * owner, the event owner, or event staff with tickets:read.
+ */
+export const getForPdf = query({
+  args: {ticketId: v.id('tickets')},
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return null;
+
+    const ticket = await ctx.db.get(args.ticketId);
+    if (!ticket) return null;
+
+    const event = await ctx.db.get(ticket.eventId);
+    if (!event) return null;
+
+    const isTicketOwner = ticket.userId === userId;
+    const isEventOwner = event.ownerId === userId;
+
+    if (!isTicketOwner && !isEventOwner) {
+      const staff = await ctx.db
+        .query('eventStaff')
+        .withIndex('by_eventId_and_userId', q =>
+          q.eq('eventId', ticket.eventId).eq('userId', userId),
+        )
+        .unique();
+      const hasAccess =
+        staff?.permissionSlugs.includes('*') ||
+        staff?.permissionSlugs.includes('tickets:read');
+      if (!hasAccess) return null;
+    }
+
+    const [tier, buyer] = await Promise.all([
+      ctx.db.get(ticket.tierId),
+      ctx.db.get(ticket.userId),
+    ]);
+
+    return {
+      ticket: {
+        _id: ticket._id,
+        ticketNumber: ticket.ticketNumber ?? null,
+        status: ticket.status,
+        qrData: ticket.qrSignature
+          ? buildQrData(ticket._id, ticket.qrSignature)
+          : ticket._id,
+      },
+      event: {
+        title: event.title,
+        date: event.date,
+        startTime: event.startTime,
+        endTime: event.endTime ?? null,
+        timezone: event.timezone,
+        venue: event.venue,
+      },
+      tier: {
+        name: tier?.name ?? '—',
+        price: tier?.price ?? 0,
+        currency: tier?.currency ?? '',
+      },
+      buyer: {
+        name: buyer?.name ?? null,
+        email: buyer?.email ?? '—',
+      },
+    };
+  },
+});
+
+/**
+ * Look up a ticket by ticket number or QR content for the check-in preview.
+ * Accessible to event owners and staff with tickets:scan or tickets:read.
+ */
+export const findTicket = query({
+  args: {
+    eventId: v.id('events'),
+    identifier: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return null;
+
+    const event = await ctx.db.get(args.eventId);
+    if (!event) return null;
+
+    const isOwner = event.ownerId === userId;
+    if (!isOwner) {
+      const staff = await ctx.db
+        .query('eventStaff')
+        .withIndex('by_eventId_and_userId', q =>
+          q.eq('eventId', args.eventId).eq('userId', userId),
+        )
+        .unique();
+      const hasAccess =
+        staff?.permissionSlugs.includes('*') ||
+        staff?.permissionSlugs.includes('tickets:scan') ||
+        staff?.permissionSlugs.includes('tickets:read');
+      if (!hasAccess) return null;
+    }
+
+    const id = args.identifier.trim().toUpperCase();
+    let ticket;
+
+    if (id.startsWith('TOCK:')) {
+      const parts = id.split(':');
+      if (parts.length >= 2) {
+        ticket = await ctx.db.get(parts[1] as Id<'tickets'>).catch(() => null);
+      }
+    } else {
+      ticket = await ctx.db
+        .query('tickets')
+        .withIndex('by_ticketNumber', q => q.eq('ticketNumber', id))
+        .unique();
+    }
+
+    if (!ticket || ticket.eventId !== args.eventId) return null;
+
+    const [tier, buyer] = await Promise.all([
+      ctx.db.get(ticket.tierId),
+      ctx.db.get(ticket.userId),
+    ]);
+
+    return {
+      _id: ticket._id,
+      ticketNumber: ticket.ticketNumber ?? null,
+      status: ticket.status,
+      scannedAt: ticket.scannedAt ?? null,
+      tierName: tier?.name ?? '—',
+      buyerName: buyer?.name ?? buyer?.email ?? 'Unknown',
+      buyerEmail: buyer?.email ?? '—',
+    };
+  },
+});
+
+/**
+ * Returns the 20 most recently checked-in tickets for an event.
+ * Accessible to event owners and staff with tickets:scan.
+ */
+export const recentCheckIns = query({
+  args: {eventId: v.id('events')},
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    const event = await ctx.db.get(args.eventId);
+    if (!event) return [];
+
+    const isOwner = event.ownerId === userId;
+    if (!isOwner) {
+      const staff = await ctx.db
+        .query('eventStaff')
+        .withIndex('by_eventId_and_userId', q =>
+          q.eq('eventId', args.eventId).eq('userId', userId),
+        )
+        .unique();
+      const hasAccess =
+        staff?.permissionSlugs.includes('*') ||
+        staff?.permissionSlugs.includes('tickets:scan');
+      if (!hasAccess) return [];
+    }
+
+    const tickets = await ctx.db
+      .query('tickets')
+      .withIndex('by_eventId', q => q.eq('eventId', args.eventId))
+      .take(500);
+
+    const used = tickets
+      .filter(t => t.status === 'used' && t.scannedAt)
+      .sort((a, b) => (b.scannedAt ?? 0) - (a.scannedAt ?? 0))
+      .slice(0, 20);
+
+    return await Promise.all(
+      used.map(async t => {
+        const [buyer, tier] = await Promise.all([
+          ctx.db.get(t.userId),
+          ctx.db.get(t.tierId),
+        ]);
+        return {
+          _id: t._id,
+          ticketNumber: t.ticketNumber ?? null,
+          scannedAt: t.scannedAt ?? 0,
+          buyerName: buyer?.name ?? buyer?.email ?? 'Unknown',
+          tierName: tier?.name ?? '—',
+        };
+      }),
+    );
+  },
+});
+
+/**
+ * Check in an attendee by ticket number or QR content ("TOCK:…").
+ * Validates the ticket belongs to this event and is in confirmed status.
+ */
+export const checkIn = mutation({
+  args: {
+    eventId: v.id('events'),
+    identifier: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const actorId = await requirePermission(ctx, 'tickets:scan', args.eventId);
+
+    const id = args.identifier.trim().toUpperCase();
+    let ticket;
+
+    if (id.startsWith('TOCK:')) {
+      const parts = id.split(':');
+      if (parts.length >= 2) {
+        ticket = await ctx.db.get(parts[1] as Id<'tickets'>).catch(() => null);
+      }
+    } else {
+      ticket = await ctx.db
+        .query('tickets')
+        .withIndex('by_ticketNumber', q => q.eq('ticketNumber', id))
+        .unique();
+    }
+
+    if (!ticket) throw new Error('Ticket not found');
+    if (ticket.eventId !== args.eventId) throw new Error('This ticket is for a different event');
+
+    if (ticket.status === 'pending_payment') throw new Error('Payment not yet confirmed');
+    if (ticket.status === 'cancelled') throw new Error('This ticket has been cancelled');
+    if (ticket.status === 'used') throw new Error('This ticket has already been used');
+    if (ticket.status === 'expired') throw new Error('This ticket has expired');
+    if (ticket.status !== 'confirmed') throw new Error('Ticket is not valid for entry');
+
+    await ctx.db.patch(ticket._id, {
+      status: 'used',
+      scannedBy: actorId,
+      scannedAt: Date.now(),
+    });
+
+    const [tier, buyer] = await Promise.all([
+      ctx.db.get(ticket.tierId),
+      ctx.db.get(ticket.userId),
+    ]);
+
+    await writeAuditLog(ctx, {
+      actorId,
+      action: 'tickets:scan',
+      targetType: 'tickets',
+      targetId: ticket._id,
+      metadata: {
+        ticketNumber: ticket.ticketNumber ?? '',
+        eventId: args.eventId,
+      },
+    });
+
+    return {
+      ticketId: ticket._id,
+      buyerName: buyer?.name ?? buyer?.email ?? 'Unknown',
+      tierName: tier?.name ?? '—',
+    };
   },
 });

@@ -313,7 +313,8 @@
       "overview": "Vue d'ensemble",
       "payments": "Paiements",
       "attendees": "Participants",
-      "staff": "Équipe"
+      "staff": "Équipe",
+      "checkin": "Contrôle"
     },
     "overview": {
       "confirmedRevenue": "Revenus confirmés",
@@ -407,6 +408,28 @@
         "emailRequired": "Veuillez saisir une adresse e-mail.",
         "addFailed": "Impossible d'ajouter le membre.",
         "removeFailed": "Impossible de supprimer le membre."
+      }
+    },
+    "checkin": {
+      "title": "Contrôle des participants",
+      "description": "Saisissez un numéro de billet ou le contenu QR (TOCK:…) pour enregistrer un participant.",
+      "inputPlaceholder": "Numéro de billet ou contenu QR",
+      "lookupButton": "Rechercher",
+      "checkInButton": "Valider l'entrée",
+      "checkingIn": "Validation…",
+      "notFound": "Aucun billet trouvé pour cet événement.",
+      "success": "Entrée validée avec succès !",
+      "tier": "Niveau",
+      "alreadyUsedAt": "Déjà utilisé à {time}",
+      "recentTitle": "Dernières entrées",
+      "noRecent": "Aucune entrée pour l'instant.",
+      "errorGeneric": "Échec du contrôle. Veuillez réessayer.",
+      "status": {
+        "confirmed": "Prêt",
+        "used": "Déjà utilisé",
+        "cancelled": "Annulé",
+        "pending_payment": "Paiement manquant",
+        "expired": "Expiré"
       }
     }
   },

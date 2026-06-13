@@ -32,6 +32,35 @@ export type StaffPreset = keyof typeof STAFF_PRESETS;
 // ---------------------------------------------------------------------------
 
 /**
+ * Returns the current user's access level for an event (owner or staff).
+ * Returns null if the user has no access.
+ */
+export const getMyAccess = query({
+  args: {eventId: v.id('events')},
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return null;
+
+    const event = await ctx.db.get(args.eventId);
+    if (!event) return null;
+
+    if (event.ownerId === userId) {
+      return {isOwner: true, permissionSlugs: ['*'] as string[]};
+    }
+
+    const staff = await ctx.db
+      .query('eventStaff')
+      .withIndex('by_eventId_and_userId', q =>
+        q.eq('eventId', args.eventId).eq('userId', userId),
+      )
+      .unique();
+
+    if (!staff) return null;
+    return {isOwner: false, permissionSlugs: staff.permissionSlugs};
+  },
+});
+
+/**
  * Returns all staff members for an event, enriched with user details.
  * Only the event owner or a platform admin with staff:manage may call this.
  */

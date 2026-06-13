@@ -15,6 +15,7 @@ type TicketCardProps = {
     _id: Id<'tickets'>;
     status: TicketStatus;
     createdAt: number;
+    ticketNumber?: string | null;
     qrData: string | null;
     event: {
       _id: Id<'events'>;
@@ -164,15 +165,29 @@ export default function TicketCard({ticket}: TicketCardProps) {
       {/* QR code section */}
       {ticket.status === 'confirmed' && ticket.qrData && (
         <div className="border-t border-gray-100 px-4 py-3">
-          <button
-            onClick={() => setShowQr(v => !v)}
-            className="text-xs font-medium text-gray-600 hover:text-gray-900"
-          >
-            {showQr ? '▲' : '▼'} {t('qrCode')}
-          </button>
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setShowQr(v => !v)}
+              className="text-xs font-medium text-gray-600 hover:text-gray-900"
+            >
+              {showQr ? '▲' : '▼'} {t('qrCode')}
+            </button>
+            <a
+              href={`/api/ticket/${ticket._id}/pdf`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium text-gray-500 underline underline-offset-2 hover:text-gray-900"
+            >
+              {t('downloadPdf')}
+            </a>
+          </div>
+          {ticket.ticketNumber && (
+            <p className="mt-1 font-mono text-sm font-bold tracking-wider text-gray-900">
+              {ticket.ticketNumber}
+            </p>
+          )}
           {showQr && (
             <div className="mt-3 flex flex-col items-center gap-2">
-              {/* QR image generated via public QR API — no library needed */}
               <Image
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(ticket.qrData)}`}
                 alt="Ticket QR code"

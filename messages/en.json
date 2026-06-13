@@ -313,7 +313,8 @@
       "overview": "Overview",
       "payments": "Payments",
       "attendees": "Attendees",
-      "staff": "Staff"
+      "staff": "Staff",
+      "checkin": "Check-In"
     },
     "overview": {
       "confirmedRevenue": "Confirmed revenue",
@@ -407,6 +408,28 @@
         "emailRequired": "Please enter an email address.",
         "addFailed": "Failed to add team member.",
         "removeFailed": "Failed to remove team member."
+      }
+    },
+    "checkin": {
+      "title": "Check In Attendees",
+      "description": "Enter a ticket number or paste QR content (TOCK:…) to check in an attendee.",
+      "inputPlaceholder": "Ticket number or QR content",
+      "lookupButton": "Look up",
+      "checkInButton": "Check in",
+      "checkingIn": "Checking in…",
+      "notFound": "No ticket found for this event.",
+      "success": "Checked in successfully!",
+      "tier": "Tier",
+      "alreadyUsedAt": "Already used at {time}",
+      "recentTitle": "Recent check-ins",
+      "noRecent": "No check-ins yet.",
+      "errorGeneric": "Check-in failed. Please try again.",
+      "status": {
+        "confirmed": "Ready",
+        "used": "Already used",
+        "cancelled": "Cancelled",
+        "pending_payment": "Not paid",
+        "expired": "Expired"
       }
     }
   },
