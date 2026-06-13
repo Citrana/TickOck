@@ -37,7 +37,7 @@ export default function WhySection({headline, tabs}: Props) {
               <div
                 key={tab.id}
                 onClick={isActive ? undefined : () => setActiveId(tab.id)}
-                className={`${tab.color} relative overflow-hidden rounded-3xl transition-all duration-500 ease-in-out ${
+                className={`${tab.color} relative overflow-hidden rounded-[2rem] transition-all duration-500 ease-in-out ${
                   isActive
                     ? 'flex-1'
                     : 'w-16 shrink-0 cursor-pointer hover:opacity-90'
@@ -86,7 +86,7 @@ export default function WhySection({headline, tabs}: Props) {
                       : 'pointer-events-none opacity-0 delay-0'
                   }`}
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-gray-900 text-base font-black text-gray-900">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-900 text-base font-black text-white">
                     +
                   </div>
                   <span
