@@ -8,7 +8,12 @@
     "login": "Log in",
     "register": "Sign up",
     "logout": "Log out",
-    "languageToggle": "FR"
+    "languageToggle": "FR",
+    "howItWorks": "How it works",
+    "pricing": "Pricing",
+    "findTickets": "Find your tickets",
+    "announcementText": "Now bilingual — TickOck is available in English and French.",
+    "announcementCta": "Book a demo"
   },
   "auth": {
     "login": {
@@ -17,17 +22,66 @@
       "passwordLabel": "Password",
       "submitButton": "Log in",
       "noAccount": "Don't have an account?",
-      "registerLink": "Sign up"
+      "registerLink": "Sign up",
+      "verifiedSuccess": "Your email has been verified. You can now log in.",
+      "errors": {
+        "ACCOUNT_SUSPENDED": "Your account has been suspended.",
+        "ACCOUNT_BANNED": "Your account has been permanently banned.",
+        "generic": "Invalid email or password."
+      }
     },
     "register": {
       "title": "Create account",
       "nameLabel": "Full name",
       "emailLabel": "Email address",
       "passwordLabel": "Password",
+      "passwordHint": "At least 8 characters",
       "submitButton": "Create account",
       "hasAccount": "Already have an account?",
       "loginLink": "Log in"
+    },
+    "pendingVerification": {
+      "title": "Check your inbox",
+      "description": "We sent a verification link to {email}. Click it to activate your account.",
+      "resend": "Resend email",
+      "resendSuccess": "Verification email resent.",
+      "logout": "Use a different account"
+    },
+    "verifyEmail": {
+      "verifying": "Verifying your email…",
+      "success": "Email verified! Your account is now active.",
+      "loginButton": "Log in",
+      "errorInvalidToken": "This verification link is invalid.",
+      "errorTokenExpired": "This verification link has expired. Please register again.",
+      "errorGeneric": "Something went wrong. Please try again."
+    },
+    "suspended": {
+      "title": "Account suspended",
+      "description": "Your account has been suspended. Reason: {reason}",
+      "descriptionNoReason": "Your account has been suspended.",
+      "contact": "Contact support if you believe this is a mistake."
+    },
+    "banned": {
+      "title": "Account banned",
+      "description": "Your account has been permanently banned. Reason: {reason}",
+      "descriptionNoReason": "Your account has been permanently banned."
     }
+  },
+  "hero": {
+    "headlineStart": "The world's",
+    "headlineHighlight1": "most",
+    "headlineHighlight2": "loved",
+    "headlineEnd": "event ticketing platform.",
+    "subtitle": "Whether it's your first event ever, or your biggest yet — we make it simple and affordable to sell tickets online.",
+    "ctaPrimary": "Get started",
+    "ctaSecondary": "Book a demo",
+    "socialProof": "Don't just take our word for it!",
+    "ratingGoogle": "Google",
+    "ratingCapterra": "Capterra",
+    "ratingG2": "G2",
+    "ratingScore1": "4.8/5",
+    "ratingScore2": "4.9/5",
+    "ratingScore3": "4.8/5"
   },
   "events": {
     "title": "Events",

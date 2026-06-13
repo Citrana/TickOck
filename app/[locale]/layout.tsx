@@ -3,8 +3,11 @@ import {NextIntlClientProvider} from 'next-intl';
 import {getMessages} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 import localFont from 'next/font/local';
+import {ConvexAuthNextjsServerProvider} from '@convex-dev/auth/nextjs/server';
 import '../globals.css';
 import Navbar from '@/components/nav/Navbar';
+import {ConvexClientProvider} from '@/components/providers/ConvexClientProvider';
+import {AuthGuard} from '@/components/auth/AuthGuard';
 import {routing} from '@/i18n/routing';
 
 const geistSans = localFont({
@@ -44,17 +47,23 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-gray-50 antialiased`}
-      >
-        <NextIntlClientProvider messages={messages}>
-          <Navbar />
-          <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            {children}
-          </main>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <ConvexAuthNextjsServerProvider>
+      <html lang={locale}>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-[#f9f7f4] antialiased`}
+        >
+          <NextIntlClientProvider messages={messages}>
+            <ConvexClientProvider>
+              {/* Side-effect guard: signs out suspended/banned users */}
+              <AuthGuard />
+              <Navbar />
+              <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+                {children}
+              </main>
+            </ConvexClientProvider>
+          </NextIntlClientProvider>
+        </body>
+      </html>
+    </ConvexAuthNextjsServerProvider>
   );
 }

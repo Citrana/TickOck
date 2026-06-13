@@ -1,7 +1,10 @@
 import {defineSchema, defineTable} from 'convex/server';
 import {v} from 'convex/values';
+import {authTables} from '@convex-dev/auth/server';
 
 export default defineSchema({
+  ...authTables,
+
   // roles must be declared before users because users references it
   roles: defineTable({
     name: v.string(),
@@ -9,9 +12,11 @@ export default defineSchema({
     isSystem: v.boolean(),
   }).index('by_name', ['name']),
 
+  // Override authTables.users with our app-level fields.
+  // Convex Auth manages credentials in authAccounts; this table holds
+  // business-level user state only.
   users: defineTable({
     email: v.string(),
-    hashedPassword: v.string(),
     name: v.optional(v.string()),
     status: v.union(
       v.literal('active'),
@@ -19,13 +24,12 @@ export default defineSchema({
       v.literal('pending_verification'),
       v.literal('banned'),
     ),
+    // Human-readable reason surfaced to the user when they are suspended or banned.
+    statusReason: v.optional(v.string()),
     platformRoleId: v.optional(v.id('roles')),
-    // Stable identifier from the JWT provider, used to look up the user on each request.
-    tokenIdentifier: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index('by_email', ['email'])
-    .index('by_tokenIdentifier', ['tokenIdentifier'])
     .index('by_platformRoleId', ['platformRoleId']),
 
   events: defineTable({
@@ -134,4 +138,13 @@ export default defineSchema({
     .index('by_actorId', ['actorId'])
     .index('by_targetType_and_targetId', ['targetType', 'targetId'])
     .index('by_createdAt', ['createdAt']),
+
+  // Email verification tokens — one active token per user at a time
+  emailVerifications: defineTable({
+    userId: v.id('users'),
+    token: v.string(), // 64-char hex (32 bytes random)
+    expiresAt: v.number(), // unix ms, 24 hours from creation
+  })
+    .index('by_token', ['token'])
+    .index('by_userId', ['userId']),
 });
