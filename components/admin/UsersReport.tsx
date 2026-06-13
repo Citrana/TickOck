@@ -1,83 +1,54 @@
 'use client';
 
-import {useQuery} from 'convex/react';
+import {useQuery, useMutation} from 'convex/react';
 import {api} from '@/convex/_generated/api';
 import {useTranslations} from 'next-intl';
 import {useState, useRef, useEffect} from 'react';
-import EventStatusBadge from '@/components/events/EventStatusBadge';
 import FilterPanel from '@/components/admin/FilterPanel';
 
 // ---------------------------------------------------------------------------
 // Column config
 // ---------------------------------------------------------------------------
 
-type ColumnKey =
-  | 'title'
-  | 'status'
-  | 'date'
-  | 'startTime'
-  | 'city'
-  | 'owner'
-  | 'category'
-  | 'venue'
-  | 'visibility'
-  | 'paymentMode'
-  | 'tierCount'
-  | 'createdAt';
+type ColumnKey = 'name' | 'email' | 'status' | 'role' | 'createdAt';
 
-const ALL_COLUMNS: ColumnKey[] = [
-  'title',
-  'status',
-  'date',
-  'startTime',
-  'city',
-  'owner',
-  'category',
-  'venue',
-  'visibility',
-  'paymentMode',
-  'tierCount',
-  'createdAt',
-];
-
-const DEFAULT_VISIBLE: ColumnKey[] = ['title', 'status', 'date', 'startTime', 'city'];
+const ALL_COLUMNS: ColumnKey[] = ['name', 'email', 'status', 'role', 'createdAt'];
+const DEFAULT_VISIBLE: ColumnKey[] = ['name', 'email', 'status', 'role', 'createdAt'];
 
 // ---------------------------------------------------------------------------
 // Filter state
 // ---------------------------------------------------------------------------
 
 type Filters = {
-  name: string;
+  search: string;
   statuses: string[];
-  dateFrom: string;
-  dateTo: string;
-  category: string;
-  city: string;
-  visibility: string;
-  paymentMode: string;
+  role: string;
+  registeredFrom: string;
+  registeredTo: string;
 };
 
 const EMPTY_FILTERS: Filters = {
-  name: '',
+  search: '',
   statuses: [],
-  dateFrom: '',
-  dateTo: '',
-  category: '',
-  city: '',
-  visibility: '',
-  paymentMode: '',
+  role: '',
+  registeredFrom: '',
+  registeredTo: '',
 };
+
+const USER_STATUSES = [
+  'active',
+  'suspended',
+  'pending_verification',
+  'banned',
+] as const;
 
 function countActiveFilters(f: Filters): number {
   let n = 0;
-  if (f.name) n++;
+  if (f.search) n++;
   if (f.statuses.length) n++;
-  if (f.dateFrom) n++;
-  if (f.dateTo) n++;
-  if (f.category) n++;
-  if (f.city) n++;
-  if (f.visibility) n++;
-  if (f.paymentMode) n++;
+  if (f.role) n++;
+  if (f.registeredFrom) n++;
+  if (f.registeredTo) n++;
   return n;
 }
 
@@ -85,9 +56,135 @@ function countActiveFilters(f: Filters): number {
 // Types
 // ---------------------------------------------------------------------------
 
-type EventRow = NonNullable<
-  ReturnType<typeof useQuery<typeof api.adminReports.listAllEvents>>
+type UserRow = NonNullable<
+  ReturnType<typeof useQuery<typeof api.adminReports.listAllUsers>>
 >[number];
+
+// ---------------------------------------------------------------------------
+// Status badge
+// ---------------------------------------------------------------------------
+
+const STATUS_STYLE: Record<
+  string,
+  {classes: string; label: (t: (k: string) => string) => string}
+> = {
+  active: {
+    classes: 'bg-green-100 text-green-700',
+    label: t => t('status.active'),
+  },
+  suspended: {
+    classes: 'bg-amber-100 text-amber-700',
+    label: t => t('status.suspended'),
+  },
+  pending_verification: {
+    classes: 'bg-gray-100 text-gray-600',
+    label: t => t('status.pending_verification'),
+  },
+  banned: {
+    classes: 'bg-red-100 text-red-700',
+    label: t => t('status.banned'),
+  },
+};
+
+function UserStatusBadge({status}: {status: string}) {
+  const t = useTranslations('admin.usersReport');
+  const cfg = STATUS_STYLE[status] ?? STATUS_STYLE.active;
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${cfg.classes}`}
+    >
+      {cfg.label(t)}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Suspend / reactivate inline action
+// ---------------------------------------------------------------------------
+
+function SuspendAction({row}: {row: UserRow}) {
+  const t = useTranslations('admin.usersReport');
+  const setStatus = useMutation(api.adminReports.setUserStatus);
+
+  const [confirming, setConfirming] = useState(false);
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  if (row.isCurrentUser || row.status === 'banned') return null;
+
+  async function handleSuspend() {
+    setBusy(true);
+    try {
+      await setStatus({userId: row._id, status: 'suspended', reason: reason || undefined});
+      setConfirming(false);
+      setReason('');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleReactivate() {
+    setBusy(true);
+    try {
+      await setStatus({userId: row._id, status: 'active'});
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (row.status === 'suspended') {
+    return (
+      <button
+        disabled={busy}
+        onClick={handleReactivate}
+        className="rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+      >
+        {busy ? t('actions.processing') : t('actions.reactivate')}
+      </button>
+    );
+  }
+
+  if (confirming) {
+    return (
+      <div className="flex flex-col gap-1.5">
+        <input
+          type="text"
+          value={reason}
+          onChange={e => setReason(e.target.value)}
+          placeholder={t('actions.suspendReasonPlaceholder')}
+          className="w-48 rounded-lg border border-gray-300 px-2.5 py-1 text-xs placeholder-gray-400 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+        />
+        <div className="flex gap-1.5">
+          <button
+            disabled={busy}
+            onClick={handleSuspend}
+            className="rounded-lg bg-red-600 px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+          >
+            {busy ? t('actions.processing') : t('actions.confirmSuspend')}
+          </button>
+          <button
+            onClick={() => {
+              setConfirming(false);
+              setReason('');
+            }}
+            className="rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
+          >
+            {t('actions.cancel')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setConfirming(true)}
+      className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+    >
+      {t('actions.suspend')}
+    </button>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // ColumnsPicker
@@ -100,7 +197,7 @@ function ColumnsPicker({
   visible: ColumnKey[];
   onChange: (cols: ColumnKey[]) => void;
 }) {
-  const t = useTranslations('admin.reports');
+  const t = useTranslations('admin.usersReport');
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -160,34 +257,28 @@ function ColumnsPicker({
 // Cell renderers
 // ---------------------------------------------------------------------------
 
-function renderCell(col: ColumnKey, row: EventRow): React.ReactNode {
+function renderCell(col: ColumnKey, row: UserRow): React.ReactNode {
   switch (col) {
-    case 'title':
-      return <span className="font-medium text-gray-900">{row.title}</span>;
-    case 'status':
-      return <EventStatusBadge status={row.status} />;
-    case 'date':
+    case 'name':
       return (
-        <span className="whitespace-nowrap text-gray-600">
-          {new Date(row.date).toLocaleDateString()}
+        <span className="font-medium text-gray-900">
+          {row.name ?? <span className="italic text-gray-400">—</span>}
         </span>
       );
-    case 'startTime':
-      return <span className="text-gray-600">{row.startTime}</span>;
-    case 'city':
-      return <span className="text-gray-600">{row.venue.city}</span>;
-    case 'owner':
-      return <span className="text-gray-600">{row.ownerName ?? '—'}</span>;
-    case 'category':
-      return <span className="text-gray-600">{row.category ?? '—'}</span>;
-    case 'venue':
-      return <span className="text-gray-600">{row.venue.name}</span>;
-    case 'visibility':
-      return <span className="capitalize text-gray-600">{row.visibility}</span>;
-    case 'paymentMode':
-      return <span className="capitalize text-gray-600">{row.paymentMode}</span>;
-    case 'tierCount':
-      return <span className="text-gray-600">{row.tierCount}</span>;
+    case 'email':
+      return <span className="text-gray-600">{row.email}</span>;
+    case 'status':
+      return <UserStatusBadge status={row.status} />;
+    case 'role':
+      return (
+        <span className="text-gray-600">
+          {row.roleName ? (
+            <span className="capitalize">{row.roleName.replace('_', ' ')}</span>
+          ) : (
+            <span className="italic text-gray-400">—</span>
+          )}
+        </span>
+      );
     case 'createdAt':
       return (
         <span className="whitespace-nowrap text-gray-600">
@@ -201,9 +292,9 @@ function renderCell(col: ColumnKey, row: EventRow): React.ReactNode {
 // Main component
 // ---------------------------------------------------------------------------
 
-export default function EventsReport() {
-  const t = useTranslations('admin.reports');
-  const events = useQuery(api.adminReports.listAllEvents);
+export default function UsersReport() {
+  const t = useTranslations('admin.usersReport');
+  const users = useQuery(api.adminReports.listAllUsers);
 
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -211,7 +302,10 @@ export default function EventsReport() {
 
   const activeFilterCount = countActiveFilters(filters);
 
-  const STATUSES = ['draft', 'pending_approval', 'live', 'rejected'] as const;
+  // Collect unique role names for the role filter dropdown
+  const roleOptions = Array.from(
+    new Set((users ?? []).map(u => u.roleName).filter((r): r is string => r !== null)),
+  ).sort();
 
   function toggleStatus(s: string) {
     const next = filters.statuses.includes(s)
@@ -220,31 +314,40 @@ export default function EventsReport() {
     setFilters({...filters, statuses: next});
   }
 
-  const filtered = (events ?? []).filter(row => {
-    if (filters.name && !row.title.toLowerCase().includes(filters.name.toLowerCase()))
-      return false;
+  const filtered = (users ?? []).filter(row => {
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      if (!row.email.toLowerCase().includes(q) && !(row.name ?? '').toLowerCase().includes(q))
+        return false;
+    }
     if (filters.statuses.length && !filters.statuses.includes(row.status)) return false;
-    if (filters.dateFrom && row.date < new Date(filters.dateFrom).getTime()) return false;
-    if (filters.dateTo && row.date > new Date(filters.dateTo).getTime() + 86_400_000)
-      return false;
-    if (
-      filters.category &&
-      !(row.category ?? '').toLowerCase().includes(filters.category.toLowerCase())
-    )
-      return false;
-    if (filters.city && !row.venue.city.toLowerCase().includes(filters.city.toLowerCase()))
-      return false;
-    if (filters.visibility && row.visibility !== filters.visibility) return false;
-    if (filters.paymentMode && row.paymentMode !== filters.paymentMode) return false;
+    if (filters.role && row.roleName !== filters.role) return false;
+    if (filters.registeredFrom) {
+      if (row.createdAt < new Date(filters.registeredFrom).getTime()) return false;
+    }
+    if (filters.registeredTo) {
+      if (row.createdAt > new Date(filters.registeredTo).getTime() + 86_400_000) return false;
+    }
     return true;
   });
 
-  if (events === undefined) {
+  if (users === undefined) {
     return (
       <div className="flex items-center gap-2 py-12 text-sm text-gray-500">
         <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          />
         </svg>
         {t('loading')}
       </div>
@@ -278,7 +381,11 @@ export default function EventsReport() {
             ].join(' ')}
           >
             <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+                clipRule="evenodd"
+              />
             </svg>
             {t('filterButton')}
             {activeFilterCount > 0 && (
@@ -309,6 +416,8 @@ export default function EventsReport() {
                     {t(`cols.${col}`)}
                   </th>
                 ))}
+                {/* Actions column is always shown */}
+                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -319,6 +428,9 @@ export default function EventsReport() {
                       {renderCell(col, row)}
                     </td>
                   ))}
+                  <td className="px-4 py-3 text-right">
+                    <SuspendAction row={row} />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -335,16 +447,16 @@ export default function EventsReport() {
         onClose={() => setFilterOpen(false)}
         onClear={() => setFilters(EMPTY_FILTERS)}
       >
-        {/* Name */}
+        {/* Search */}
         <div>
           <label className="mb-1.5 block text-xs font-medium text-gray-700">
-            {t('filterPanel.name')}
+            {t('filterPanel.search')}
           </label>
           <input
             type="text"
-            value={filters.name}
-            onChange={e => setFilters({...filters, name: e.target.value})}
-            placeholder={t('filterPanel.namePlaceholder')}
+            value={filters.search}
+            onChange={e => setFilters({...filters, search: e.target.value})}
+            placeholder={t('filterPanel.searchPlaceholder')}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
           />
         </div>
@@ -355,7 +467,7 @@ export default function EventsReport() {
             {t('filterPanel.status')}
           </label>
           <div className="space-y-2">
-            {STATUSES.map(s => (
+            {USER_STATUSES.map(s => (
               <label key={s} className="flex cursor-pointer items-center gap-2.5">
                 <input
                   type="checkbox"
@@ -369,91 +481,51 @@ export default function EventsReport() {
           </div>
         </div>
 
-        {/* Date from */}
+        {/* Role */}
+        {roleOptions.length > 0 && (
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-gray-700">
+              {t('filterPanel.role')}
+            </label>
+            <select
+              value={filters.role}
+              onChange={e => setFilters({...filters, role: e.target.value})}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+            >
+              <option value="">{t('filterPanel.all')}</option>
+              {roleOptions.map(r => (
+                <option key={r} value={r}>
+                  {r.replace('_', ' ')}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Registered from */}
         <div>
           <label className="mb-1.5 block text-xs font-medium text-gray-700">
-            {t('filterPanel.dateFrom')}
+            {t('filterPanel.registeredFrom')}
           </label>
           <input
             type="date"
-            value={filters.dateFrom}
-            onChange={e => setFilters({...filters, dateFrom: e.target.value})}
+            value={filters.registeredFrom}
+            onChange={e => setFilters({...filters, registeredFrom: e.target.value})}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
           />
         </div>
 
-        {/* Date to */}
+        {/* Registered to */}
         <div>
           <label className="mb-1.5 block text-xs font-medium text-gray-700">
-            {t('filterPanel.dateTo')}
+            {t('filterPanel.registeredTo')}
           </label>
           <input
             type="date"
-            value={filters.dateTo}
-            onChange={e => setFilters({...filters, dateTo: e.target.value})}
+            value={filters.registeredTo}
+            onChange={e => setFilters({...filters, registeredTo: e.target.value})}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
           />
-        </div>
-
-        {/* Category */}
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-gray-700">
-            {t('filterPanel.category')}
-          </label>
-          <input
-            type="text"
-            value={filters.category}
-            onChange={e => setFilters({...filters, category: e.target.value})}
-            placeholder={t('filterPanel.categoryPlaceholder')}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
-          />
-        </div>
-
-        {/* City */}
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-gray-700">
-            {t('filterPanel.city')}
-          </label>
-          <input
-            type="text"
-            value={filters.city}
-            onChange={e => setFilters({...filters, city: e.target.value})}
-            placeholder={t('filterPanel.cityPlaceholder')}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
-          />
-        </div>
-
-        {/* Visibility */}
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-gray-700">
-            {t('filterPanel.visibility')}
-          </label>
-          <select
-            value={filters.visibility}
-            onChange={e => setFilters({...filters, visibility: e.target.value})}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
-          >
-            <option value="">{t('filterPanel.all')}</option>
-            <option value="public">{t('visibility.public')}</option>
-            <option value="private">{t('visibility.private')}</option>
-            <option value="unlisted">{t('visibility.unlisted')}</option>
-          </select>
-        </div>
-
-        {/* Payment mode */}
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-gray-700">
-            {t('filterPanel.paymentMode')}
-          </label>
-          <select
-            value={filters.paymentMode}
-            onChange={e => setFilters({...filters, paymentMode: e.target.value})}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
-          >
-            <option value="">{t('filterPanel.all')}</option>
-            <option value="online">{t('paymentMode.online')}</option>
-            <option value="manual">{t('paymentMode.manual')}</option>
-          </select>
         </div>
       </FilterPanel>
     </div>
