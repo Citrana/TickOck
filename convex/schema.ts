@@ -36,12 +36,16 @@ export default defineSchema({
     title: v.string(),
     description: v.optional(v.string()),
     category: v.optional(v.string()),
-    venue: v.string(),
+    venue: v.object({
+      name: v.string(),
+      address: v.string(),
+      city: v.string(),
+    }),
     date: v.number(),
     startTime: v.string(),
     endTime: v.optional(v.string()),
     timezone: v.string(),
-    coverImage: v.optional(v.string()),
+    coverImageStorageId: v.optional(v.id('_storage')),
     visibility: v.union(
       v.literal('public'),
       v.literal('private'),
@@ -52,14 +56,27 @@ export default defineSchema({
       allowed: v.boolean(),
       cutoffHours: v.optional(v.number()),
     }),
+    status: v.union(
+      v.literal('draft'),
+      v.literal('pending_approval'),
+      v.literal('live'),
+      v.literal('rejected'),
+    ),
     ownerId: v.id('users'),
     // Per-event HMAC secret for QR signing — never a global secret
     hmacSecret: v.string(),
+    // Platform fee charged to the event creator
+    platformFeeTotal: v.optional(v.number()),
+    platformFeeCurrency: v.optional(v.string()),
+    platformFeeEvidenceStorageId: v.optional(v.id('_storage')),
+    rejectionReason: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index('by_ownerId', ['ownerId'])
     .index('by_visibility', ['visibility'])
-    .index('by_date', ['date']),
+    .index('by_date', ['date'])
+    .index('by_status', ['status'])
+    .index('by_status_and_visibility', ['status', 'visibility']),
 
   ticketTiers: defineTable({
     eventId: v.id('events'),
@@ -122,6 +139,33 @@ export default defineSchema({
     .index('by_eventId', ['eventId'])
     .index('by_userId', ['userId'])
     .index('by_eventId_and_userId', ['eventId', 'userId']),
+
+  // Speakers / guests for an event — separate table to avoid unbounded array growth
+  eventSpeakers: defineTable({
+    eventId: v.id('events'),
+    name: v.string(),
+    speakerTitle: v.optional(v.string()),
+    bio: v.optional(v.string()),
+    photoStorageId: v.optional(v.id('_storage')),
+    displayOrder: v.number(),
+  }).index('by_eventId', ['eventId']),
+
+  // Platform fee rules — multiple rules, first matching rule per tier wins
+  platformPricingRules: defineTable({
+    label: v.string(),
+    isActive: v.boolean(),
+    // Optional condition: ticket unit price range (both inclusive)
+    ticketPriceMin: v.optional(v.number()),
+    ticketPriceMax: v.optional(v.number()),
+    // Optional condition: total event ticket count range
+    totalTicketsMin: v.optional(v.number()),
+    totalTicketsMax: v.optional(v.number()),
+    // Fee applied when this rule matches
+    feeType: v.union(v.literal('percentage'), v.literal('flat_per_ticket')),
+    feeValue: v.number(),
+    currency: v.string(),
+    displayOrder: v.number(),
+  }).index('by_isActive', ['isActive']),
 
   // Append-only — no update or delete mutations, ever
   auditLogs: defineTable({
