@@ -14,7 +14,8 @@
     "findTickets": "Trouver vos billets",
     "announcementText": "Désormais bilingue — TickOck est disponible en anglais et en français.",
     "announcementCta": "Réserver une démo",
-    "createEvent": "Créer un événement"
+    "createEvent": "Créer un événement",
+    "myEvents": "Mes événements"
   },
   "auth": {
     "login": {
@@ -116,10 +117,45 @@
     "total": "Total"
   },
   "dashboard": {
-    "title": "Tableau de bord",
-    "welcome": "Bon retour",
-    "recentOrders": "Commandes récentes",
+    "title": "Mon compte",
+    "welcome": "Gérez vos événements et billets.",
+    "recentOrders": "Mes billets",
+    "noTickets": "Vous n'avez pas encore de billets.",
     "upcomingEvents": "Événements à venir"
+  },
+  "myEvents": {
+    "title": "Mes événements",
+    "subtitle": "Événements que vous avez créés.",
+    "createNew": "Créer un événement",
+    "empty": "Vous n'avez pas encore créé d'événements.",
+    "createFirst": "Créer votre premier événement",
+    "viewAll": "Voir les {count} événements",
+    "viewAllLink": "Voir tout",
+    "rejected": "Rejeté",
+    "actions": {
+      "view": "Voir",
+      "edit": "Modifier"
+    }
+  },
+  "eventDetail": {
+    "notFound": "Événement introuvable",
+    "notFoundDetail": "Cet événement est peut-être privé ou n'est plus disponible.",
+    "browseEvents": "Parcourir les événements",
+    "date": "Date",
+    "time": "Heure",
+    "venue": "Lieu",
+    "visibility": "Visibilité",
+    "about": "À propos de cet événement",
+    "tickets": "Billets",
+    "sold": "vendus",
+    "remaining": "restants",
+    "free": "Gratuit",
+    "buyButton": "Obtenir des billets",
+    "speakers": "Intervenants & invités",
+    "editButton": "Modifier l'événement",
+    "pendingReview": "En cours d'examen",
+    "rejectedTitle": "Événement rejeté",
+    "fixAndResubmit": "Corriger et resoumettre →"
   },
   "admin": {
     "title": "Panneau d'administration",

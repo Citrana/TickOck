@@ -14,7 +14,8 @@
     "findTickets": "Find your tickets",
     "announcementText": "Now bilingual — TickOck is available in English and French.",
     "announcementCta": "Book a demo",
-    "createEvent": "Create event"
+    "createEvent": "Create event",
+    "myEvents": "My Events"
   },
   "auth": {
     "login": {
@@ -116,10 +117,45 @@
     "total": "Total"
   },
   "dashboard": {
-    "title": "Dashboard",
-    "welcome": "Welcome back",
-    "recentOrders": "Recent Orders",
+    "title": "My Account",
+    "welcome": "Manage your events and tickets.",
+    "recentOrders": "My Tickets",
+    "noTickets": "You have no tickets yet.",
     "upcomingEvents": "Upcoming Events"
+  },
+  "myEvents": {
+    "title": "My Events",
+    "subtitle": "Events you have created.",
+    "createNew": "Create event",
+    "empty": "You haven't created any events yet.",
+    "createFirst": "Create your first event",
+    "viewAll": "View all {count} events",
+    "viewAllLink": "View all",
+    "rejected": "Rejected",
+    "actions": {
+      "view": "View",
+      "edit": "Edit"
+    }
+  },
+  "eventDetail": {
+    "notFound": "Event not found",
+    "notFoundDetail": "This event may be private or no longer available.",
+    "browseEvents": "Browse events",
+    "date": "Date",
+    "time": "Time",
+    "venue": "Venue",
+    "visibility": "Visibility",
+    "about": "About this event",
+    "tickets": "Tickets",
+    "sold": "sold",
+    "remaining": "remaining",
+    "free": "Free",
+    "buyButton": "Get tickets",
+    "speakers": "Speakers & guests",
+    "editButton": "Edit event",
+    "pendingReview": "Under review",
+    "rejectedTitle": "Event rejected",
+    "fixAndResubmit": "Fix and resubmit →"
   },
   "admin": {
     "title": "Admin Panel",
