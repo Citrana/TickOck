@@ -1,7 +1,7 @@
-import {getTranslations} from 'next-intl/server';
-import {Link} from '@/lib/navigation';
+import { getTranslations } from 'next-intl/server';
+import { Link } from '@/lib/navigation';
 import Image from 'next/image';
-import {Fraunces} from 'next/font/google';
+import { Fraunces } from 'next/font/google';
 import WhySection from '@/components/marketing/WhySection';
 
 const fraunces = Fraunces({
@@ -55,13 +55,13 @@ const rightImages = [
 
 // ── Stats cards ─────────────────────────────────────────────────────────────
 const statsCards = [
-  {key: 'firstTimers', bg: 'bg-rose-200',   radius: 'rounded-tl-3xl rounded-tr-xl  rounded-br-3xl rounded-bl-xl'},
-  {key: 'eventPros',   bg: 'bg-amber-50',   radius: 'rounded-tl-xl  rounded-tr-3xl rounded-br-xl  rounded-bl-3xl'},
-  {key: 'freeEvents',  bg: 'bg-yellow-200', radius: 'rounded-tl-3xl rounded-tr-3xl rounded-br-xl  rounded-bl-xl'},
-  {key: 'developers',  bg: 'bg-teal-100',   radius: 'rounded-tl-xl  rounded-tr-xl  rounded-br-3xl rounded-bl-3xl'},
-  {key: 'charities',   bg: 'bg-orange-200', radius: 'rounded-tl-3xl rounded-tr-xl  rounded-br-xl  rounded-bl-3xl'},
-  {key: 'attractions', bg: 'bg-white',      radius: 'rounded-tl-xl  rounded-tr-3xl rounded-br-3xl rounded-bl-xl'},
-] satisfies Array<{key: string; bg: string; radius: string}>;
+  { key: 'firstTimers', bg: 'bg-rose-200', radius: 'rounded-tl-3xl rounded-tr-xl  rounded-br-3xl rounded-bl-xl' },
+  { key: 'eventPros', bg: 'bg-amber-50', radius: 'rounded-tl-xl  rounded-tr-3xl rounded-br-xl  rounded-bl-3xl' },
+  { key: 'freeEvents', bg: 'bg-yellow-200', radius: 'rounded-tl-3xl rounded-tr-3xl rounded-br-xl  rounded-bl-xl' },
+  { key: 'developers', bg: 'bg-teal-100', radius: 'rounded-tl-xl  rounded-tr-xl  rounded-br-3xl rounded-bl-3xl' },
+  { key: 'charities', bg: 'bg-orange-200', radius: 'rounded-tl-3xl rounded-tr-xl  rounded-br-xl  rounded-bl-3xl' },
+  { key: 'attractions', bg: 'bg-white', radius: 'rounded-tl-xl  rounded-tr-3xl rounded-br-3xl rounded-bl-xl' },
+] satisfies Array<{ key: string; bg: string; radius: string }>;
 
 // ── Sample event cards for Discover section ──────────────────────────────────
 const sampleEvents = [
@@ -176,7 +176,7 @@ export default async function HomePage() {
           {/* Right: animated image mosaic */}
           <div
             className="relative hidden overflow-hidden md:block"
-            style={{height: 'min(calc(100vh - 180px), 580px)'}}
+            style={{ height: 'min(calc(100vh - 180px), 580px)' }}
           >
             <div className="absolute left-0 top-0 w-[47%]">
               <div className="animate-scroll-down flex flex-col gap-3">
@@ -246,10 +246,17 @@ export default async function HomePage() {
             {th('platform.headlineEnd')}
           </h2>
 
-          {/* Central placeholder image */}
+          {/* Central image */}
           <div className="mt-14 flex justify-center">
-            <div className="w-full max-w-3xl overflow-hidden rounded-2xl bg-gray-800 shadow-2xl ring-1 ring-white/10">
-              <div className="aspect-video w-full" />
+            <div className="w-full max-w-xl overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/10">
+              <Image
+                src="/images/center-image.png"
+                alt=""
+                width={500}
+                height={200}
+                className="w-full"
+                priority
+              />
             </div>
           </div>
         </div>
@@ -331,7 +338,15 @@ export default async function HomePage() {
 
         {/* Feature 1: left image, right text */}
         <div className="mb-20 grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
-          <div className="aspect-[4/3] w-full rounded-2xl bg-gray-100" />
+          <div className="overflow-hidden rounded-2xl">
+            <Image
+              src="/images/create-your-event.png"
+              alt=""
+              width={1200}
+              height={900}
+              className="w-full h-auto"
+            />
+          </div>
 
           <div>
             <h3 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">
@@ -390,12 +405,28 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div className="order-1 aspect-[4/3] w-full rounded-2xl bg-gray-100 lg:order-2" />
+          <div className="order-1 overflow-hidden rounded-2xl lg:order-2">
+            <Image
+              src="/images/event-details.png"
+              alt=""
+              width={1200}
+              height={900}
+              className="w-full h-auto"
+            />
+          </div>
         </div>
 
         {/* Feature 3: left image, right text */}
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
-          <div className="aspect-[4/3] w-full rounded-2xl bg-gray-100" />
+          <div className="overflow-hidden rounded-2xl">
+            <Image
+              src="/images/manage-order.png"
+              alt=""
+              width={1200}
+              height={900}
+              className="w-full h-auto"
+            />
+          </div>
 
           <div>
             <h3 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">
