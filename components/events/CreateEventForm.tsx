@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useCallback} from 'react';
+import {useState, useCallback, useEffect, useRef} from 'react';
 import {useRouter} from '@/lib/navigation';
 import {useTranslations} from 'next-intl';
 import {useMutation, useQuery} from 'convex/react';
@@ -12,6 +12,7 @@ import {
   FormTier,
   FormSpeaker,
 } from '@/types/eventForm';
+import {calculatePlatformFee} from '@/lib/platformFee';
 import FormStepNav from './FormStepNav';
 import StepBasicInfo from './steps/StepBasicInfo';
 import StepVenue from './steps/StepVenue';
@@ -120,7 +121,7 @@ export default function CreateEventForm({existingEventId, locale}: Props) {
   const createEvent = useMutation(api.events.create);
   const updateEvent = useMutation(api.events.update);
   const submitForApproval = useMutation(api.events.submitForApproval);
-  const pricing = useQuery(api.platformPricing.getActive);
+  const pricingRules = useQuery(api.platformPricing.listActive);
 
   // Load existing event data when editing
   const existingEvent = useQuery(
@@ -138,10 +139,17 @@ export default function CreateEventForm({existingEventId, locale}: Props) {
   // ---------------------------------------------------------------------------
   // Initialise form from existing event or empty
   // ---------------------------------------------------------------------------
-  const [data, setData] = useState<EventFormData>(() => {
-    if (!existingEvent) return EMPTY_FORM;
 
-    // Map loaded event data back into form shape
+  const [data, setData] = useState<EventFormData>(EMPTY_FORM);
+  // Guard so we only populate the form once — on the first time the query resolves.
+  // useState's lazy initializer only runs on the first render, before the query
+  // returns, so existingEvent is always undefined there.
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    if (!existingEvent || initializedRef.current) return;
+    initializedRef.current = true;
+
     const tiers: FormTier[] = (existingEvent.tiers ?? []).map(tier => ({
       tempId: tier._id,
       existingId: tier._id,
@@ -164,7 +172,7 @@ export default function CreateEventForm({existingEventId, locale}: Props) {
       photoStorageId: s.photoStorageId ?? null,
     }));
 
-    return {
+    setData({
       title: existingEvent.title,
       description: existingEvent.description ?? '',
       category: existingEvent.category ?? '',
@@ -187,9 +195,10 @@ export default function CreateEventForm({existingEventId, locale}: Props) {
       speakers,
       tiers,
       paymentScreenshotFile: null,
-      paymentScreenshotStorageId: existingEvent.platformFeeEvidenceStorageId ?? null,
-    };
-  });
+      paymentScreenshotStorageId:
+        existingEvent.platformFeeEvidenceStorageId ?? null,
+    });
+  }, [existingEvent]);
 
   const patch = useCallback((partial: Partial<EventFormData>) => {
     setData(prev => ({...prev, ...partial}));
@@ -255,10 +264,12 @@ export default function CreateEventForm({existingEventId, locale}: Props) {
       return sum + (isNaN(qty) ? 0 : qty);
     }, 0);
 
+    const feeResult =
+      pricingRules && pricingRules.length > 0
+        ? calculatePlatformFee(current.tiers, pricingRules)
+        : null;
     const platformFeeTotal =
-      pricing && totalTickets > 0
-        ? pricing.pricePerTicket * totalTickets
-        : undefined;
+      feeResult && feeResult.totalFee > 0 ? feeResult.totalFee : undefined;
 
     return {
       title: current.title.trim(),
@@ -299,7 +310,7 @@ export default function CreateEventForm({existingEventId, locale}: Props) {
         displayOrder: i,
       })),
       platformFeeTotal,
-      platformFeeCurrency: pricing?.currency,
+      platformFeeCurrency: feeResult?.currency ?? undefined,
     };
   }
 
@@ -384,6 +395,24 @@ export default function CreateEventForm({existingEventId, locale}: Props) {
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
+
+  // In edit mode, wait for the existing event to load before showing the form
+  // so the user doesn't see a blank form while data is in flight.
+  if (existingEventId && existingEvent === undefined) {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <div className="h-10 w-56 animate-pulse rounded-xl bg-gray-200" />
+        <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+          <div className="space-y-4">
+            <div className="h-5 w-40 animate-pulse rounded-lg bg-gray-200" />
+            <div className="h-10 animate-pulse rounded-lg bg-gray-100" />
+            <div className="h-32 animate-pulse rounded-lg bg-gray-100" />
+            <div className="h-10 animate-pulse rounded-lg bg-gray-100" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const steps = STEPS.map((key, i) => ({label: t(`steps.${key}`), index: i}));
   const isLastStep = step === STEPS.length - 1;

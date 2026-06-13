@@ -6,6 +6,7 @@ import {useQuery} from 'convex/react';
 import {api} from '@/convex/_generated/api';
 import {EventFormData} from '@/types/eventForm';
 import FormField from '@/components/ui/FormField';
+import {calculatePlatformFee, describeConditions, describeFee} from '@/lib/platformFee';
 
 type Props = {
   data: EventFormData;
@@ -16,16 +17,16 @@ type Props = {
 
 export default function StepReview({data, onChange, errors}: Props) {
   const t = useTranslations('eventCreate');
-  const pricing = useQuery(api.platformPricing.getActive);
+  const rules = useQuery(api.platformPricing.listActive);
   const screenshotRef = useRef<HTMLInputElement>(null);
 
-  const totalTickets = data.tiers.reduce((sum, tier) => {
-    const qty = parseInt(tier.quantity, 10);
-    return sum + (isNaN(qty) ? 0 : qty);
-  }, 0);
+  const feeResult =
+    rules !== undefined
+      ? calculatePlatformFee(data.tiers, rules)
+      : null;
 
-  const platformFeeTotal =
-    pricing && totalTickets > 0 ? pricing.pricePerTicket * totalTickets : null;
+  const hasFee = feeResult !== null && feeResult.totalFee > 0;
+  const currency = feeResult?.currency ?? null;
 
   function handleScreenshot(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
@@ -64,10 +65,6 @@ export default function StepReview({data, onChange, errors}: Props) {
             <dt className="text-gray-500">{t('review.tierCount')}</dt>
             <dd className="font-medium text-gray-900">{data.tiers.length}</dd>
           </div>
-          <div className="flex justify-between">
-            <dt className="text-gray-500">{t('review.totalTickets')}</dt>
-            <dd className="font-medium text-gray-900">{totalTickets}</dd>
-          </div>
         </dl>
       </div>
 
@@ -77,45 +74,61 @@ export default function StepReview({data, onChange, errors}: Props) {
           {t('review.platformFeeTitle')}
         </h3>
 
-        {pricing === undefined ? (
+        {rules === undefined ? (
           <p className="text-sm text-gray-500">{t('review.feeLoading')}</p>
-        ) : pricing === null ? (
+        ) : rules.length === 0 ? (
           <p className="text-sm text-gray-500">{t('review.noFeeConfigured')}</p>
         ) : (
-          <dl className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-gray-600">{t('review.feeRate')}</dt>
-              <dd className="font-medium text-gray-900">
-                {pricing.pricePerTicket} {pricing.currency} / {t('review.perTicket')}
-              </dd>
+          <div className="space-y-3">
+            {/* Per-tier breakdown */}
+            <div className="space-y-1.5">
+              {feeResult?.breakdown.map((item, i) => (
+                <div key={i} className="rounded-lg bg-white/70 px-3 py-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-800">
+                      {item.tierName || t('review.unnamedTier')}
+                    </span>
+                    <span className="font-semibold text-gray-900">
+                      {item.matchedRule
+                        ? `${item.fee.toFixed(2)} ${item.currency}`
+                        : t('review.noRuleMatch')}
+                    </span>
+                  </div>
+                  {item.matchedRule && (
+                    <div className="mt-0.5 text-gray-500">
+                      {describeFee(item.matchedRule)} · {describeConditions(item.matchedRule)}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-600">{t('review.feeTickets')}</dt>
-              <dd className="font-medium text-gray-900">{totalTickets}</dd>
-            </div>
-            <div className="flex justify-between border-t border-orange-200 pt-2">
-              <dt className="font-semibold text-gray-900">{t('review.feeTotal')}</dt>
-              <dd className="text-lg font-bold text-gray-900">
-                {platformFeeTotal !== null
-                  ? `${platformFeeTotal.toFixed(2)} ${pricing.currency}`
-                  : '—'}
-              </dd>
-            </div>
-          </dl>
+
+            {/* Total */}
+            {feeResult && (
+              <div className="flex items-center justify-between border-t border-orange-200 pt-2">
+                <span className="text-sm font-semibold text-gray-900">{t('review.feeTotal')}</span>
+                <span className="text-lg font-bold text-gray-900">
+                  {feeResult.totalFee > 0
+                    ? `${feeResult.totalFee.toFixed(2)} ${currency ?? ''}`
+                    : t('review.noFee')}
+                </span>
+              </div>
+            )}
+          </div>
         )}
 
-        {pricing && platformFeeTotal !== null && (
+        {hasFee && (
           <p className="mt-3 text-xs text-gray-600">
             {t('review.paymentInstructions', {
-              amount: platformFeeTotal.toFixed(2),
-              currency: pricing.currency,
+              amount: feeResult!.totalFee.toFixed(2),
+              currency: currency ?? '',
             })}
           </p>
         )}
       </div>
 
-      {/* Payment screenshot upload */}
-      {pricing && (
+      {/* Payment screenshot upload — only when there's an actual fee */}
+      {hasFee && (
         <FormField
           label={t('review.screenshotLabel')}
           required

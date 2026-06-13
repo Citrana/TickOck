@@ -398,7 +398,7 @@ export const approve = mutation({
 export const reject = mutation({
   args: {
     eventId: v.id('events'),
-    reason: v.string(),
+    reason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const actorId = await requirePermission(ctx, 'events:approve');
@@ -411,7 +411,7 @@ export const reject = mutation({
 
     await ctx.db.patch(args.eventId, {
       status: 'rejected',
-      rejectionReason: args.reason,
+      rejectionReason: args.reason ?? '',
     });
 
     await writeAuditLog(ctx, {
@@ -419,7 +419,7 @@ export const reject = mutation({
       action: 'events:reject',
       targetType: 'events',
       targetId: args.eventId,
-      metadata: {reason: args.reason},
+      metadata: {reason: args.reason ?? ''},
     });
   },
 });
@@ -517,7 +517,7 @@ export const listLive = query({
   },
 });
 
-// Admin-only: returns all events awaiting approval.
+// Admin-only: returns all events awaiting approval, enriched with owner info.
 export const listPendingApproval = query({
   args: {},
   handler: async ctx => {
@@ -533,10 +533,36 @@ export const listPendingApproval = query({
       role?.permissionSlugs.includes('events:approve');
     if (!canApprove) return [];
 
-    return await ctx.db
+    const events = await ctx.db
       .query('events')
       .withIndex('by_status', q => q.eq('status', 'pending_approval'))
       .order('desc')
       .take(50);
+
+    return await Promise.all(
+      events.map(async event => {
+        const owner = await ctx.db.get(event.ownerId);
+        const tiers = await ctx.db
+          .query('ticketTiers')
+          .withIndex('by_eventId', q => q.eq('eventId', event._id))
+          .collect();
+        const totalTickets = tiers.reduce((s, t) => s + t.quantity, 0);
+        const coverImageUrl = event.coverImageStorageId
+          ? await ctx.storage.getUrl(event.coverImageStorageId)
+          : null;
+        const feeEvidenceUrl = event.platformFeeEvidenceStorageId
+          ? await ctx.storage.getUrl(event.platformFeeEvidenceStorageId)
+          : null;
+        return {
+          ...event,
+          coverImageUrl,
+          feeEvidenceUrl,
+          ownerName: owner?.name ?? null,
+          ownerEmail: owner?.email ?? null,
+          tierCount: tiers.length,
+          totalTickets,
+        };
+      }),
+    );
   },
 });

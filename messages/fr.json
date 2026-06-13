@@ -159,12 +159,91 @@
   },
   "admin": {
     "title": "Panneau d'administration",
-    "events": "Gérer les événements",
-    "users": "Gérer les utilisateurs",
-    "payments": "Paiements",
-    "createEvent": "Créer un événement",
-    "pendingPayments": "Paiements en attente",
-    "auditLog": "Journal d'audit"
+    "subtitle": "Gérez les paramètres de la plateforme, examinez les événements et surveillez l'activité.",
+    "sidebarLabel": "Admin",
+    "nav": {
+      "dashboard": "Tableau de bord",
+      "pendingEvents": "Événements en attente",
+      "pricing": "Tarification",
+      "users": "Utilisateurs",
+      "auditLog": "Journal d'audit"
+    },
+    "cards": {
+      "pendingEvents": "Examiner et approuver les soumissions d'événements",
+      "pricing": "Définir les frais par billet",
+      "users": "Afficher et gérer les utilisateurs",
+      "auditLog": "Consulter le journal d'audit"
+    },
+    "pricing": {
+      "pageTitle": "Tarification de la plateforme",
+      "pageSubtitle": "Définissez des règles de frais applicables aux créateurs d'événements. Les règles sont évaluées dans l'ordre — la première correspondance gagne.",
+      "howItWorksTitle": "Comment fonctionnent les règles de tarification",
+      "howItWorks1": "Les règles sont évaluées dans l'ordre (en haut = priorité la plus haute). La première règle correspondante s'applique par niveau de billet.",
+      "howItWorks2": "Les conditions sont optionnelles — laissez-les vides pour créer une règle de secours universelle.",
+      "howItWorks3": "Si aucune règle ne correspond à un niveau, aucun frais n'est facturé pour ce niveau.",
+      "rulesTitle": "Règles de tarification",
+      "rulesSubtitle": "Listées par ordre de priorité décroissante. La première règle correspondante par niveau gagne.",
+      "addButton": "Ajouter une règle",
+      "formTitle": "Nouvelle règle de tarification",
+      "conditionsTitle": "Conditions (toutes optionnelles)",
+      "conditionsHint": "Laissez vide pour correspondre à tout. Les règles correspondent quand TOUTES les conditions définies sont remplies.",
+      "feeTitle": "Frais à appliquer",
+      "fields": {
+        "label": "Nom de la règle",
+        "ticketPriceMin": "Prix du billet ≥",
+        "ticketPriceMax": "Prix du billet ≤",
+        "totalTicketsMin": "Total billets ≥",
+        "totalTicketsMax": "Total billets ≤",
+        "feeType": "Type de frais",
+        "feeValue": "Montant des frais",
+        "currency": "Devise"
+      },
+      "feeTypes": {
+        "percentage": "% du prix du billet",
+        "flatPerTicket": "Forfait par billet"
+      },
+      "labelPlaceholder": "ex. Billets économiques, Grand volume",
+      "optionalPlaceholder": "Optionnel",
+      "loading": "Chargement…",
+      "noRules": "Aucune règle de tarification. Ajoutez une règle pour commencer à facturer des frais.",
+      "statusActive": "Actif",
+      "statusInactive": "Inactif",
+      "fee": "Frais",
+      "activate": "Activer la règle",
+      "deactivate": "Désactiver la règle",
+      "delete": "Supprimer la règle",
+      "confirmDelete": "Confirmer la suppression",
+      "cancel": "Annuler",
+      "saveButton": "Enregistrer la règle",
+      "saving": "Enregistrement…",
+      "validation": {
+        "labelRequired": "Le nom de la règle est requis.",
+        "feeInvalid": "Entrez un montant de frais valide (0 ou plus).",
+        "percentageTooHigh": "Le pourcentage ne peut pas dépasser 100.",
+        "saveFailed": "Échec de l'enregistrement. Veuillez réessayer."
+      }
+    },
+    "events": {
+      "pageTitle": "Événements en attente",
+      "pageSubtitle": "Examinez les soumissions d'événements et approuvez-les ou rejetez-les.",
+      "loading": "Chargement des événements…",
+      "empty": "Aucun événement en attente d'examen.",
+      "emptySubtitle": "Les nouvelles soumissions d'événements apparaîtront ici.",
+      "by": "par",
+      "unknownOwner": "Inconnu",
+      "date": "Date",
+      "venue": "Lieu",
+      "tiers": "Niveaux",
+      "totalTickets": "Billets",
+      "viewFeeEvidence": "Voir la preuve de paiement",
+      "rejectionReason": "Motif de rejet (optionnel)",
+      "rejectionPlaceholder": "Expliquez au créateur pourquoi cette demande a été rejetée…",
+      "approve": "Approuver",
+      "reject": "Rejeter",
+      "confirmReject": "Confirmer le rejet",
+      "cancel": "Annuler",
+      "processing": "Traitement…"
+    }
   },
   "errors": {
     "notFound": "Page introuvable",
@@ -297,6 +376,9 @@
       "screenshotLabel": "Preuve de paiement",
       "screenshotHint": "Téléchargez une capture d'écran ou un PDF de votre virement.",
       "screenshotButton": "Télécharger la preuve",
+      "unnamedTier": "Niveau sans nom",
+      "noRuleMatch": "Aucune règle de frais correspondante",
+      "noFee": "Pas de frais",
       "screenshotUploaded": "✓ Preuve téléchargée",
       "approvalNote": "Votre événement sera examiné par l'équipe TickOck avant d'être mis en ligne. Vous serez notifié une fois approuvé."
     },

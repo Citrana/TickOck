@@ -150,12 +150,21 @@ export default defineSchema({
     displayOrder: v.number(),
   }).index('by_eventId', ['eventId']),
 
-  // Platform fee rates set by admins — one active row at a time
-  platformPricing: defineTable({
-    name: v.string(),
-    pricePerTicket: v.number(),
-    currency: v.string(),
+  // Platform fee rules — multiple rules, first matching rule per tier wins
+  platformPricingRules: defineTable({
+    label: v.string(),
     isActive: v.boolean(),
+    // Optional condition: ticket unit price range (both inclusive)
+    ticketPriceMin: v.optional(v.number()),
+    ticketPriceMax: v.optional(v.number()),
+    // Optional condition: total event ticket count range
+    totalTicketsMin: v.optional(v.number()),
+    totalTicketsMax: v.optional(v.number()),
+    // Fee applied when this rule matches
+    feeType: v.union(v.literal('percentage'), v.literal('flat_per_ticket')),
+    feeValue: v.number(),
+    currency: v.string(),
+    displayOrder: v.number(),
   }).index('by_isActive', ['isActive']),
 
   // Append-only — no update or delete mutations, ever

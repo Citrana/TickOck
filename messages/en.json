@@ -159,12 +159,91 @@
   },
   "admin": {
     "title": "Admin Panel",
-    "events": "Manage Events",
-    "users": "Manage Users",
-    "payments": "Payments",
-    "createEvent": "Create Event",
-    "pendingPayments": "Pending Payments",
-    "auditLog": "Audit Log"
+    "subtitle": "Manage platform settings, review events, and monitor activity.",
+    "sidebarLabel": "Admin",
+    "nav": {
+      "dashboard": "Dashboard",
+      "pendingEvents": "Pending Events",
+      "pricing": "Platform Pricing",
+      "users": "Users",
+      "auditLog": "Audit Log"
+    },
+    "cards": {
+      "pendingEvents": "Review and approve event submissions",
+      "pricing": "Set per-ticket platform fee",
+      "users": "View and manage platform users",
+      "auditLog": "Browse the append-only audit trail"
+    },
+    "pricing": {
+      "pageTitle": "Platform Pricing",
+      "pageSubtitle": "Define fee rules applied to event creators. Rules are matched in order — first match wins.",
+      "howItWorksTitle": "How pricing rules work",
+      "howItWorks1": "Rules are evaluated in order (top = highest priority). The first matching rule is applied per ticket tier.",
+      "howItWorks2": "Conditions are optional — leave them blank to create a catch-all fallback rule.",
+      "howItWorks3": "If no rule matches a tier, no fee is charged for that tier.",
+      "rulesTitle": "Pricing rules",
+      "rulesSubtitle": "Listed highest priority first. First matching rule per tier wins.",
+      "addButton": "Add rule",
+      "formTitle": "New pricing rule",
+      "conditionsTitle": "Conditions (all optional)",
+      "conditionsHint": "Leave blank to match all. Rules are matched when ALL set conditions pass.",
+      "feeTitle": "Fee to apply",
+      "fields": {
+        "label": "Rule name",
+        "ticketPriceMin": "Ticket price ≥",
+        "ticketPriceMax": "Ticket price ≤",
+        "totalTicketsMin": "Total tickets ≥",
+        "totalTicketsMax": "Total tickets ≤",
+        "feeType": "Fee type",
+        "feeValue": "Fee amount",
+        "currency": "Currency"
+      },
+      "feeTypes": {
+        "percentage": "% of ticket price",
+        "flatPerTicket": "Flat per ticket"
+      },
+      "labelPlaceholder": "e.g. Budget tickets, High volume",
+      "optionalPlaceholder": "Optional",
+      "loading": "Loading…",
+      "noRules": "No pricing rules yet. Add a rule to start charging platform fees.",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "fee": "Fee",
+      "activate": "Activate rule",
+      "deactivate": "Deactivate rule",
+      "delete": "Delete rule",
+      "confirmDelete": "Confirm delete",
+      "cancel": "Cancel",
+      "saveButton": "Save rule",
+      "saving": "Saving…",
+      "validation": {
+        "labelRequired": "Rule name is required.",
+        "feeInvalid": "Enter a valid fee amount (0 or more).",
+        "percentageTooHigh": "Percentage cannot exceed 100.",
+        "saveFailed": "Failed to save rule. Please try again."
+      }
+    },
+    "events": {
+      "pageTitle": "Pending Events",
+      "pageSubtitle": "Review event submissions and approve or reject them.",
+      "loading": "Loading events…",
+      "empty": "No events pending review.",
+      "emptySubtitle": "New event submissions will appear here.",
+      "by": "by",
+      "unknownOwner": "Unknown",
+      "date": "Date",
+      "venue": "Venue",
+      "tiers": "Tiers",
+      "totalTickets": "Tickets",
+      "viewFeeEvidence": "View payment proof",
+      "rejectionReason": "Rejection reason (optional)",
+      "rejectionPlaceholder": "Tell the creator why this was rejected…",
+      "approve": "Approve",
+      "reject": "Reject",
+      "confirmReject": "Confirm rejection",
+      "cancel": "Cancel",
+      "processing": "Processing…"
+    }
   },
   "errors": {
     "notFound": "Page not found",
@@ -297,6 +376,9 @@
       "screenshotLabel": "Payment proof",
       "screenshotHint": "Upload a screenshot or PDF of your payment transfer.",
       "screenshotButton": "Upload proof",
+      "unnamedTier": "Unnamed tier",
+      "noRuleMatch": "No matching fee rule",
+      "noFee": "No fee",
       "screenshotUploaded": "✓ Proof uploaded",
       "approvalNote": "Your event will be reviewed by the TickOck team before going live. You will be notified once approved."
     },
