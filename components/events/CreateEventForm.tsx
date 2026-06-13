@@ -338,7 +338,7 @@ export default function CreateEventForm({existingEventId, locale}: Props) {
         setSavedEventId(eventId);
       }
 
-      router.push(`/${locale}/events/${eventId}/edit`);
+      router.push(`/events/${eventId}/edit` as '/');
     } catch (err) {
       setErrors({global: err instanceof Error ? err.message : String(err)});
     } finally {
@@ -384,7 +384,7 @@ export default function CreateEventForm({existingEventId, locale}: Props) {
         platformFeeEvidenceStorageId: uploaded.paymentScreenshotStorageId,
       });
 
-      router.push(`/${locale}/events/${eventId}`);
+      router.push(`/events/${eventId}` as '/');
     } catch (err) {
       setErrors({global: err instanceof Error ? err.message : String(err)});
     } finally {
