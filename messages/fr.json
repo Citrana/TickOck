@@ -305,6 +305,51 @@
       "cancel": "Annuler",
       "processing": "Traitement…"
     },
+    "usersReport": {
+      "pageTitle": "Utilisateurs",
+      "pageSubtitle": "Consultez et gérez tous les utilisateurs de la plateforme.",
+      "loading": "Chargement des utilisateurs…",
+      "empty": "Aucun utilisateur ne correspond à vos filtres.",
+      "emptySubtitle": "Essayez d'ajuster ou de supprimer les filtres.",
+      "filterButton": "Filtrer",
+      "columnsButton": "Colonnes",
+      "clearFilters": "Effacer les filtres",
+      "resultsCount": "{count} utilisateurs",
+      "filterPanel": {
+        "title": "Filtres",
+        "search": "Nom ou e-mail",
+        "searchPlaceholder": "Rechercher…",
+        "status": "Statut",
+        "role": "Rôle",
+        "all": "Tous",
+        "registeredFrom": "Inscrit depuis",
+        "registeredTo": "Inscrit jusqu'au",
+        "clearAll": "Tout effacer",
+        "close": "Fermer"
+      },
+      "cols": {
+        "name": "Nom",
+        "email": "E-mail",
+        "status": "Statut",
+        "role": "Rôle",
+        "createdAt": "Inscrit le"
+      },
+      "status": {
+        "active": "Actif",
+        "suspended": "Suspendu",
+        "pending_verification": "En attente de vérification",
+        "banned": "Banni"
+      },
+      "actions": {
+        "suspend": "Suspendre",
+        "reactivate": "Réactiver",
+        "confirmSuspend": "Confirmer la suspension",
+        "cancel": "Annuler",
+        "suspendReasonLabel": "Motif (optionnel)",
+        "suspendReasonPlaceholder": "Pourquoi cet utilisateur est-il suspendu ?",
+        "processing": "Traitement…"
+      }
+    },
     "reports": {
       "navLabel": "Rapports d'événements",
       "pageTitle": "Rapports d'événements",

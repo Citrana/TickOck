@@ -305,6 +305,51 @@
       "cancel": "Cancel",
       "processing": "Processing…"
     },
+    "usersReport": {
+      "pageTitle": "Users",
+      "pageSubtitle": "View and manage all platform users.",
+      "loading": "Loading users…",
+      "empty": "No users match your filters.",
+      "emptySubtitle": "Try adjusting or clearing the filters.",
+      "filterButton": "Filter",
+      "columnsButton": "Columns",
+      "clearFilters": "Clear filters",
+      "resultsCount": "{count} users",
+      "filterPanel": {
+        "title": "Filters",
+        "search": "Name or email",
+        "searchPlaceholder": "Search…",
+        "status": "Status",
+        "role": "Role",
+        "all": "All",
+        "registeredFrom": "Registered from",
+        "registeredTo": "Registered to",
+        "clearAll": "Clear all",
+        "close": "Close"
+      },
+      "cols": {
+        "name": "Name",
+        "email": "Email",
+        "status": "Status",
+        "role": "Role",
+        "createdAt": "Registered"
+      },
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended",
+        "pending_verification": "Pending verification",
+        "banned": "Banned"
+      },
+      "actions": {
+        "suspend": "Suspend",
+        "reactivate": "Reactivate",
+        "confirmSuspend": "Confirm suspend",
+        "cancel": "Cancel",
+        "suspendReasonLabel": "Reason (optional)",
+        "suspendReasonPlaceholder": "Why is this user being suspended?",
+        "processing": "Processing…"
+      }
+    },
     "reports": {
       "navLabel": "Event Reports",
       "pageTitle": "Event Reports",
