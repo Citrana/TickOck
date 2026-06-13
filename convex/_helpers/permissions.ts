@@ -1,6 +1,7 @@
 // Every Convex mutation MUST call requirePermission before any DB write.
-// It derives the caller identity from ctx.auth — never accept a userId arg.
+// Identity is derived server-side via getAuthUserId — never accept a userId arg.
 
+import {getAuthUserId} from '@convex-dev/auth/server';
 import {Id} from '../_generated/dataModel';
 import {MutationCtx, QueryCtx} from '../_generated/server';
 
@@ -31,20 +32,13 @@ function slugMatches(granted: string[], required: PermissionSlug): boolean {
   return granted.includes('*') || granted.includes(required);
 }
 
-// Shared read-only DB operations used by both query and mutation contexts.
-// MutationCtx is assignable to QueryCtx because DatabaseWriter extends DatabaseReader.
 async function resolveCallerUser(ctx: QueryCtx) {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new Error('Unauthenticated');
+  const userId = await getAuthUserId(ctx);
+  if (!userId) throw new Error('Unauthenticated');
 
-  const user = await ctx.db
-    .query('users')
-    .withIndex('by_tokenIdentifier', q =>
-      q.eq('tokenIdentifier', identity.tokenIdentifier),
-    )
-    .unique();
-
+  const user = await ctx.db.get(userId);
   if (!user) throw new Error('User not found');
+
   if (user.status === 'suspended' || user.status === 'banned') {
     throw new Error(`Account is ${user.status}`);
   }
@@ -65,10 +59,8 @@ export async function requirePermission(
   permission: PermissionSlug,
   eventId?: Id<'events'>,
 ): Promise<Id<'users'>> {
-  // MutationCtx satisfies QueryCtx structurally (DatabaseWriter extends DatabaseReader)
   const user = await resolveCallerUser(ctx as unknown as QueryCtx);
 
-  // 1. Platform role check
   if (user.platformRoleId) {
     const role = await ctx.db.get(user.platformRoleId);
     if (role && slugMatches(role.permissionSlugs, permission)) {
@@ -76,7 +68,6 @@ export async function requirePermission(
     }
   }
 
-  // 2. Event-scoped staff check
   if (eventId) {
     const staff = await ctx.db
       .query('eventStaff')

@@ -17,16 +17,49 @@
       "passwordLabel": "Mot de passe",
       "submitButton": "Se connecter",
       "noAccount": "Vous n'avez pas de compte ?",
-      "registerLink": "S'inscrire"
+      "registerLink": "S'inscrire",
+      "verifiedSuccess": "Votre e-mail a été vérifié. Vous pouvez maintenant vous connecter.",
+      "errors": {
+        "ACCOUNT_SUSPENDED": "Votre compte a été suspendu.",
+        "ACCOUNT_BANNED": "Votre compte a été définitivement banni.",
+        "generic": "Adresse e-mail ou mot de passe invalide."
+      }
     },
     "register": {
       "title": "Créer un compte",
       "nameLabel": "Nom complet",
       "emailLabel": "Adresse e-mail",
       "passwordLabel": "Mot de passe",
+      "passwordHint": "Au moins 8 caractères",
       "submitButton": "Créer un compte",
       "hasAccount": "Vous avez déjà un compte ?",
       "loginLink": "Se connecter"
+    },
+    "pendingVerification": {
+      "title": "Vérifiez votre boîte de réception",
+      "description": "Nous avons envoyé un lien de vérification à {email}. Cliquez dessus pour activer votre compte.",
+      "resend": "Renvoyer l'e-mail",
+      "resendSuccess": "E-mail de vérification renvoyé.",
+      "logout": "Utiliser un autre compte"
+    },
+    "verifyEmail": {
+      "verifying": "Vérification de votre e-mail…",
+      "success": "E-mail vérifié ! Votre compte est maintenant actif.",
+      "loginButton": "Se connecter",
+      "errorInvalidToken": "Ce lien de vérification est invalide.",
+      "errorTokenExpired": "Ce lien de vérification a expiré. Veuillez vous réinscrire.",
+      "errorGeneric": "Une erreur s'est produite. Veuillez réessayer."
+    },
+    "suspended": {
+      "title": "Compte suspendu",
+      "description": "Votre compte a été suspendu. Raison : {reason}",
+      "descriptionNoReason": "Votre compte a été suspendu.",
+      "contact": "Contactez le support si vous pensez qu'il s'agit d'une erreur."
+    },
+    "banned": {
+      "title": "Compte banni",
+      "description": "Votre compte a été définitivement banni. Raison : {reason}",
+      "descriptionNoReason": "Votre compte a été définitivement banni."
     }
   },
   "events": {

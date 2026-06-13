@@ -17,16 +17,49 @@
       "passwordLabel": "Password",
       "submitButton": "Log in",
       "noAccount": "Don't have an account?",
-      "registerLink": "Sign up"
+      "registerLink": "Sign up",
+      "verifiedSuccess": "Your email has been verified. You can now log in.",
+      "errors": {
+        "ACCOUNT_SUSPENDED": "Your account has been suspended.",
+        "ACCOUNT_BANNED": "Your account has been permanently banned.",
+        "generic": "Invalid email or password."
+      }
     },
     "register": {
       "title": "Create account",
       "nameLabel": "Full name",
       "emailLabel": "Email address",
       "passwordLabel": "Password",
+      "passwordHint": "At least 8 characters",
       "submitButton": "Create account",
       "hasAccount": "Already have an account?",
       "loginLink": "Log in"
+    },
+    "pendingVerification": {
+      "title": "Check your inbox",
+      "description": "We sent a verification link to {email}. Click it to activate your account.",
+      "resend": "Resend email",
+      "resendSuccess": "Verification email resent.",
+      "logout": "Use a different account"
+    },
+    "verifyEmail": {
+      "verifying": "Verifying your email…",
+      "success": "Email verified! Your account is now active.",
+      "loginButton": "Log in",
+      "errorInvalidToken": "This verification link is invalid.",
+      "errorTokenExpired": "This verification link has expired. Please register again.",
+      "errorGeneric": "Something went wrong. Please try again."
+    },
+    "suspended": {
+      "title": "Account suspended",
+      "description": "Your account has been suspended. Reason: {reason}",
+      "descriptionNoReason": "Your account has been suspended.",
+      "contact": "Contact support if you believe this is a mistake."
+    },
+    "banned": {
+      "title": "Account banned",
+      "description": "Your account has been permanently banned. Reason: {reason}",
+      "descriptionNoReason": "Your account has been permanently banned."
     }
   },
   "events": {

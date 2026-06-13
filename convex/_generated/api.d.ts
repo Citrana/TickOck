@@ -10,7 +10,11 @@
 
 import type * as _helpers_audit from "../_helpers/audit.js";
 import type * as _helpers_permissions from "../_helpers/permissions.js";
+import type * as auth from "../auth.js";
+import type * as emailVerification from "../emailVerification.js";
+import type * as http from "../http.js";
 import type * as roles from "../roles.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -21,7 +25,11 @@ import type {
 declare const fullApi: ApiFromModules<{
   "_helpers/audit": typeof _helpers_audit;
   "_helpers/permissions": typeof _helpers_permissions;
+  auth: typeof auth;
+  emailVerification: typeof emailVerification;
+  http: typeof http;
   roles: typeof roles;
+  users: typeof users;
 }>;
 
 /**
