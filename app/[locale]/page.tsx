@@ -511,6 +511,7 @@ export default async function HomePage() {
             desc: th('why.tabs.pricing.desc'),
             cta: th('why.tabs.pricing.cta'),
             href: '/pricing',
+            image: '/images/why-us-1.jpg',
           },
           {
             id: 'support',
@@ -521,6 +522,7 @@ export default async function HomePage() {
             desc: th('why.tabs.support.desc'),
             cta: th('why.tabs.support.cta'),
             href: '#',
+            image: '/images/why-us-2.jpg',
           },
           {
             id: 'features',
@@ -531,6 +533,7 @@ export default async function HomePage() {
             desc: th('why.tabs.features.desc'),
             cta: th('why.tabs.features.cta'),
             href: '#',
+            image: '/images/why-us-3.jpg',
           },
         ]}
       />

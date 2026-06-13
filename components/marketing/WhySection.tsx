@@ -1,6 +1,7 @@
 'use client';
 
 import {useState} from 'react';
+import Image from 'next/image';
 import {Link} from '@/lib/navigation';
 
 type Tab = {
@@ -12,6 +13,7 @@ type Tab = {
   desc: string;
   cta: string;
   href: string;
+  image: string;
 };
 
 type Props = {
@@ -72,9 +74,19 @@ export default function WhySection({headline, tabs}: Props) {
                     </div>
                   </div>
 
-                  {/* Right: image placeholder with padding so it never touches borders */}
+                  {/* Right: image with padding so it never touches card borders */}
                   <div className="p-5 pl-0">
-                    <div className="h-full w-full rounded-2xl bg-gray-300/50" />
+                    <div className="relative h-full w-full overflow-hidden rounded-2xl">
+                      <Image
+                        src={tab.image}
+                        alt=""
+                        fill
+                        className="object-cover"
+                        sizes="(min-width: 1280px) 480px, 40vw"
+                      />
+                      {/* Color tint overlay matching the card's background */}
+                      <div className={`absolute inset-0 ${tab.color} opacity-50 mix-blend-multiply`} />
+                    </div>
                   </div>
                 </div>
 
@@ -131,8 +143,16 @@ export default function WhySection({headline, tabs}: Props) {
                 >
                   {tab.cta}
                 </Link>
-                {/* Image with margin so it doesn't touch card borders */}
-                <div className="m-1 mt-5 aspect-video rounded-xl bg-gray-300/50" />
+                <div className="relative m-1 mt-5 aspect-video overflow-hidden rounded-xl">
+                  <Image
+                    src={tab.image}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
+                  />
+                  <div className={`absolute inset-0 ${tab.color} opacity-50 mix-blend-multiply`} />
+                </div>
               </div>
             ) : null
           )}
