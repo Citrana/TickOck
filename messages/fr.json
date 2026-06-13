@@ -687,5 +687,142 @@
       "saving": "Enregistrement…",
       "submitting": "Soumission…"
     }
+  },
+  "home": {
+    "platform": {
+      "label": "Présentation de TickOck",
+      "headline": "Concevez, gérez et vendez des billets pour votre événement, tout en un",
+      "headlineHighlight": "simple à utiliser",
+      "headlineEnd": "plateforme de billetterie !"
+    },
+    "stats": {
+      "headline": "Rejoignez plus de",
+      "count": "73 000",
+      "countLabel": "organisateurs d'événements",
+      "across": "dans",
+      "countries": "120",
+      "countriesLabel": "pays",
+      "subtitle": "Que vous organisiez une grande foire alimentaire dans votre ville, une soirée comédie dans un café ou une masterclass en ligne depuis votre salon, nous simplifions la billetterie.",
+      "learnMore": "En savoir plus",
+      "firstTimers": { "title": "Débutants", "desc": "Créez des événements et commencez à vendre des billets en quelques minutes, avec toutes les fonctionnalités et le support 24h/24 dont vous avez besoin." },
+      "eventPros": { "title": "Pros de l'événement", "desc": "Passez au niveau supérieur avec des fonctionnalités puissantes et des tarifs imbattables. Avec un support disponible en permanence, nous vous accompagnons." },
+      "freeEvents": { "title": "Événements gratuits", "desc": "Si votre événement est gratuit, nos services aussi. Accédez à toutes les fonctionnalités et au support dont vous avez besoin — sans frais." },
+      "developers": { "title": "Développeurs", "desc": "Construisez l'avenir de la billetterie avec notre API ouverte et nos intégrations prêtes à l'emploi. La mise en place est un jeu d'enfant." },
+      "charities": { "title": "Associations", "desc": "Des collectes locales aux grands galas annuels, les associations bénéficient de tarifs spéciaux et de tout ce dont elles ont besoin pour avoir plus d'impact." },
+      "attractions": { "title": "Attractions", "desc": "Avec la gestion des créneaux horaires et une application de contrôle gratuite, nous accompagnons les lieux, musées et attractions de toutes tailles." }
+    },
+    "fees": {
+      "headline": "Nous croyons que vos revenus vous appartiennent. C'est pourquoi nos frais sont inférieurs aux grandes plateformes, pour que vous puissiez réinvestir dans votre prochain événement.",
+      "cta": "Voir nos tarifs"
+    },
+    "howItWorks": {
+      "label": "Étape par étape",
+      "headline": "Gérez votre prochain événement comme un pro.",
+      "feature1": {
+        "mockupTitle": "Créer votre événement",
+        "title": "Des événements incroyables à portée de main",
+        "desc": "Que vous détestiez la technologie ou adoriez les détails, nous avons créé la plateforme de billetterie ultime sans tracas. Passez de la création à la vente de votre premier billet en quelques minutes.",
+        "bullet1": "Lancez votre page événement en quelques minutes",
+        "bullet2": "Acceptez les paiements en ligne ou par virement bancaire",
+        "bullet3": "Définissez les niveaux de billets, les limites et les politiques d'annulation",
+        "cta": "Commencer"
+      },
+      "feature2": {
+        "title": "Vendez vite et gardez plus de vos revenus",
+        "desc": "Suivez votre croissance du premier billet jusqu'à une salle comble. Nous accompagnons votre parcours avec une structure de frais plus équitable qui maintient vos marges élevées du début à la fin.",
+        "bullet1": "Partagez votre page partout — réseaux sociaux, e-mail, site web",
+        "bullet2": "Les frais les plus bas du secteur pour maximiser vos gains",
+        "bullet3": "Tableau de bord en temps réel pour suivre vos ventes",
+        "cta": "Voir nos tarifs",
+        "mockupTitle": "Guichet"
+      },
+      "feature3": {
+        "mockupTitle": "Gérer les commandes",
+        "title": "Des outils puissants pour la gestion experte d'événements",
+        "desc": "Obtenez tous les outils nécessaires pour lancer, gérer et développer vos événements sans effort. Avec des analyses intégrées, le suivi de vos ventes n'a jamais été aussi simple.",
+        "bullet1": "Enregistrez les participants par scan QR",
+        "bullet2": "Gérez remboursements, annulations et confirmations de paiement",
+        "bullet3": "Ajoutez des co-organisateurs avec des permissions personnalisées",
+        "cta": "Découvrir toutes les fonctionnalités"
+      }
+    },
+    "discover": {
+      "headline": "Découvrir des événements",
+      "cta": "Voir plus d'événements"
+    },
+    "why": {
+      "headline": "Pourquoi choisir TickOck ?",
+      "tabs": {
+        "pricing": {
+          "stripLabel": "Les frais les plus bas, garantis",
+          "label": "Les frais les plus bas, garantis",
+          "title": "Des tarifs imbattables pour chaque événement.",
+          "desc": "Ni contrats, ni frais d'installation, ni abonnement mensuel. Chez nous, c'est un simple forfait par billet vendu — plus d'argent là où ça compte : vos événements.",
+          "cta": "Voir les tarifs"
+        },
+        "support": {
+          "stripLabel": "Assistance 24h/24, 7j/7",
+          "label": "Assistance 24h/24, 7j/7",
+          "title": "Nous sommes là pour vous, toujours.",
+          "desc": "Une question à 2h du matin avant votre grand événement ? Notre équipe est disponible à toute heure pour vous aider à réussir, quoi qu'il arrive.",
+          "cta": "En savoir plus"
+        },
+        "features": {
+          "stripLabel": "Bien plus que la billetterie",
+          "label": "Bien plus que la billetterie",
+          "title": "Tout ce qu'il vous faut pour des événements mémorables.",
+          "desc": "De la vérification par QR code à la gestion des participants, en passant par les codes de réduction et les analyses en temps réel — tout pour rendre vos événements inoubliables.",
+          "cta": "Explorer les fonctionnalités"
+        }
+      }
+    },
+    "testimonial": {
+      "quote": "TickOck m'a été indispensable pour soutenir ma nouvelle petite entreprise en termes d'accessibilité financière et de simplicité.",
+      "author": "Sarah M.",
+      "role": "Organisatrice d'événements",
+      "cta": "Lire tous les avis"
+    },
+    "integrations": {
+      "headline": "Nous nous intégrons avec",
+      "highlight": "presque tout.",
+      "headlineEnd": "Branchez et c'est parti !",
+      "cta": "Explorer les intégrations"
+    },
+    "ctaBanner": {
+      "headline1": "Vous rêvez d'un événement.",
+      "headline2": "Nous vendons les billets.",
+      "cta1": "Commencer gratuitement",
+      "cta2": "Réserver une démo"
+    }
+  },
+  "footer": {
+    "tagline": "La plateforme de billetterie la plus appréciée au monde.",
+    "copyright": "© 2025 TickOck. Tous droits réservés.",
+    "discoverTitle": "Découvrir & Légal",
+    "findTickets": "Trouver des billets",
+    "privacyPolicy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
+    "cookies": "Politique des cookies",
+    "getStartedTitle": "Commencer",
+    "createEvent": "Créer un événement",
+    "pricing": "Tarifs",
+    "howItWorks": "Comment ça marche",
+    "bookDemo": "Réserver une démo",
+    "eventTypesTitle": "Types d'événements",
+    "musicFestivals": "Festivals de musique",
+    "conferences": "Conférences",
+    "sportsEvents": "Événements sportifs",
+    "charityEvents": "Événements caritatifs",
+    "workshops": "Ateliers",
+    "featuresTitle": "Fonctionnalités",
+    "ticketScanning": "Scan de billets",
+    "attendeeManagement": "Gestion des participants",
+    "paymentProcessing": "Traitement des paiements",
+    "integrationsLink": "Intégrations",
+    "compareTitle": "Comparatifs",
+    "vsEventbrite": "vs Eventbrite",
+    "vsTicketmaster": "vs Ticketmaster",
+    "vsUniverse": "vs Universe",
+    "vsHumanitix": "vs Humanitix"
   }
 }

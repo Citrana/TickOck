@@ -6,6 +6,7 @@ import localFont from 'next/font/local';
 import {ConvexAuthNextjsServerProvider} from '@convex-dev/auth/nextjs/server';
 import '../globals.css';
 import Navbar from '@/components/nav/Navbar';
+import Footer from '@/components/marketing/Footer';
 import {ConvexClientProvider} from '@/components/providers/ConvexClientProvider';
 import {AuthGuard} from '@/components/auth/AuthGuard';
 import {routing} from '@/i18n/routing';
@@ -51,7 +52,7 @@ export default async function LocaleLayout({
     <ConvexAuthNextjsServerProvider>
       <html lang={locale}>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-[#f9f7f4] antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} min-h-screen overflow-x-hidden bg-[#f9f7f4] antialiased`}
         >
           <NextIntlClientProvider messages={messages}>
             <ConvexClientProvider>
@@ -64,6 +65,7 @@ export default async function LocaleLayout({
               <Toaster position="top-right" richColors />
             </ConvexClientProvider>
           </NextIntlClientProvider>
+          <Footer />
         </body>
       </html>
     </ConvexAuthNextjsServerProvider>

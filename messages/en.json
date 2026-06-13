@@ -687,5 +687,142 @@
       "saving": "Saving…",
       "submitting": "Submitting…"
     }
+  },
+  "home": {
+    "platform": {
+      "label": "Introducing TickOck",
+      "headline": "Design, manage, and sell tickets to your event all in one",
+      "headlineHighlight": "easy-to-use",
+      "headlineEnd": "event ticketing platform!"
+    },
+    "stats": {
+      "headline": "Join over",
+      "count": "73,000",
+      "countLabel": "Event Creators",
+      "across": "across",
+      "countries": "120",
+      "countriesLabel": "countries",
+      "subtitle": "Whether you're organizing a massive food expo in your city, a live comedy night at a coffee shop, or an online masterclass from your living room, we take the hassle out of ticketing.",
+      "learnMore": "Learn more",
+      "firstTimers": { "title": "First-timers", "desc": "Easily create events and start selling tickets in minutes, with all the features and 24/7 support you need to succeed." },
+      "eventPros": { "title": "Event pros", "desc": "Level up with powerful ticketing features and unbeatable pricing. With 99.9% uptime and round-the-clock support, we've got you covered." },
+      "freeEvents": { "title": "Free events", "desc": "If your event is free, so are we. Get all the features and support you need to run your event — at zero cost." },
+      "developers": { "title": "Developers", "desc": "Build the future of ticketing with our powerful open API and ready-made integrations. Setup is a breeze." },
+      "charities": { "title": "Charities", "desc": "From local fundraisers to grand annual galas, charities get special rates and everything they need to make more impact." },
+      "attractions": { "title": "Attractions", "desc": "With time-slot management and a free check-in app, we support venues, museums, and attractions of every size." }
+    },
+    "fees": {
+      "headline": "We believe your revenue belongs to you. That's why we keep our fees lower than major ticketing sites, so you can reinvest in your next big event.",
+      "cta": "See our pricing"
+    },
+    "howItWorks": {
+      "label": "Step by step",
+      "headline": "Run your next event like a boss.",
+      "feature1": {
+        "mockupTitle": "Create your event",
+        "title": "Incredible events at your fingertips",
+        "desc": "Whether you hate dealing with tech or love diving into the details, we've built the ultimate hassle-free ticketing platform. Go from creating an event to selling your first ticket in minutes.",
+        "bullet1": "Launch your event page in minutes with our easy builder",
+        "bullet2": "Accept online payments or manual bank transfers",
+        "bullet3": "Set ticket tiers, limits, and cancellation policies",
+        "cta": "Get started"
+      },
+      "feature2": {
+        "title": "Sell out fast and keep more of your revenue",
+        "desc": "Track your growth from ticket number one to a packed venue. We support your journey with a fairer, lower fee structure that keeps your margins high from start to finish.",
+        "bullet1": "Share your event page anywhere — social, email, your website",
+        "bullet2": "Industry-lowest fees so you keep more of every sale",
+        "bullet3": "Real-time dashboard to track revenue and sales",
+        "cta": "See our pricing",
+        "mockupTitle": "Box office"
+      },
+      "feature3": {
+        "mockupTitle": "Manage orders",
+        "title": "Powerful tools for expert event management",
+        "desc": "Get all the tools you need to launch, manage, and scale your events effortlessly. With built-in analytics, tracking your ticket sales and understanding your audience has never been simpler.",
+        "bullet1": "Check in guests with QR code scanning",
+        "bullet2": "Handle refunds, cancellations, and payment confirmations",
+        "bullet3": "Add co-organizers and staff with custom permission levels",
+        "cta": "Explore all features"
+      }
+    },
+    "discover": {
+      "headline": "Discover live events",
+      "cta": "See more events"
+    },
+    "why": {
+      "headline": "Why use TickOck?",
+      "tabs": {
+        "pricing": {
+          "stripLabel": "Lowest fees, guaranteed",
+          "label": "Lowest fees, guaranteed",
+          "title": "Unbeatable pricing for every event.",
+          "desc": "No contracts, setup fees, or monthly charges. With us, it's just a simple flat fee for every ticket sold — more money where it matters: your events.",
+          "cta": "View pricing"
+        },
+        "support": {
+          "stripLabel": "Unmatched 24/7 support",
+          "label": "Unmatched 24/7 support",
+          "title": "We're here for you, always.",
+          "desc": "Got a question at 2am before your big event? Our team is on hand around the clock to help you succeed, whatever it takes.",
+          "cta": "Learn more"
+        },
+        "features": {
+          "stripLabel": "More than just ticketing",
+          "label": "More than just ticketing",
+          "title": "Everything you need to run amazing events.",
+          "desc": "From QR check-in and attendee management to discount codes and real-time analytics — every feature to make your events unforgettable.",
+          "cta": "Explore features"
+        }
+      }
+    },
+    "testimonial": {
+      "quote": "TickOck has been integral in supporting me as a new small business in terms of affordability and simplicity.",
+      "author": "Sarah M.",
+      "role": "Event Creator",
+      "cta": "Read all reviews"
+    },
+    "integrations": {
+      "headline": "We integrate with",
+      "highlight": "almost everything.",
+      "headlineEnd": "Just plug and play!",
+      "cta": "Explore integrations"
+    },
+    "ctaBanner": {
+      "headline1": "You dream it.",
+      "headline2": "We'll ticket it.",
+      "cta1": "Start for free",
+      "cta2": "Book a demo"
+    }
+  },
+  "footer": {
+    "tagline": "The world's most loved event ticketing platform.",
+    "copyright": "© 2025 TickOck. All rights reserved.",
+    "discoverTitle": "Discover & Legal",
+    "findTickets": "Find tickets",
+    "privacyPolicy": "Privacy policy",
+    "terms": "Terms of service",
+    "cookies": "Cookie policy",
+    "getStartedTitle": "Get started",
+    "createEvent": "Create an event",
+    "pricing": "Pricing",
+    "howItWorks": "How it works",
+    "bookDemo": "Book a demo",
+    "eventTypesTitle": "Event types",
+    "musicFestivals": "Music festivals",
+    "conferences": "Conferences",
+    "sportsEvents": "Sports events",
+    "charityEvents": "Charity events",
+    "workshops": "Workshops",
+    "featuresTitle": "Features",
+    "ticketScanning": "Ticket scanning",
+    "attendeeManagement": "Attendee management",
+    "paymentProcessing": "Payment processing",
+    "integrationsLink": "Integrations",
+    "compareTitle": "Compare",
+    "vsEventbrite": "vs Eventbrite",
+    "vsTicketmaster": "vs Ticketmaster",
+    "vsUniverse": "vs Universe",
+    "vsHumanitix": "vs Humanitix"
   }
 }
