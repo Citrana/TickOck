@@ -192,7 +192,8 @@
     "rejected": "Rejeté",
     "actions": {
       "view": "Voir",
-      "edit": "Modifier"
+      "edit": "Modifier",
+      "manage": "Gérer"
     }
   },
   "eventDetail": {
@@ -210,6 +211,7 @@
     "free": "Gratuit",
     "buyButton": "Obtenir des billets",
     "speakers": "Intervenants & invités",
+    "manageButton": "Gérer l'événement",
     "editButton": "Modifier l'événement",
     "pendingReview": "En cours d'examen",
     "rejectedTitle": "Événement rejeté",
@@ -301,6 +303,111 @@
       "confirmReject": "Confirmer le rejet",
       "cancel": "Annuler",
       "processing": "Traitement…"
+    }
+  },
+  "manage": {
+    "title": "Gérer l'événement",
+    "backToEvent": "← Retour à l'événement",
+    "accessDenied": "Vous n'avez pas la permission de gérer cet événement.",
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "payments": "Paiements",
+      "attendees": "Participants",
+      "staff": "Équipe"
+    },
+    "overview": {
+      "confirmedRevenue": "Revenus confirmés",
+      "pendingRevenue": "En attente",
+      "ticketsSold": "Billets vendus",
+      "ticketsAvailable": "Encore disponibles",
+      "tierBreakdown": "Détail par niveau",
+      "tierName": "Niveau",
+      "tierPrice": "Prix",
+      "tierSold": "Vendus",
+      "tierAvailable": "Disponibles",
+      "tierRevenue": "Revenus",
+      "noTiers": "Aucun niveau de billet configuré.",
+      "free": "Gratuit"
+    },
+    "payments": {
+      "empty": "Aucun paiement pour l'instant.",
+      "emptyFiltered": "Aucun paiement ne correspond à ce filtre.",
+      "filterAll": "Tous",
+      "filterPending": "En attente",
+      "filterConfirmed": "Confirmés",
+      "filterRejected": "Rejetés",
+      "buyer": "Acheteur",
+      "amount": "Montant",
+      "method": "Méthode",
+      "status": "Statut",
+      "proof": "Preuve",
+      "viewProof": "Voir la preuve",
+      "noProof": "Aucune preuve",
+      "methodManual": "Manuel",
+      "methodOnline": "En ligne",
+      "statusPending": "En attente",
+      "statusConfirmed": "Confirmé",
+      "statusRejected": "Rejeté",
+      "statusRefunded": "Remboursé",
+      "confirm": "Confirmer",
+      "reject": "Rejeter",
+      "confirmTitle": "Confirmer le paiement",
+      "rejectTitle": "Rejeter le paiement",
+      "rejectReasonPlaceholder": "Motif du rejet (optionnel)",
+      "processing": "Traitement…",
+      "cancel": "Annuler"
+    },
+    "attendees": {
+      "empty": "Aucun participant pour l'instant.",
+      "emptyFiltered": "Aucun participant ne correspond à ce filtre.",
+      "filterAll": "Tous",
+      "filterConfirmed": "Confirmés",
+      "filterPending": "Paiement en attente",
+      "filterUsed": "Utilisés",
+      "filterCancelled": "Annulés",
+      "name": "Participant",
+      "tier": "Niveau",
+      "status": "Statut",
+      "date": "Date",
+      "statusPendingPayment": "En attente",
+      "statusConfirmed": "Confirmé",
+      "statusCancelled": "Annulé",
+      "statusUsed": "Utilisé",
+      "statusExpired": "Expiré"
+    },
+    "staff": {
+      "empty": "Aucun co-gestionnaire. Ajoutez des membres d'équipe pour vous aider à gérer cet événement.",
+      "addTitle": "Ajouter un membre",
+      "emailLabel": "Adresse e-mail",
+      "emailPlaceholder": "equipe@exemple.com",
+      "roleLabel": "Rôle",
+      "roles": {
+        "co_organizer": "Co-organisateur",
+        "scanner": "Contrôleur de billets",
+        "finance": "Gestionnaire financier"
+      },
+      "roleDescriptions": {
+        "co_organizer": "Peut voir les participants, scanner les billets et gérer les paiements",
+        "scanner": "Peut accueillir les participants en scannant leurs billets",
+        "finance": "Peut voir les participants et confirmer ou rejeter les paiements"
+      },
+      "addButton": "Ajouter",
+      "adding": "Ajout…",
+      "removeButton": "Retirer",
+      "removing": "Suppression…",
+      "memberName": "Nom",
+      "memberEmail": "E-mail",
+      "memberRole": "Permissions",
+      "permissionTicketsRead": "Voir les participants",
+      "permissionTicketsScan": "Scanner les billets",
+      "permissionPaymentsView": "Voir les paiements",
+      "permissionPaymentsConfirm": "Confirmer les paiements",
+      "permissionPaymentsReject": "Rejeter les paiements",
+      "errors": {
+        "emailRequired": "Veuillez saisir une adresse e-mail.",
+        "addFailed": "Impossible d'ajouter le membre.",
+        "removeFailed": "Impossible de supprimer le membre."
+      }
     }
   },
   "errors": {

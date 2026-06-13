@@ -570,6 +570,84 @@ export const listLive = query({
   },
 });
 
+/**
+ * Returns aggregated sales stats for an event. Accessible to the event owner
+ * and any event staff member.
+ */
+export const getStats = query({
+  args: {eventId: v.id('events')},
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return null;
+
+    const event = await ctx.db.get(args.eventId);
+    if (!event) return null;
+
+    const isOwner = event.ownerId === userId;
+    if (!isOwner) {
+      const staff = await ctx.db
+        .query('eventStaff')
+        .withIndex('by_eventId_and_userId', q =>
+          q.eq('eventId', args.eventId).eq('userId', userId),
+        )
+        .unique();
+      if (!staff) return null;
+    }
+
+    const [tiers, tickets, payments] = await Promise.all([
+      ctx.db
+        .query('ticketTiers')
+        .withIndex('by_eventId', q => q.eq('eventId', args.eventId))
+        .collect(),
+      ctx.db
+        .query('tickets')
+        .withIndex('by_eventId', q => q.eq('eventId', args.eventId))
+        .take(1000),
+      ctx.db
+        .query('payments')
+        .withIndex('by_eventId', q => q.eq('eventId', args.eventId))
+        .take(1000),
+    ]);
+
+    const ticketCounts = {
+      pending_payment: 0,
+      confirmed: 0,
+      cancelled: 0,
+      used: 0,
+      expired: 0,
+    } as Record<string, number>;
+    for (const t of tickets) ticketCounts[t.status] = (ticketCounts[t.status] ?? 0) + 1;
+
+    let totalRevenue = 0;
+    let pendingRevenue = 0;
+    const paymentCounts = {pending: 0, confirmed: 0, rejected: 0, refunded: 0} as Record<string, number>;
+    for (const p of payments) {
+      paymentCounts[p.status] = (paymentCounts[p.status] ?? 0) + 1;
+      if (p.status === 'confirmed') totalRevenue += p.amount;
+      if (p.status === 'pending') pendingRevenue += p.amount;
+    }
+
+    const currency = tiers[0]?.currency ?? null;
+
+    return {
+      currency,
+      totalRevenue,
+      pendingRevenue,
+      ticketCounts,
+      paymentCounts,
+      tiers: tiers.map(t => ({
+        _id: t._id,
+        name: t.name,
+        price: t.price,
+        currency: t.currency,
+        quantity: t.quantity,
+        quantitySold: t.quantitySold,
+        available: t.quantity - t.quantitySold,
+      })),
+    };
+  },
+});
+
 // Admin-only: returns all events awaiting approval, enriched with owner info.
 export const listPendingApproval = query({
   args: {},

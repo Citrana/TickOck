@@ -13,6 +13,7 @@ import type * as _helpers_permissions from "../_helpers/permissions.js";
 import type * as _helpers_qr from "../_helpers/qr.js";
 import type * as auth from "../auth.js";
 import type * as emailVerification from "../emailVerification.js";
+import type * as eventStaff from "../eventStaff.js";
 import type * as events from "../events.js";
 import type * as http from "../http.js";
 import type * as payments from "../payments.js";
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   "_helpers/qr": typeof _helpers_qr;
   auth: typeof auth;
   emailVerification: typeof emailVerification;
+  eventStaff: typeof eventStaff;
   events: typeof events;
   http: typeof http;
   payments: typeof payments;

@@ -192,7 +192,8 @@
     "rejected": "Rejected",
     "actions": {
       "view": "View",
-      "edit": "Edit"
+      "edit": "Edit",
+      "manage": "Manage"
     }
   },
   "eventDetail": {
@@ -210,6 +211,7 @@
     "free": "Free",
     "buyButton": "Get tickets",
     "speakers": "Speakers & guests",
+    "manageButton": "Manage event",
     "editButton": "Edit event",
     "pendingReview": "Under review",
     "rejectedTitle": "Event rejected",
@@ -301,6 +303,111 @@
       "confirmReject": "Confirm rejection",
       "cancel": "Cancel",
       "processing": "Processing…"
+    }
+  },
+  "manage": {
+    "title": "Manage Event",
+    "backToEvent": "← Back to event",
+    "accessDenied": "You don't have permission to manage this event.",
+    "tabs": {
+      "overview": "Overview",
+      "payments": "Payments",
+      "attendees": "Attendees",
+      "staff": "Staff"
+    },
+    "overview": {
+      "confirmedRevenue": "Confirmed revenue",
+      "pendingRevenue": "Pending",
+      "ticketsSold": "Tickets sold",
+      "ticketsAvailable": "Still available",
+      "tierBreakdown": "Tier breakdown",
+      "tierName": "Tier",
+      "tierPrice": "Price",
+      "tierSold": "Sold",
+      "tierAvailable": "Available",
+      "tierRevenue": "Revenue",
+      "noTiers": "No ticket tiers configured.",
+      "free": "Free"
+    },
+    "payments": {
+      "empty": "No payments yet.",
+      "emptyFiltered": "No payments match this filter.",
+      "filterAll": "All",
+      "filterPending": "Pending",
+      "filterConfirmed": "Confirmed",
+      "filterRejected": "Rejected",
+      "buyer": "Buyer",
+      "amount": "Amount",
+      "method": "Method",
+      "status": "Status",
+      "proof": "Proof",
+      "viewProof": "View proof",
+      "noProof": "No proof",
+      "methodManual": "Manual",
+      "methodOnline": "Online",
+      "statusPending": "Pending",
+      "statusConfirmed": "Confirmed",
+      "statusRejected": "Rejected",
+      "statusRefunded": "Refunded",
+      "confirm": "Confirm",
+      "reject": "Reject",
+      "confirmTitle": "Confirm payment",
+      "rejectTitle": "Reject payment",
+      "rejectReasonPlaceholder": "Reason for rejection (optional)",
+      "processing": "Processing…",
+      "cancel": "Cancel"
+    },
+    "attendees": {
+      "empty": "No attendees yet.",
+      "emptyFiltered": "No attendees match this filter.",
+      "filterAll": "All",
+      "filterConfirmed": "Confirmed",
+      "filterPending": "Pending Payment",
+      "filterUsed": "Used",
+      "filterCancelled": "Cancelled",
+      "name": "Attendee",
+      "tier": "Tier",
+      "status": "Status",
+      "date": "Date",
+      "statusPendingPayment": "Pending",
+      "statusConfirmed": "Confirmed",
+      "statusCancelled": "Cancelled",
+      "statusUsed": "Used",
+      "statusExpired": "Expired"
+    },
+    "staff": {
+      "empty": "No co-managers yet. Add team members to help manage this event.",
+      "addTitle": "Add team member",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "team@example.com",
+      "roleLabel": "Role",
+      "roles": {
+        "co_organizer": "Co-organizer",
+        "scanner": "Ticket scanner",
+        "finance": "Finance manager"
+      },
+      "roleDescriptions": {
+        "co_organizer": "Can view attendees, scan tickets, and manage payments",
+        "scanner": "Can check in attendees by scanning tickets",
+        "finance": "Can view attendees and confirm or reject payments"
+      },
+      "addButton": "Add member",
+      "adding": "Adding…",
+      "removeButton": "Remove",
+      "removing": "Removing…",
+      "memberName": "Name",
+      "memberEmail": "Email",
+      "memberRole": "Permissions",
+      "permissionTicketsRead": "View attendees",
+      "permissionTicketsScan": "Scan tickets",
+      "permissionPaymentsView": "View payments",
+      "permissionPaymentsConfirm": "Confirm payments",
+      "permissionPaymentsReject": "Reject payments",
+      "errors": {
+        "emailRequired": "Please enter an email address.",
+        "addFailed": "Failed to add team member.",
+        "removeFailed": "Failed to remove team member."
+      }
     }
   },
   "errors": {
