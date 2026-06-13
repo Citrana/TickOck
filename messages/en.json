@@ -226,7 +226,8 @@
       "pendingEvents": "Pending Events",
       "pricing": "Platform Pricing",
       "users": "Users",
-      "auditLog": "Audit Log"
+      "auditLog": "Audit Log",
+      "reports": "Event Reports"
     },
     "cards": {
       "pendingEvents": "Review and approve event submissions",
@@ -303,6 +304,64 @@
       "confirmReject": "Confirm rejection",
       "cancel": "Cancel",
       "processing": "Processing…"
+    },
+    "reports": {
+      "navLabel": "Event Reports",
+      "pageTitle": "Event Reports",
+      "pageSubtitle": "View and filter all events across the platform.",
+      "loading": "Loading events…",
+      "empty": "No events match your filters.",
+      "emptySubtitle": "Try adjusting or clearing the filters.",
+      "filterButton": "Filter",
+      "columnsButton": "Columns",
+      "clearFilters": "Clear filters",
+      "resultsCount": "{count} events",
+      "filterPanel": {
+        "title": "Filters",
+        "name": "Event name",
+        "namePlaceholder": "Search by name…",
+        "status": "Status",
+        "dateFrom": "Date from",
+        "dateTo": "Date to",
+        "category": "Category",
+        "categoryPlaceholder": "Any category",
+        "city": "City",
+        "cityPlaceholder": "Any city",
+        "visibility": "Visibility",
+        "paymentMode": "Payment mode",
+        "all": "All",
+        "clearAll": "Clear all",
+        "close": "Close"
+      },
+      "cols": {
+        "title": "Title",
+        "status": "Status",
+        "date": "Date",
+        "startTime": "Start Time",
+        "city": "City",
+        "owner": "Owner",
+        "category": "Category",
+        "venue": "Venue",
+        "visibility": "Visibility",
+        "paymentMode": "Payment Mode",
+        "tierCount": "Tiers",
+        "createdAt": "Created"
+      },
+      "status": {
+        "draft": "Draft",
+        "pending_approval": "Pending",
+        "live": "Live",
+        "rejected": "Rejected"
+      },
+      "visibility": {
+        "public": "Public",
+        "private": "Private",
+        "unlisted": "Unlisted"
+      },
+      "paymentMode": {
+        "online": "Online",
+        "manual": "Manual"
+      }
     }
   },
   "manage": {

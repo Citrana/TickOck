@@ -11,6 +11,7 @@
 import type * as _helpers_audit from "../_helpers/audit.js";
 import type * as _helpers_permissions from "../_helpers/permissions.js";
 import type * as _helpers_qr from "../_helpers/qr.js";
+import type * as adminReports from "../adminReports.js";
 import type * as auth from "../auth.js";
 import type * as emailVerification from "../emailVerification.js";
 import type * as eventStaff from "../eventStaff.js";
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   "_helpers/audit": typeof _helpers_audit;
   "_helpers/permissions": typeof _helpers_permissions;
   "_helpers/qr": typeof _helpers_qr;
+  adminReports: typeof adminReports;
   auth: typeof auth;
   emailVerification: typeof emailVerification;
   eventStaff: typeof eventStaff;

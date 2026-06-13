@@ -226,7 +226,8 @@
       "pendingEvents": "Événements en attente",
       "pricing": "Tarification",
       "users": "Utilisateurs",
-      "auditLog": "Journal d'audit"
+      "auditLog": "Journal d'audit",
+      "reports": "Rapports d'événements"
     },
     "cards": {
       "pendingEvents": "Examiner et approuver les soumissions d'événements",
@@ -303,6 +304,64 @@
       "confirmReject": "Confirmer le rejet",
       "cancel": "Annuler",
       "processing": "Traitement…"
+    },
+    "reports": {
+      "navLabel": "Rapports d'événements",
+      "pageTitle": "Rapports d'événements",
+      "pageSubtitle": "Consultez et filtrez tous les événements de la plateforme.",
+      "loading": "Chargement des événements…",
+      "empty": "Aucun événement ne correspond à vos filtres.",
+      "emptySubtitle": "Essayez d'ajuster ou de supprimer les filtres.",
+      "filterButton": "Filtrer",
+      "columnsButton": "Colonnes",
+      "clearFilters": "Effacer les filtres",
+      "resultsCount": "{count} événements",
+      "filterPanel": {
+        "title": "Filtres",
+        "name": "Nom de l'événement",
+        "namePlaceholder": "Rechercher par nom…",
+        "status": "Statut",
+        "dateFrom": "Date du",
+        "dateTo": "Date au",
+        "category": "Catégorie",
+        "categoryPlaceholder": "Toute catégorie",
+        "city": "Ville",
+        "cityPlaceholder": "Toute ville",
+        "visibility": "Visibilité",
+        "paymentMode": "Mode de paiement",
+        "all": "Tous",
+        "clearAll": "Tout effacer",
+        "close": "Fermer"
+      },
+      "cols": {
+        "title": "Titre",
+        "status": "Statut",
+        "date": "Date",
+        "startTime": "Heure de début",
+        "city": "Ville",
+        "owner": "Propriétaire",
+        "category": "Catégorie",
+        "venue": "Lieu",
+        "visibility": "Visibilité",
+        "paymentMode": "Mode de paiement",
+        "tierCount": "Niveaux",
+        "createdAt": "Créé le"
+      },
+      "status": {
+        "draft": "Brouillon",
+        "pending_approval": "En attente",
+        "live": "En ligne",
+        "rejected": "Rejeté"
+      },
+      "visibility": {
+        "public": "Public",
+        "private": "Privé",
+        "unlisted": "Non répertorié"
+      },
+      "paymentMode": {
+        "online": "En ligne",
+        "manual": "Manuel"
+      }
     }
   },
   "manage": {
