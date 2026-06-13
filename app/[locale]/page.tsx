@@ -81,7 +81,7 @@ export default async function HomePage() {
           <div className="mt-7 flex flex-wrap items-center gap-4">
             <Link
               href="/register"
-              className="rounded-full bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-gray-700"
+              className="btn-ticket rounded-lg bg-gray-900 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-gray-700"
             >
               {t('ctaPrimary')}
             </Link>

@@ -26,6 +26,28 @@ body {
   }
 }
 
+/* Ticket-shaped button — pseudo-element circles punch notches into both sides */
+.btn-ticket {
+  position: relative;
+  overflow: visible;
+}
+
+.btn-ticket::before,
+.btn-ticket::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background-color: #f9f7f4;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.btn-ticket::before { left: -10px; }
+.btn-ticket::after  { right: -10px; }
+
 /* Image mosaic infinite scroll */
 @keyframes scroll-up {
   from { transform: translateY(0); }
