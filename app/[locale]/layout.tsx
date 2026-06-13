@@ -50,7 +50,7 @@ export default async function LocaleLayout({
     <ConvexAuthNextjsServerProvider>
       <html lang={locale}>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-gray-50 antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-[#f9f7f4] antialiased`}
         >
           <NextIntlClientProvider messages={messages}>
             <ConvexClientProvider>

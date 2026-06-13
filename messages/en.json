@@ -8,7 +8,12 @@
     "login": "Log in",
     "register": "Sign up",
     "logout": "Log out",
-    "languageToggle": "FR"
+    "languageToggle": "FR",
+    "howItWorks": "How it works",
+    "pricing": "Pricing",
+    "findTickets": "Find your tickets",
+    "announcementText": "Now bilingual — TickOck is available in English and French.",
+    "announcementCta": "Book a demo"
   },
   "auth": {
     "login": {
@@ -61,6 +66,22 @@
       "description": "Your account has been permanently banned. Reason: {reason}",
       "descriptionNoReason": "Your account has been permanently banned."
     }
+  },
+  "hero": {
+    "headlineStart": "The world's",
+    "headlineHighlight1": "most",
+    "headlineHighlight2": "loved",
+    "headlineEnd": "event ticketing platform.",
+    "subtitle": "Whether it's your first event ever, or your biggest yet — we make it simple and affordable to sell tickets online.",
+    "ctaPrimary": "Get started",
+    "ctaSecondary": "Book a demo",
+    "socialProof": "Don't just take our word for it!",
+    "ratingGoogle": "Google",
+    "ratingCapterra": "Capterra",
+    "ratingG2": "G2",
+    "ratingScore1": "4.8/5",
+    "ratingScore2": "4.9/5",
+    "ratingScore3": "4.8/5"
   },
   "events": {
     "title": "Events",

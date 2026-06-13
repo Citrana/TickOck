@@ -8,7 +8,12 @@
     "login": "Se connecter",
     "register": "S'inscrire",
     "logout": "Se déconnecter",
-    "languageToggle": "EN"
+    "languageToggle": "EN",
+    "howItWorks": "Comment ça marche",
+    "pricing": "Tarifs",
+    "findTickets": "Trouver vos billets",
+    "announcementText": "Désormais bilingue — TickOck est disponible en anglais et en français.",
+    "announcementCta": "Réserver une démo"
   },
   "auth": {
     "login": {
@@ -61,6 +66,22 @@
       "description": "Votre compte a été définitivement banni. Raison : {reason}",
       "descriptionNoReason": "Votre compte a été définitivement banni."
     }
+  },
+  "hero": {
+    "headlineStart": "La plateforme de billetterie",
+    "headlineHighlight1": "la plus",
+    "headlineHighlight2": "appréciée",
+    "headlineEnd": "au monde.",
+    "subtitle": "Que ce soit votre premier événement ou le plus grand, nous vous simplifions la vente de billets en ligne.",
+    "ctaPrimary": "Commencer",
+    "ctaSecondary": "Réserver une démo",
+    "socialProof": "Ne nous prenez pas au mot !",
+    "ratingGoogle": "Google",
+    "ratingCapterra": "Capterra",
+    "ratingG2": "G2",
+    "ratingScore1": "4,8/5",
+    "ratingScore2": "4,9/5",
+    "ratingScore3": "4,8/5"
   },
   "events": {
     "title": "Événements",

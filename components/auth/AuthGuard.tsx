@@ -35,8 +35,6 @@ export function AuthGuard() {
   const {signOut} = useAuthActions();
   const router = useRouter();
   const pathname = usePathname();
-  const t = useTranslations('auth');
-
   useEffect(() => {
     if (isLoading || !user) return;
     if (isPublicPath(pathname)) return;
