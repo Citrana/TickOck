@@ -1,6 +1,7 @@
 import {getTranslations} from 'next-intl/server';
 import {Link} from '@/lib/navigation';
 import LanguageToggle from './LanguageToggle';
+import {NavbarAuth} from './NavbarAuth';
 
 export default async function Navbar() {
   const t = await getTranslations('nav');
@@ -46,34 +47,11 @@ export default async function Navbar() {
             >
               {t('pricing')}
             </Link>
-            <Link
-              href="/events/create"
-              className="text-sm font-medium text-rose-600 transition-colors hover:text-rose-800"
-            >
-              {t('createEvent')}
-            </Link>
           </nav>
 
-          {/* Right actions */}
+          {/* Right actions — auth-aware, rendered client-side */}
           <div className="flex items-center gap-3">
-            <Link
-              href="/tickets"
-              className="hidden text-sm text-gray-600 transition-colors hover:text-gray-900 lg:block"
-            >
-              {t('findTickets')}
-            </Link>
-            <Link
-              href="/login"
-              className="text-sm text-gray-600 transition-colors hover:text-gray-900"
-            >
-              {t('login')}
-            </Link>
-            <Link
-              href="/register"
-              className="rounded-full bg-gray-900 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-gray-700"
-            >
-              {t('register')}
-            </Link>
+            <NavbarAuth />
             <LanguageToggle />
           </div>
         </div>
