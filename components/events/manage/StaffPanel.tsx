@@ -25,12 +25,13 @@ export default function StaffPanel({eventId}: Props) {
   const t = useTranslations('manage.staff');
   const staff = useQuery(api.eventStaff.listByEvent, {eventId});
   const addStaffMutation = useMutation(api.eventStaff.addStaff);
-  const removeStaffMutation = useMutation(api.eventStaff.removeStaff);
+  const deactivateStaffMutation = useMutation(api.eventStaff.deactivateStaff);
+  const reactivateStaffMutation = useMutation(api.eventStaff.reactivateStaff);
 
   const [email, setEmail] = useState('');
   const [preset, setPreset] = useState<StaffPreset>('co_organizer');
   const [adding, setAdding] = useState(false);
-  const [removingId, setRemovingId] = useState<Id<'eventStaff'> | null>(null);
+  const [togglingId, setTogglingId] = useState<Id<'eventStaff'> | null>(null);
 
   if (staff === undefined) {
     return (
@@ -63,15 +64,27 @@ export default function StaffPanel({eventId}: Props) {
     }
   }
 
-  async function handleRemove(staffId: Id<'eventStaff'>) {
-    setRemovingId(staffId);
+  async function handleDeactivate(staffId: Id<'eventStaff'>) {
+    setTogglingId(staffId);
     try {
-      await removeStaffMutation({staffId});
-      toast.success(t('removeSuccess'));
+      await deactivateStaffMutation({staffId});
+      toast.success(t('deactivateSuccess'));
     } catch (err: unknown) {
-      toast.error(parseConvexError(err, t('errors.removeFailed')));
+      toast.error(parseConvexError(err, t('errors.deactivateFailed')));
     } finally {
-      setRemovingId(null);
+      setTogglingId(null);
+    }
+  }
+
+  async function handleReactivate(staffId: Id<'eventStaff'>) {
+    setTogglingId(staffId);
+    try {
+      await reactivateStaffMutation({staffId});
+      toast.success(t('reactivateSuccess'));
+    } catch (err: unknown) {
+      toast.error(parseConvexError(err, t('errors.reactivateFailed')));
+    } finally {
+      setTogglingId(null);
     }
   }
 
@@ -146,14 +159,25 @@ export default function StaffPanel({eventId}: Props) {
       ) : (
         <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
           {staff.map(member => {
-            const isRemoving = removingId === member._id;
+            const isActive = member.isActive;
+            const isToggling = togglingId === member._id;
 
             return (
-              <div key={member._id} className="flex items-start justify-between gap-4 p-4">
+              <div
+                key={member._id}
+                className={`flex items-start justify-between gap-4 p-4 ${!isActive ? 'opacity-60' : ''}`}
+              >
                 <div className="min-w-0">
-                  <p className="font-medium text-gray-900">
-                    {member.userName ?? member.userEmail}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-gray-900">
+                      {member.userName ?? member.userEmail}
+                    </p>
+                    {!isActive && (
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500">
+                        {t('inactiveBadge')}
+                      </span>
+                    )}
+                  </div>
                   {member.userName && (
                     <p className="text-xs text-gray-400">{member.userEmail}</p>
                   )}
@@ -170,13 +194,23 @@ export default function StaffPanel({eventId}: Props) {
                     ))}
                   </div>
                 </div>
-                <button
-                  onClick={() => handleRemove(member._id)}
-                  disabled={isRemoving}
-                  className="flex-shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-red-200 hover:text-red-600 disabled:opacity-40"
-                >
-                  {isRemoving ? t('removing') : t('removeButton')}
-                </button>
+                {isActive ? (
+                  <button
+                    onClick={() => handleDeactivate(member._id)}
+                    disabled={isToggling}
+                    className="flex-shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-amber-300 hover:text-amber-700 disabled:opacity-40"
+                  >
+                    {isToggling ? t('deactivatingButton') : t('deactivateButton')}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleReactivate(member._id)}
+                    disabled={isToggling}
+                    className="flex-shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-green-300 hover:text-green-700 disabled:opacity-40"
+                  >
+                    {isToggling ? t('reactivatingButton') : t('reactivateButton')}
+                  </button>
+                )}
               </div>
             );
           })}

@@ -591,7 +591,7 @@ export const getStats = query({
           q.eq('eventId', args.eventId).eq('userId', userId),
         )
         .unique();
-      if (!staff) return null;
+      if (!staff || staff.isActive === false) return null;
     }
 
     const [tiers, tickets, payments] = await Promise.all([

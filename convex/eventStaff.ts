@@ -55,7 +55,7 @@ export const getMyAccess = query({
       )
       .unique();
 
-    if (!staff) return null;
+    if (!staff || staff.isActive === false) return null;
     return {isOwner: false, permissionSlugs: staff.permissionSlugs};
   },
 });
@@ -93,6 +93,7 @@ export const listByEvent = query({
         const user = await ctx.db.get(member.userId);
         return {
           ...member,
+          isActive: member.isActive ?? true,
           userName: user?.name ?? null,
           userEmail: user?.email ?? '—',
           userStatus: user?.status ?? 'unknown',
@@ -145,7 +146,12 @@ export const addStaff = mutation({
         q.eq('eventId', args.eventId).eq('userId', target._id),
       )
       .unique();
-    if (existing) throw new Error('This user is already a staff member for this event');
+    if (existing) {
+      if (existing.isActive === false) {
+        throw new Error('This user is a deactivated staff member. Reactivate them from the team list.');
+      }
+      throw new Error('This user is already a staff member for this event');
+    }
 
     // Validate permission slugs (only allow event-scoped slugs)
     const allowed = new Set([
@@ -178,9 +184,11 @@ export const addStaff = mutation({
 });
 
 /**
- * Remove a staff member from an event. Only the event owner may call this.
+ * Deactivate a staff member — preserves the record for audit history but
+ * immediately revokes all event-scoped access. Only the event owner may call
+ * this. Staff records are never hard-deleted.
  */
-export const removeStaff = mutation({
+export const deactivateStaff = mutation({
   args: {staffId: v.id('eventStaff')},
   handler: async (ctx, args) => {
     const callerId = await getCallerUserId(ctx as unknown as QueryCtx);
@@ -194,14 +202,48 @@ export const removeStaff = mutation({
       await requirePermission(ctx, 'staff:manage');
     }
 
-    await ctx.db.delete(args.staffId);
+    if (member.isActive === false) throw new Error('Staff member is already deactivated');
+
+    await ctx.db.patch(args.staffId, {isActive: false});
 
     await writeAuditLog(ctx, {
       actorId: callerId,
-      action: 'staff:manage',
+      action: 'staff:deactivate',
       targetType: 'eventStaff',
       targetId: args.staffId,
-      metadata: {removedUserId: member.userId, eventId: member.eventId},
+      metadata: {deactivatedUserId: member.userId, eventId: member.eventId},
+    });
+  },
+});
+
+/**
+ * Reactivate a previously deactivated staff member. Restores their existing
+ * permissions without needing to re-add them.
+ */
+export const reactivateStaff = mutation({
+  args: {staffId: v.id('eventStaff')},
+  handler: async (ctx, args) => {
+    const callerId = await getCallerUserId(ctx as unknown as QueryCtx);
+
+    const member = await ctx.db.get(args.staffId);
+    if (!member) throw new Error('Staff member not found');
+
+    const event = await ctx.db.get(member.eventId);
+    if (!event) throw new Error('Event not found');
+    if (event.ownerId !== callerId) {
+      await requirePermission(ctx, 'staff:manage');
+    }
+
+    if (member.isActive !== false) throw new Error('Staff member is already active');
+
+    await ctx.db.patch(args.staffId, {isActive: true});
+
+    await writeAuditLog(ctx, {
+      actorId: callerId,
+      action: 'staff:reactivate',
+      targetType: 'eventStaff',
+      targetId: args.staffId,
+      metadata: {reactivatedUserId: member.userId, eventId: member.eventId},
     });
   },
 });

@@ -343,8 +343,9 @@ export const listByEvent = query({
         )
         .unique();
       const hasAccess =
-        staff?.permissionSlugs.includes('*') ||
-        staff?.permissionSlugs.includes('tickets:read');
+        staff?.isActive !== false &&
+        (staff?.permissionSlugs.includes('*') ||
+          staff?.permissionSlugs.includes('tickets:read'));
       if (!hasAccess) return [];
     }
 
@@ -399,8 +400,9 @@ export const getForPdf = query({
         )
         .unique();
       const hasAccess =
-        staff?.permissionSlugs.includes('*') ||
-        staff?.permissionSlugs.includes('tickets:read');
+        staff?.isActive !== false &&
+        (staff?.permissionSlugs.includes('*') ||
+          staff?.permissionSlugs.includes('tickets:read'));
       if (!hasAccess) return null;
     }
 
@@ -464,9 +466,10 @@ export const findTicket = query({
         )
         .unique();
       const hasAccess =
-        staff?.permissionSlugs.includes('*') ||
-        staff?.permissionSlugs.includes('tickets:scan') ||
-        staff?.permissionSlugs.includes('tickets:read');
+        staff?.isActive !== false &&
+        (staff?.permissionSlugs.includes('*') ||
+          staff?.permissionSlugs.includes('tickets:scan') ||
+          staff?.permissionSlugs.includes('tickets:read'));
       if (!hasAccess) return null;
     }
 
@@ -526,8 +529,9 @@ export const recentCheckIns = query({
         )
         .unique();
       const hasAccess =
-        staff?.permissionSlugs.includes('*') ||
-        staff?.permissionSlugs.includes('tickets:scan');
+        staff?.isActive !== false &&
+        (staff?.permissionSlugs.includes('*') ||
+          staff?.permissionSlugs.includes('tickets:scan'));
       if (!hasAccess) return [];
     }
 

@@ -24,6 +24,12 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Break out of the centered max-w-7xl container to fill full viewport width */
+  .full-bleed {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+  }
 }
 
 /* Ticket-shaped button — pseudo-element circles punch notches into both sides */

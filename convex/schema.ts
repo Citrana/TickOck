@@ -137,6 +137,7 @@ export default defineSchema({
     eventId: v.id('events'),
     userId: v.id('users'),
     permissionSlugs: v.array(v.string()),
+    isActive: v.optional(v.boolean()),
   })
     .index('by_eventId', ['eventId'])
     .index('by_userId', ['userId'])
