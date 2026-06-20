@@ -78,7 +78,7 @@ export async function requirePermission(
       )
       .unique();
 
-    if (staff && slugMatches(staff.permissionSlugs, permission)) {
+    if (staff && staff.isActive !== false && slugMatches(staff.permissionSlugs, permission)) {
       return user._id;
     }
   }
@@ -112,7 +112,7 @@ export async function assertPermission(
       )
       .unique();
 
-    if (staff && slugMatches(staff.permissionSlugs, permission)) {
+    if (staff && staff.isActive !== false && slugMatches(staff.permissionSlugs, permission)) {
       return user._id;
     }
   }

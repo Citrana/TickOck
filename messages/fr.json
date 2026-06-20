@@ -501,8 +501,11 @@
       },
       "addButton": "Ajouter",
       "adding": "Ajout…",
-      "removeButton": "Retirer",
-      "removing": "Suppression…",
+      "deactivateButton": "Désactiver",
+      "deactivatingButton": "Désactivation…",
+      "reactivateButton": "Réactiver",
+      "reactivatingButton": "Réactivation…",
+      "inactiveBadge": "Inactif",
       "memberName": "Nom",
       "memberEmail": "E-mail",
       "memberRole": "Permissions",
@@ -512,11 +515,13 @@
       "permissionPaymentsConfirm": "Confirmer les paiements",
       "permissionPaymentsReject": "Rejeter les paiements",
       "addSuccess": "Membre ajouté.",
-      "removeSuccess": "Membre retiré.",
+      "deactivateSuccess": "Membre désactivé.",
+      "reactivateSuccess": "Membre réactivé.",
       "errors": {
         "emailRequired": "Veuillez saisir une adresse e-mail.",
         "addFailed": "Impossible d'ajouter le membre.",
-        "removeFailed": "Impossible de supprimer le membre."
+        "deactivateFailed": "Impossible de désactiver le membre.",
+        "reactivateFailed": "Impossible de réactiver le membre."
       }
     },
     "checkin": {

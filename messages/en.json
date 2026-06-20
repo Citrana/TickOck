@@ -501,8 +501,11 @@
       },
       "addButton": "Add member",
       "adding": "Adding…",
-      "removeButton": "Remove",
-      "removing": "Removing…",
+      "deactivateButton": "Deactivate",
+      "deactivatingButton": "Deactivating…",
+      "reactivateButton": "Reactivate",
+      "reactivatingButton": "Reactivating…",
+      "inactiveBadge": "Inactive",
       "memberName": "Name",
       "memberEmail": "Email",
       "memberRole": "Permissions",
@@ -512,11 +515,13 @@
       "permissionPaymentsConfirm": "Confirm payments",
       "permissionPaymentsReject": "Reject payments",
       "addSuccess": "Team member added.",
-      "removeSuccess": "Team member removed.",
+      "deactivateSuccess": "Team member deactivated.",
+      "reactivateSuccess": "Team member reactivated.",
       "errors": {
         "emailRequired": "Please enter an email address.",
         "addFailed": "Failed to add team member.",
-        "removeFailed": "Failed to remove team member."
+        "deactivateFailed": "Failed to deactivate team member.",
+        "reactivateFailed": "Failed to reactivate team member."
       }
     },
     "checkin": {
