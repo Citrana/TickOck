@@ -510,6 +510,7 @@
       "memberName": "Nom",
       "memberEmail": "E-mail",
       "memberRole": "Permissions",
+      "statusLabel": "Statut",
       "permissionTicketsRead": "Voir les participants",
       "permissionTicketsScan": "Scanner les billets",
       "permissionPaymentsView": "Voir les paiements",
@@ -538,6 +539,10 @@
       "alreadyUsedAt": "Déjà utilisé à {time}",
       "recentTitle": "Dernières entrées",
       "noRecent": "Aucune entrée pour l'instant.",
+      "recentColumns": {
+        "attendee": "Participant",
+        "time": "Heure"
+      },
       "errorGeneric": "Échec du contrôle. Veuillez réessayer.",
       "status": {
         "confirmed": "Prêt",
@@ -546,6 +551,13 @@
         "pending_payment": "Paiement manquant",
         "expired": "Expiré"
       }
+    }
+  },
+  "ui": {
+    "pagination": {
+      "previous": "Précédent",
+      "next": "Suivant",
+      "results": "{from}–{to} sur {total}"
     }
   },
   "errors": {
