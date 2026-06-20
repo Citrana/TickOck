@@ -71,6 +71,11 @@ export async function requirePermission(
   }
 
   if (eventId) {
+    const event = await ctx.db.get(eventId);
+    if (event && event.ownerId === user._id) {
+      return user._id;
+    }
+
     const staff = await ctx.db
       .query('eventStaff')
       .withIndex('by_eventId_and_userId', q =>
@@ -105,6 +110,11 @@ export async function assertPermission(
   }
 
   if (eventId) {
+    const event = await ctx.db.get(eventId);
+    if (event && event.ownerId === user._id) {
+      return user._id;
+    }
+
     const staff = await ctx.db
       .query('eventStaff')
       .withIndex('by_eventId_and_userId', q =>
