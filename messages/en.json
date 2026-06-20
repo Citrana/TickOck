@@ -464,7 +464,14 @@
       "cancel": "Cancel",
       "confirmSuccess": "Payment confirmed.",
       "rejectSuccess": "Payment rejected.",
-      "error": "Failed to process payment."
+      "error": "Failed to process payment.",
+      "filterPanel": {
+        "title": "Filter payments",
+        "searchLabel": "Search",
+        "searchPlaceholder": "Name or email…",
+        "methodLabel": "Method",
+        "methodAll": "All methods"
+      }
     },
     "attendees": {
       "empty": "No attendees yet.",
@@ -482,7 +489,14 @@
       "statusConfirmed": "Confirmed",
       "statusCancelled": "Cancelled",
       "statusUsed": "Used",
-      "statusExpired": "Expired"
+      "statusExpired": "Expired",
+      "filterPanel": {
+        "title": "Filter attendees",
+        "searchLabel": "Search",
+        "searchPlaceholder": "Attendee name…",
+        "tierLabel": "Tier",
+        "allTiers": "All tiers"
+      }
     },
     "staff": {
       "empty": "No co-managers yet. Add team members to help manage this event.",
@@ -511,6 +525,12 @@
       "memberEmail": "Email",
       "memberRole": "Permissions",
       "statusLabel": "Status",
+      "filterPanel": {
+        "title": "Filter team",
+        "searchLabel": "Search",
+        "searchPlaceholder": "Name or email…",
+        "showInactive": "Show inactive only"
+      },
       "permissionTicketsRead": "View attendees",
       "permissionTicketsScan": "Scan tickets",
       "permissionPaymentsView": "View payments",
@@ -543,6 +563,7 @@
         "attendee": "Attendee",
         "time": "Time"
       },
+      "recentSearchPlaceholder": "Name or ticket number…",
       "errorGeneric": "Check-in failed. Please try again.",
       "status": {
         "confirmed": "Ready",
@@ -558,6 +579,16 @@
       "previous": "Previous",
       "next": "Next",
       "results": "{from}–{to} of {total}"
+    },
+    "toolbar": {
+      "results": "{count} results",
+      "clearFilters": "Clear filters",
+      "columns": "Columns",
+      "filters": "Filters"
+    },
+    "filterPanel": {
+      "close": "Close",
+      "clearAll": "Clear all"
     }
   },
   "errors": {

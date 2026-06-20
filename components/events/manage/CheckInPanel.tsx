@@ -178,6 +178,11 @@ export default function CheckInPanel({eventId}: Props) {
           pageSize={10}
           getRowKey={entry => entry._id}
           emptyMessage={t('noRecent')}
+          searchPlaceholder={t('recentSearchPlaceholder')}
+          searchFilter={(entry, q) =>
+            entry.buyerName.toLowerCase().includes(q) ||
+            (entry.ticketNumber ?? '').toLowerCase().includes(q)
+          }
           previousLabel={tPagination('previous')}
           nextLabel={tPagination('next')}
           formatResults={(from, to, total) => tPagination('results', {from, to, total})}

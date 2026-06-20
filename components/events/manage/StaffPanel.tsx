@@ -9,6 +9,8 @@ import {Id} from '@/convex/_generated/dataModel';
 import {STAFF_PRESETS, type StaffPreset} from '@/convex/eventStaff';
 import {parseConvexError} from '@/lib/errors';
 import DataTable, {ColumnDef} from '@/components/ui/DataTable';
+import ColumnsPicker from '@/components/ui/ColumnsPicker';
+import FilterPanel from '@/components/ui/FilterPanel';
 
 type Props = {eventId: Id<'events'>};
 
@@ -22,13 +24,19 @@ const PERMISSION_LABEL_KEY: Record<string, string> = {
   'payments:reject': 'permissionPaymentsReject',
 };
 
+const ALL_COL_KEYS = ['member', 'permissions', 'status'] as const;
+
 type StaffMember = NonNullable<
   ReturnType<typeof useQuery<typeof api.eventStaff.listByEvent>>
 >[number];
 
 export default function StaffPanel({eventId}: Props) {
   const t = useTranslations('manage.staff');
+  const tToolbar = useTranslations('ui.toolbar');
+  const tUiPanel = useTranslations('ui.filterPanel');
+  const tFP = useTranslations('manage.staff.filterPanel');
   const tPagination = useTranslations('ui.pagination');
+
   const staff = useQuery(api.eventStaff.listByEvent, {eventId});
   const addStaffMutation = useMutation(api.eventStaff.addStaff);
   const deactivateStaffMutation = useMutation(api.eventStaff.deactivateStaff);
@@ -39,6 +47,10 @@ export default function StaffPanel({eventId}: Props) {
   const [adding, setAdding] = useState(false);
   const [togglingId, setTogglingId] = useState<Id<'eventStaff'> | null>(null);
 
+  const [showInactiveOnly, setShowInactiveOnly] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [visibleCols, setVisibleCols] = useState<string[]>([...ALL_COL_KEYS]);
+
   if (staff === undefined) {
     return (
       <div className="space-y-3">
@@ -47,6 +59,14 @@ export default function StaffPanel({eventId}: Props) {
         ))}
       </div>
     );
+  }
+
+  const activeFilterCount = showInactiveOnly ? 1 : 0;
+
+  const filtered = showInactiveOnly ? staff.filter(m => !m.isActive) : staff;
+
+  function clearFilters() {
+    setShowInactiveOnly(false);
   }
 
   async function handleAdd() {
@@ -94,7 +114,13 @@ export default function StaffPanel({eventId}: Props) {
     }
   }
 
-  const columns: ColumnDef<StaffMember>[] = [
+  const colOptions = [
+    {key: 'member', label: t('memberName')},
+    {key: 'permissions', label: t('memberRole')},
+    {key: 'status', label: t('statusLabel')},
+  ];
+
+  const allColumns: ColumnDef<StaffMember>[] = [
     {
       key: 'member',
       header: t('memberName'),
@@ -137,13 +163,14 @@ export default function StaffPanel({eventId}: Props) {
     },
   ];
 
+  const columns = allColumns.filter(c => visibleCols.includes(c.key));
+
   return (
     <div className="space-y-8">
       {/* Add staff form */}
       <div className="rounded-xl border border-gray-200 bg-white p-5">
         <h3 className="font-semibold text-gray-900">{t('addTitle')}</h3>
         <div className="mt-4 space-y-4">
-          {/* Email */}
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-700">
               {t('emailLabel')}
@@ -160,7 +187,6 @@ export default function StaffPanel({eventId}: Props) {
             />
           </div>
 
-          {/* Role preset cards */}
           <div>
             <label className="mb-2 block text-xs font-medium text-gray-700">
               {t('roleLabel')}
@@ -201,36 +227,108 @@ export default function StaffPanel({eventId}: Props) {
       </div>
 
       {/* Staff table */}
-      <DataTable
-        columns={columns}
-        data={staff}
-        pageSize={10}
-        getRowKey={member => member._id}
-        getRowClassName={member => (!member.isActive ? 'opacity-60' : '')}
-        emptyMessage={t('empty')}
-        renderActions={member =>
-          member.isActive ? (
+      <div className="space-y-4">
+        {/* Toolbar */}
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm text-gray-500">
+            {tToolbar('results', {count: filtered.length})}
+          </span>
+          <div className="flex items-center gap-2">
+            {activeFilterCount > 0 && (
+              <button
+                onClick={clearFilters}
+                className="text-xs font-medium text-gray-500 underline underline-offset-2 hover:text-gray-900"
+              >
+                {tToolbar('clearFilters')}
+              </button>
+            )}
+            <ColumnsPicker
+              all={colOptions}
+              visible={visibleCols}
+              onChange={setVisibleCols}
+              buttonLabel={tToolbar('columns')}
+            />
             <button
-              onClick={() => handleDeactivate(member._id)}
-              disabled={togglingId === member._id}
-              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-amber-300 hover:text-amber-700 disabled:opacity-40"
+              onClick={() => setFilterOpen(true)}
+              className={[
+                'flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                activeFilterCount > 0
+                  ? 'bg-gray-900 text-white hover:bg-gray-800'
+                  : 'border border-gray-300 text-gray-700 hover:bg-gray-50',
+              ].join(' ')}
             >
-              {togglingId === member._id ? t('deactivatingButton') : t('deactivateButton')}
+              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fillRule="evenodd"
+                  d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              {tToolbar('filters')}
+              {activeFilterCount > 0 && (
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold text-gray-900">
+                  {activeFilterCount}
+                </span>
+              )}
             </button>
-          ) : (
-            <button
-              onClick={() => handleReactivate(member._id)}
-              disabled={togglingId === member._id}
-              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-green-300 hover:text-green-700 disabled:opacity-40"
-            >
-              {togglingId === member._id ? t('reactivatingButton') : t('reactivateButton')}
-            </button>
-          )
-        }
-        previousLabel={tPagination('previous')}
-        nextLabel={tPagination('next')}
-        formatResults={(from, to, total) => tPagination('results', {from, to, total})}
-      />
+          </div>
+        </div>
+
+        <DataTable
+          columns={columns}
+          data={filtered}
+          pageSize={10}
+          getRowKey={member => member._id}
+          getRowClassName={member => (!member.isActive ? 'opacity-60' : '')}
+          emptyMessage={t('empty')}
+          renderActions={member =>
+            member.isActive ? (
+              <button
+                onClick={() => handleDeactivate(member._id)}
+                disabled={togglingId === member._id}
+                className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-amber-300 hover:text-amber-700 disabled:opacity-40"
+              >
+                {togglingId === member._id ? t('deactivatingButton') : t('deactivateButton')}
+              </button>
+            ) : (
+              <button
+                onClick={() => handleReactivate(member._id)}
+                disabled={togglingId === member._id}
+                className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-green-300 hover:text-green-700 disabled:opacity-40"
+              >
+                {togglingId === member._id ? t('reactivatingButton') : t('reactivateButton')}
+              </button>
+            )
+          }
+          searchPlaceholder={tFP('searchPlaceholder')}
+          searchFilter={(member, q) =>
+            (member.userName ?? '').toLowerCase().includes(q) ||
+            member.userEmail.toLowerCase().includes(q)
+          }
+          previousLabel={tPagination('previous')}
+          nextLabel={tPagination('next')}
+          formatResults={(from, to, total) => tPagination('results', {from, to, total})}
+        />
+      </div>
+
+      <FilterPanel
+        open={filterOpen}
+        title={tFP('title')}
+        closeLabel={tUiPanel('close')}
+        clearLabel={tUiPanel('clearAll')}
+        onClose={() => setFilterOpen(false)}
+        onClear={clearFilters}
+      >
+        <label className="flex cursor-pointer items-center gap-2.5">
+          <input
+            type="checkbox"
+            checked={showInactiveOnly}
+            onChange={e => setShowInactiveOnly(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 accent-gray-900"
+          />
+          <span className="text-sm text-gray-700">{tFP('showInactive')}</span>
+        </label>
+      </FilterPanel>
     </div>
   );
 }

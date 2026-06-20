@@ -464,7 +464,14 @@
       "cancel": "Annuler",
       "confirmSuccess": "Paiement confirmé.",
       "rejectSuccess": "Paiement rejeté.",
-      "error": "Impossible de traiter le paiement."
+      "error": "Impossible de traiter le paiement.",
+      "filterPanel": {
+        "title": "Filtrer les paiements",
+        "searchLabel": "Recherche",
+        "searchPlaceholder": "Nom ou e-mail…",
+        "methodLabel": "Méthode",
+        "methodAll": "Toutes les méthodes"
+      }
     },
     "attendees": {
       "empty": "Aucun participant pour l'instant.",
@@ -482,7 +489,14 @@
       "statusConfirmed": "Confirmé",
       "statusCancelled": "Annulé",
       "statusUsed": "Utilisé",
-      "statusExpired": "Expiré"
+      "statusExpired": "Expiré",
+      "filterPanel": {
+        "title": "Filtrer les participants",
+        "searchLabel": "Recherche",
+        "searchPlaceholder": "Nom du participant…",
+        "tierLabel": "Niveau",
+        "allTiers": "Tous les niveaux"
+      }
     },
     "staff": {
       "empty": "Aucun co-gestionnaire. Ajoutez des membres d'équipe pour vous aider à gérer cet événement.",
@@ -511,6 +525,12 @@
       "memberEmail": "E-mail",
       "memberRole": "Permissions",
       "statusLabel": "Statut",
+      "filterPanel": {
+        "title": "Filtrer l'équipe",
+        "searchLabel": "Recherche",
+        "searchPlaceholder": "Nom ou e-mail…",
+        "showInactive": "Inactifs uniquement"
+      },
       "permissionTicketsRead": "Voir les participants",
       "permissionTicketsScan": "Scanner les billets",
       "permissionPaymentsView": "Voir les paiements",
@@ -543,6 +563,7 @@
         "attendee": "Participant",
         "time": "Heure"
       },
+      "recentSearchPlaceholder": "Nom ou numéro de billet…",
       "errorGeneric": "Échec du contrôle. Veuillez réessayer.",
       "status": {
         "confirmed": "Prêt",
@@ -558,6 +579,16 @@
       "previous": "Précédent",
       "next": "Suivant",
       "results": "{from}–{to} sur {total}"
+    },
+    "toolbar": {
+      "results": "{count} résultats",
+      "clearFilters": "Réinitialiser",
+      "columns": "Colonnes",
+      "filters": "Filtres"
+    },
+    "filterPanel": {
+      "close": "Fermer",
+      "clearAll": "Tout effacer"
     }
   },
   "errors": {
