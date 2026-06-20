@@ -7,11 +7,17 @@ import {toast} from 'sonner';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 import {parseConvexError} from '@/lib/errors';
+import DataTable, {ColumnDef} from '@/components/ui/DataTable';
 
 type Props = {eventId: Id<'events'>};
 
+type CheckInEntry = NonNullable<
+  ReturnType<typeof useQuery<typeof api.tickets.recentCheckIns>>
+>[number];
+
 export default function CheckInPanel({eventId}: Props) {
   const t = useTranslations('manage.checkin');
+  const tPagination = useTranslations('ui.pagination');
   const [input, setInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [checking, setChecking] = useState(false);
@@ -49,6 +55,35 @@ export default function CheckInPanel({eventId}: Props) {
     pending_payment: 'bg-amber-100 text-amber-800',
     expired: 'bg-red-100 text-red-700',
   };
+
+  const recentColumns: ColumnDef<CheckInEntry>[] = [
+    {
+      key: 'attendee',
+      header: t('recentColumns.attendee'),
+      render: entry => (
+        <div>
+          <p className="font-medium text-gray-900">{entry.buyerName}</p>
+          <p className="text-xs text-gray-500">
+            {entry.tierName}
+            {entry.ticketNumber && (
+              <span className="ml-2 font-mono font-semibold">{entry.ticketNumber}</span>
+            )}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: 'time',
+      header: t('recentColumns.time'),
+      headerClassName: 'text-right',
+      cellClassName: 'text-right text-xs text-gray-400',
+      render: entry =>
+        new Date(entry.scannedAt).toLocaleTimeString(undefined, {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -135,33 +170,18 @@ export default function CheckInPanel({eventId}: Props) {
       </div>
 
       {/* Recent check-ins */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-5">
+      <div className="space-y-3">
         <h2 className="text-sm font-semibold text-gray-900">{t('recentTitle')}</h2>
-        {!recentCheckIns || recentCheckIns.length === 0 ? (
-          <p className="mt-3 text-sm text-gray-400">{t('noRecent')}</p>
-        ) : (
-          <ul className="mt-3 divide-y divide-gray-100">
-            {recentCheckIns.map(entry => (
-              <li key={entry._id} className="flex items-center justify-between py-2.5">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{entry.buyerName}</p>
-                  <p className="text-xs text-gray-500">
-                    {entry.tierName}
-                    {entry.ticketNumber && (
-                      <span className="ml-2 font-mono font-semibold">{entry.ticketNumber}</span>
-                    )}
-                  </p>
-                </div>
-                <p className="text-xs text-gray-400">
-                  {new Date(entry.scannedAt).toLocaleTimeString(undefined, {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
+        <DataTable
+          columns={recentColumns}
+          data={recentCheckIns ?? []}
+          pageSize={10}
+          getRowKey={entry => entry._id}
+          emptyMessage={t('noRecent')}
+          previousLabel={tPagination('previous')}
+          nextLabel={tPagination('next')}
+          formatResults={(from, to, total) => tPagination('results', {from, to, total})}
+        />
       </div>
     </div>
   );

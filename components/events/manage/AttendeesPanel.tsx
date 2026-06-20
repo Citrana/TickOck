@@ -5,6 +5,7 @@ import {useQuery} from 'convex/react';
 import {useTranslations} from 'next-intl';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
+import DataTable, {ColumnDef} from '@/components/ui/DataTable';
 
 type Props = {eventId: Id<'events'>};
 
@@ -19,8 +20,11 @@ const STATUS_BADGE: Record<TicketStatus, string> = {
   expired: 'bg-red-100 text-red-700',
 };
 
+type Ticket = NonNullable<ReturnType<typeof useQuery<typeof api.tickets.listByEvent>>>[number];
+
 export default function AttendeesPanel({eventId}: Props) {
   const t = useTranslations('manage.attendees');
+  const tPagination = useTranslations('ui.pagination');
   const tickets = useQuery(api.tickets.listByEvent, {eventId});
   const [filter, setFilter] = useState<FilterStatus>('all');
 
@@ -35,7 +39,7 @@ export default function AttendeesPanel({eventId}: Props) {
   }
 
   const filtered =
-    filter === 'all' ? tickets : tickets.filter(t => t.status === filter);
+    filter === 'all' ? tickets : tickets.filter(tk => tk.status === filter);
 
   const FILTERS: {key: FilterStatus; label: string}[] = [
     {key: 'all', label: t('filterAll')},
@@ -52,6 +56,44 @@ export default function AttendeesPanel({eventId}: Props) {
     used: t('statusUsed'),
     expired: t('statusExpired'),
   };
+
+  const columns: ColumnDef<Ticket>[] = [
+    {
+      key: 'name',
+      header: t('name'),
+      render: ticket => (
+        <p className="font-medium text-gray-900">{ticket.userName}</p>
+      ),
+    },
+    {
+      key: 'tier',
+      header: t('tier'),
+      render: ticket => <span className="text-gray-600">{ticket.tierName}</span>,
+    },
+    {
+      key: 'status',
+      header: t('status'),
+      render: ticket => (
+        <span
+          className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE[ticket.status as TicketStatus] ?? 'bg-gray-100 text-gray-500'}`}
+        >
+          {STATUS_LABEL[ticket.status as TicketStatus] ?? ticket.status}
+        </span>
+      ),
+    },
+    {
+      key: 'date',
+      header: t('date'),
+      headerClassName: 'text-right',
+      cellClassName: 'text-right text-xs text-gray-400',
+      render: ticket =>
+        new Date(ticket.createdAt).toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        }),
+    },
+  ];
 
   return (
     <div className="space-y-5">
@@ -70,55 +112,23 @@ export default function AttendeesPanel({eventId}: Props) {
             {f.label}
             {f.key !== 'all' && (
               <span className="ml-1.5 text-[10px] opacity-70">
-                {tickets.filter(t => t.status === f.key).length}
+                {tickets.filter(tk => tk.status === f.key).length}
               </span>
             )}
           </button>
         ))}
       </div>
 
-      {filtered.length === 0 ? (
-        <p className="py-12 text-center text-sm text-gray-400">
-          {filter === 'all' ? t('empty') : t('emptyFiltered')}
-        </p>
-      ) : (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50 text-xs font-medium uppercase tracking-wide text-gray-500">
-                <th className="px-4 py-3 text-left">{t('name')}</th>
-                <th className="px-4 py-3 text-left">{t('tier')}</th>
-                <th className="px-4 py-3 text-left">{t('status')}</th>
-                <th className="px-4 py-3 text-right">{t('date')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.map(ticket => (
-                <tr key={ticket._id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-gray-900">{ticket.userName}</p>
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">{ticket.tierName}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE[ticket.status as TicketStatus] ?? 'bg-gray-100 text-gray-500'}`}
-                    >
-                      {STATUS_LABEL[ticket.status as TicketStatus] ?? ticket.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right text-xs text-gray-400">
-                    {new Date(ticket.createdAt).toLocaleDateString(undefined, {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        columns={columns}
+        data={filtered}
+        pageSize={10}
+        getRowKey={ticket => ticket._id}
+        emptyMessage={filter === 'all' ? t('empty') : t('emptyFiltered')}
+        previousLabel={tPagination('previous')}
+        nextLabel={tPagination('next')}
+        formatResults={(from, to, total) => tPagination('results', {from, to, total})}
+      />
     </div>
   );
 }

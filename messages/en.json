@@ -510,6 +510,7 @@
       "memberName": "Name",
       "memberEmail": "Email",
       "memberRole": "Permissions",
+      "statusLabel": "Status",
       "permissionTicketsRead": "View attendees",
       "permissionTicketsScan": "Scan tickets",
       "permissionPaymentsView": "View payments",
@@ -538,6 +539,10 @@
       "alreadyUsedAt": "Already used at {time}",
       "recentTitle": "Recent check-ins",
       "noRecent": "No check-ins yet.",
+      "recentColumns": {
+        "attendee": "Attendee",
+        "time": "Time"
+      },
       "errorGeneric": "Check-in failed. Please try again.",
       "status": {
         "confirmed": "Ready",
@@ -546,6 +551,13 @@
         "pending_payment": "Not paid",
         "expired": "Expired"
       }
+    }
+  },
+  "ui": {
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "results": "{from}–{to} of {total}"
     }
   },
   "errors": {

@@ -8,6 +8,7 @@ import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 import {STAFF_PRESETS, type StaffPreset} from '@/convex/eventStaff';
 import {parseConvexError} from '@/lib/errors';
+import DataTable, {ColumnDef} from '@/components/ui/DataTable';
 
 type Props = {eventId: Id<'events'>};
 
@@ -21,8 +22,13 @@ const PERMISSION_LABEL_KEY: Record<string, string> = {
   'payments:reject': 'permissionPaymentsReject',
 };
 
+type StaffMember = NonNullable<
+  ReturnType<typeof useQuery<typeof api.eventStaff.listByEvent>>
+>[number];
+
 export default function StaffPanel({eventId}: Props) {
   const t = useTranslations('manage.staff');
+  const tPagination = useTranslations('ui.pagination');
   const staff = useQuery(api.eventStaff.listByEvent, {eventId});
   const addStaffMutation = useMutation(api.eventStaff.addStaff);
   const deactivateStaffMutation = useMutation(api.eventStaff.deactivateStaff);
@@ -88,6 +94,49 @@ export default function StaffPanel({eventId}: Props) {
     }
   }
 
+  const columns: ColumnDef<StaffMember>[] = [
+    {
+      key: 'member',
+      header: t('memberName'),
+      render: member => (
+        <div>
+          <p className="font-medium text-gray-900">{member.userName ?? member.userEmail}</p>
+          {member.userName && (
+            <p className="text-xs text-gray-400">{member.userEmail}</p>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'permissions',
+      header: t('memberRole'),
+      render: member => (
+        <div className="flex flex-wrap gap-1">
+          {member.permissionSlugs.map(slug => (
+            <span
+              key={slug}
+              className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600"
+            >
+              {PERMISSION_LABEL_KEY[slug]
+                ? t(PERMISSION_LABEL_KEY[slug] as Parameters<typeof t>[0])
+                : slug}
+            </span>
+          ))}
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      header: t('statusLabel'),
+      render: member =>
+        member.isActive ? null : (
+          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500">
+            {t('inactiveBadge')}
+          </span>
+        ),
+    },
+  ];
+
   return (
     <div className="space-y-8">
       {/* Add staff form */}
@@ -151,71 +200,37 @@ export default function StaffPanel({eventId}: Props) {
         </div>
       </div>
 
-      {/* Current staff list */}
-      {staff.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-gray-200 py-10 text-center text-sm text-gray-400">
-          {t('empty')}
-        </p>
-      ) : (
-        <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
-          {staff.map(member => {
-            const isActive = member.isActive;
-            const isToggling = togglingId === member._id;
-
-            return (
-              <div
-                key={member._id}
-                className={`flex items-start justify-between gap-4 p-4 ${!isActive ? 'opacity-60' : ''}`}
-              >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-gray-900">
-                      {member.userName ?? member.userEmail}
-                    </p>
-                    {!isActive && (
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500">
-                        {t('inactiveBadge')}
-                      </span>
-                    )}
-                  </div>
-                  {member.userName && (
-                    <p className="text-xs text-gray-400">{member.userEmail}</p>
-                  )}
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {member.permissionSlugs.map(slug => (
-                      <span
-                        key={slug}
-                        className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600"
-                      >
-                        {PERMISSION_LABEL_KEY[slug]
-                          ? t(PERMISSION_LABEL_KEY[slug] as Parameters<typeof t>[0])
-                          : slug}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                {isActive ? (
-                  <button
-                    onClick={() => handleDeactivate(member._id)}
-                    disabled={isToggling}
-                    className="flex-shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-amber-300 hover:text-amber-700 disabled:opacity-40"
-                  >
-                    {isToggling ? t('deactivatingButton') : t('deactivateButton')}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleReactivate(member._id)}
-                    disabled={isToggling}
-                    className="flex-shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-green-300 hover:text-green-700 disabled:opacity-40"
-                  >
-                    {isToggling ? t('reactivatingButton') : t('reactivateButton')}
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {/* Staff table */}
+      <DataTable
+        columns={columns}
+        data={staff}
+        pageSize={10}
+        getRowKey={member => member._id}
+        getRowClassName={member => (!member.isActive ? 'opacity-60' : '')}
+        emptyMessage={t('empty')}
+        renderActions={member =>
+          member.isActive ? (
+            <button
+              onClick={() => handleDeactivate(member._id)}
+              disabled={togglingId === member._id}
+              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-amber-300 hover:text-amber-700 disabled:opacity-40"
+            >
+              {togglingId === member._id ? t('deactivatingButton') : t('deactivateButton')}
+            </button>
+          ) : (
+            <button
+              onClick={() => handleReactivate(member._id)}
+              disabled={togglingId === member._id}
+              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-green-300 hover:text-green-700 disabled:opacity-40"
+            >
+              {togglingId === member._id ? t('reactivatingButton') : t('reactivateButton')}
+            </button>
+          )
+        }
+        previousLabel={tPagination('previous')}
+        nextLabel={tPagination('next')}
+        formatResults={(from, to, total) => tPagination('results', {from, to, total})}
+      />
     </div>
   );
 }
