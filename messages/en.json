@@ -597,6 +597,11 @@
     "filterPanel": {
       "close": "Close",
       "clearAll": "Clear all"
+    },
+    "dateFilter": {
+      "label": "Date",
+      "from": "From",
+      "to": "To"
     }
   },
   "errors": {

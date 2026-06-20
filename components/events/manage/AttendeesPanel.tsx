@@ -5,6 +5,7 @@ import {useQuery} from 'convex/react';
 import {useTranslations} from 'next-intl';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
+import {matchesDateFilter, isDateFilterActive} from '@/lib/dateFilter';
 import DataTable, {ColumnDef} from '@/components/ui/DataTable';
 import ColumnsPicker from '@/components/ui/ColumnsPicker';
 import FilterPanel from '@/components/ui/FilterPanel';
@@ -31,12 +32,15 @@ export default function AttendeesPanel({eventId}: Props) {
   const tToolbar = useTranslations('ui.toolbar');
   const tUiPanel = useTranslations('ui.filterPanel');
   const tFP = useTranslations('manage.attendees.filterPanel');
+  const tDateFilter = useTranslations('ui.dateFilter');
   const tPagination = useTranslations('ui.pagination');
 
   const tickets = useQuery(api.tickets.listByEvent, {eventId});
 
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [tierFilter, setTierFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
   const [visibleCols, setVisibleCols] = useState<string[]>([...ALL_COL_KEYS]);
 
@@ -51,18 +55,24 @@ export default function AttendeesPanel({eventId}: Props) {
   }
 
   const tierOptions = Array.from(new Set(tickets.map(tk => tk.tierName))).sort();
-  const activeFilterCount = tierFilter !== 'all' ? 1 : 0;
+  const activeFilterCount =
+    (tierFilter !== 'all' ? 1 : 0) + (isDateFilterActive(dateFrom, dateTo) ? 1 : 0);
 
   const filtered = (() => {
     let result = filter === 'all' ? tickets : tickets.filter(tk => tk.status === filter);
     if (tierFilter !== 'all') {
       result = result.filter(tk => tk.tierName === tierFilter);
     }
+    if (isDateFilterActive(dateFrom, dateTo)) {
+      result = result.filter(tk => matchesDateFilter(tk.createdAt, dateFrom, dateTo));
+    }
     return result;
   })();
 
   function clearFilters() {
     setTierFilter('all');
+    setDateFrom('');
+    setDateTo('');
   }
 
   const FILTERS: {key: FilterStatus; label: string}[] = [
@@ -238,6 +248,29 @@ export default function AttendeesPanel({eventId}: Props) {
             </select>
           </div>
         )}
+        <div className="space-y-2">
+          <label className="block text-xs font-medium text-gray-700">
+            {tDateFilter('label')}
+          </label>
+          <div>
+            <label className="mb-1 block text-xs text-gray-500">{tDateFilter('from')}</label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={e => setDateFrom(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-gray-500">{tDateFilter('to')}</label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={e => setDateTo(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+            />
+          </div>
+        </div>
       </FilterPanel>
     </div>
   );

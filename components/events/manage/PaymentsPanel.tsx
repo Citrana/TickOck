@@ -7,6 +7,7 @@ import {toast} from 'sonner';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 import {parseConvexError} from '@/lib/errors';
+import {matchesDateFilter, isDateFilterActive} from '@/lib/dateFilter';
 import DataTable, {ColumnDef} from '@/components/ui/DataTable';
 import ColumnsPicker from '@/components/ui/ColumnsPicker';
 import FilterPanel from '@/components/ui/FilterPanel';
@@ -34,6 +35,7 @@ export default function PaymentsPanel({eventId}: Props) {
   const tToolbar = useTranslations('ui.toolbar');
   const tUiPanel = useTranslations('ui.filterPanel');
   const tFP = useTranslations('manage.payments.filterPanel');
+  const tDateFilter = useTranslations('ui.dateFilter');
   const tPagination = useTranslations('ui.pagination');
 
   const payments = useQuery(api.payments.listByEvent, {eventId});
@@ -42,6 +44,8 @@ export default function PaymentsPanel({eventId}: Props) {
 
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [methodFilter, setMethodFilter] = useState<MethodFilter>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
   const [visibleCols, setVisibleCols] = useState<string[]>([...ALL_COL_KEYS]);
 
@@ -59,18 +63,24 @@ export default function PaymentsPanel({eventId}: Props) {
     );
   }
 
-  const activeFilterCount = methodFilter !== 'all' ? 1 : 0;
+  const activeFilterCount =
+    (methodFilter !== 'all' ? 1 : 0) + (isDateFilterActive(dateFrom, dateTo) ? 1 : 0);
 
   const filtered = (() => {
     let result = filter === 'all' ? payments : payments.filter(p => p.status === filter);
     if (methodFilter !== 'all') {
       result = result.filter(p => p.method === methodFilter);
     }
+    if (isDateFilterActive(dateFrom, dateTo)) {
+      result = result.filter(p => matchesDateFilter(p._creationTime, dateFrom, dateTo));
+    }
     return result;
   })();
 
   function clearFilters() {
     setMethodFilter('all');
+    setDateFrom('');
+    setDateTo('');
   }
 
   const FILTERS: {key: FilterStatus; label: string}[] = [
@@ -352,6 +362,29 @@ export default function PaymentsPanel({eventId}: Props) {
             <option value="manual">{t('methodManual')}</option>
             <option value="online">{t('methodOnline')}</option>
           </select>
+        </div>
+        <div className="space-y-2">
+          <label className="block text-xs font-medium text-gray-700">
+            {tDateFilter('label')}
+          </label>
+          <div>
+            <label className="mb-1 block text-xs text-gray-500">{tDateFilter('from')}</label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={e => setDateFrom(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-gray-500">{tDateFilter('to')}</label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={e => setDateTo(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+            />
+          </div>
         </div>
       </FilterPanel>
     </div>

@@ -7,6 +7,7 @@ import {toast} from 'sonner';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 import {parseConvexError} from '@/lib/errors';
+import {matchesDateFilter, isDateFilterActive} from '@/lib/dateFilter';
 import DataTable, {ColumnDef} from '@/components/ui/DataTable';
 import FilterPanel from '@/components/ui/FilterPanel';
 import Select from '@/components/ui/Select';
@@ -22,10 +23,13 @@ export default function CheckInPanel({eventId}: Props) {
   const tPagination = useTranslations('ui.pagination');
   const tToolbar = useTranslations('ui.toolbar');
   const tFilterPanel = useTranslations('ui.filterPanel');
+  const tDateFilter = useTranslations('ui.dateFilter');
   const [input, setInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [checking, setChecking] = useState(false);
   const [filterChecker, setFilterChecker] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
 
   const preview = useQuery(
@@ -65,9 +69,12 @@ export default function CheckInPanel({eventId}: Props) {
   const allEntries = recentCheckIns ?? [];
   const uniqueCheckers = Array.from(new Set(allEntries.map(e => e.scannedByName))).sort();
   const filtered = allEntries.filter(
-    e => filterChecker === 'all' || e.scannedByName === filterChecker,
+    e =>
+      (filterChecker === 'all' || e.scannedByName === filterChecker) &&
+      matchesDateFilter(e.scannedAt, dateFrom, dateTo),
   );
-  const activeFilterCount = filterChecker !== 'all' ? 1 : 0;
+  const activeFilterCount =
+    (filterChecker !== 'all' ? 1 : 0) + (isDateFilterActive(dateFrom, dateTo) ? 1 : 0);
 
   const recentColumns: ColumnDef<CheckInEntry>[] = [
     {
@@ -257,6 +264,8 @@ export default function CheckInPanel({eventId}: Props) {
         onClose={() => setFilterOpen(false)}
         onClear={() => {
           setFilterChecker('all');
+          setDateFrom('');
+          setDateTo('');
           setFilterOpen(false);
         }}
       >
@@ -272,6 +281,27 @@ export default function CheckInPanel({eventId}: Props) {
               </option>
             ))}
           </Select>
+        </div>
+        <div className="space-y-2">
+          <label className="block text-xs font-medium text-gray-700">{tDateFilter('label')}</label>
+          <div>
+            <label className="mb-1 block text-xs text-gray-500">{tDateFilter('from')}</label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={e => setDateFrom(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-gray-500">{tDateFilter('to')}</label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={e => setDateTo(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+            />
+          </div>
         </div>
       </FilterPanel>
     </div>

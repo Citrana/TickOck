@@ -597,6 +597,11 @@
     "filterPanel": {
       "close": "Fermer",
       "clearAll": "Tout effacer"
+    },
+    "dateFilter": {
+      "label": "Date",
+      "from": "Du",
+      "to": "Au"
     }
   },
   "errors": {
