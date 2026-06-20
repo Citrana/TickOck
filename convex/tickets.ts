@@ -551,14 +551,14 @@ export const recentCheckIns = query({
 
     const used = tickets
       .filter(t => t.status === 'used' && t.scannedAt)
-      .sort((a, b) => (b.scannedAt ?? 0) - (a.scannedAt ?? 0))
-      .slice(0, 20);
+      .sort((a, b) => (b.scannedAt ?? 0) - (a.scannedAt ?? 0));
 
     return await Promise.all(
       used.map(async t => {
-        const [buyer, tier] = await Promise.all([
+        const [buyer, tier, scanner] = await Promise.all([
           ctx.db.get(t.userId),
           ctx.db.get(t.tierId),
+          t.scannedBy ? ctx.db.get(t.scannedBy) : Promise.resolve(null),
         ]);
         return {
           _id: t._id,
@@ -566,6 +566,7 @@ export const recentCheckIns = query({
           scannedAt: t.scannedAt ?? 0,
           buyerName: buyer?.name ?? buyer?.email ?? 'Unknown',
           tierName: tier?.name ?? '—',
+          scannedByName: scanner?.name ?? scanner?.email ?? '—',
         };
       }),
     );

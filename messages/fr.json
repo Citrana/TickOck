@@ -563,7 +563,13 @@
       "noRecent": "Aucune entrée pour l'instant.",
       "recentColumns": {
         "attendee": "Participant",
-        "time": "Heure"
+        "checkedBy": "Vérifié par",
+        "time": "Date / Heure"
+      },
+      "filterPanel": {
+        "title": "Filtrer les entrées",
+        "checkedByLabel": "Vérifié par",
+        "allCheckers": "Tout le personnel"
       },
       "recentSearchPlaceholder": "Nom ou numéro de billet…",
       "errorGeneric": "Échec du contrôle. Veuillez réessayer.",
