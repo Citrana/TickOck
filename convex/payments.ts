@@ -93,7 +93,11 @@ export const rejectPayment = mutation({
       throw new Error('Payment is not in a pending state');
     }
 
-    await ctx.db.patch(args.paymentId, {status: 'rejected'});
+    await ctx.db.patch(args.paymentId, {
+      status: 'rejected',
+      rejectedBy: callerId,
+      rejectedAt: Date.now(),
+    });
 
     await writeAuditLog(ctx, {
       actorId: callerId,
@@ -130,15 +134,22 @@ export const listByEvent = query({
 
     return await Promise.all(
       payments.map(async payment => {
-        const [user, ticket] = await Promise.all([
+        const [user, ticket, actioner] = await Promise.all([
           ctx.db.get(payment.userId),
           ctx.db.get(payment.ticketId),
+          payment.confirmedBy
+            ? ctx.db.get(payment.confirmedBy)
+            : payment.rejectedBy
+              ? ctx.db.get(payment.rejectedBy)
+              : Promise.resolve(null),
         ]);
         return {
           ...payment,
           userName: user?.name ?? user?.email ?? 'Unknown',
           userEmail: user?.email ?? null,
           ticketStatus: ticket?.status ?? 'unknown',
+          actionedByName: actioner ? (actioner.name ?? actioner.email ?? null) : null,
+          actionedAt: payment.confirmedAt ?? payment.rejectedAt ?? null,
         };
       }),
     );
