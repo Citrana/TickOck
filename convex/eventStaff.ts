@@ -103,6 +103,47 @@ export const listByEvent = query({
   },
 });
 
+/**
+ * Returns all events where the current user has a staff role (any status).
+ * Includes inactive assignments so the user can see their full history.
+ */
+export const getMyStaffEvents = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    const staffRecords = await ctx.db
+      .query('eventStaff')
+      .withIndex('by_userId', q => q.eq('userId', userId))
+      .collect();
+
+    const results = await Promise.all(
+      staffRecords.map(async (record) => {
+        const event = await ctx.db.get(record.eventId);
+        if (!event) return null;
+        return {
+          staffId: record._id,
+          isActive: record.isActive ?? true,
+          permissionSlugs: record.permissionSlugs,
+          eventId: event._id,
+          title: event.title,
+          date: event.date,
+          status: event.status,
+          venue: event.venue,
+          coverImageUrl: event.coverImageStorageId
+            ? await ctx.storage.getUrl(event.coverImageStorageId)
+            : null,
+        };
+      }),
+    );
+
+    return results
+      .filter((r): r is NonNullable<typeof r> => r !== null)
+      .sort((a, b) => b.date - a.date);
+  },
+});
+
 // ---------------------------------------------------------------------------
 // Mutations
 // ---------------------------------------------------------------------------
