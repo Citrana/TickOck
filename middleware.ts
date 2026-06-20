@@ -3,6 +3,7 @@ import {
   createRouteMatcher,
   nextjsMiddlewareRedirect,
 } from '@convex-dev/auth/nextjs/server';
+import {NextResponse} from 'next/server';
 import createIntlMiddleware from 'next-intl/middleware';
 import {routing} from './i18n/routing';
 
@@ -29,6 +30,11 @@ export default convexAuthNextjsMiddleware(async (request, {convexAuth}) => {
     const locale =
       (request.nextUrl.pathname.split('/')[1] ?? '') || routing.defaultLocale;
     return nextjsMiddlewareRedirect(request, `/${locale}/login`);
+  }
+
+  // API routes must not receive a locale redirect — pass through unchanged.
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    return NextResponse.next();
   }
 
   // Let next-intl handle locale detection, prefixing, and cookie management.
