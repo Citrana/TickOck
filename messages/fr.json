@@ -573,6 +573,17 @@
       },
       "recentSearchPlaceholder": "Nom ou numéro de billet…",
       "errorGeneric": "Échec du contrôle. Veuillez réessayer.",
+      "scanButton": "Scanner",
+      "scanner": {
+        "title": "Scanner un billet",
+        "close": "Fermer le scanner",
+        "hint": "Pointez la caméra vers le QR code du billet",
+        "requesting": "Accès à la caméra…",
+        "processing": "Validation en cours…",
+        "successTitle": "Entrée validée !",
+        "permissionDenied": "L'accès à la caméra a été refusé. Veuillez autoriser l'accès dans les paramètres de votre navigateur.",
+        "unsupported": "Le scan par caméra n'est pas pris en charge sur cet appareil ou navigateur."
+      },
       "status": {
         "confirmed": "Prêt",
         "used": "Déjà utilisé",

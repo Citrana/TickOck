@@ -11,6 +11,7 @@ import {matchesDateFilter, isDateFilterActive} from '@/lib/dateFilter';
 import DataTable, {ColumnDef} from '@/components/ui/DataTable';
 import FilterPanel from '@/components/ui/FilterPanel';
 import Select from '@/components/ui/Select';
+import QrScannerOverlay from './QrScannerOverlay';
 
 type Props = {eventId: Id<'events'>};
 
@@ -27,6 +28,7 @@ export default function CheckInPanel({eventId}: Props) {
   const [input, setInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [checking, setChecking] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [filterChecker, setFilterChecker] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -142,6 +144,19 @@ export default function CheckInPanel({eventId}: Props) {
             disabled={!input.trim()}
           >
             {t('lookupButton')}
+          </button>
+          <button
+            onClick={() => setScannerOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M4 2a2 2 0 00-2 2v2a1 1 0 002 0V4h2a1 1 0 000-2H4zm10 0a1 1 0 000 2h2v2a1 1 0 002 0V4a2 2 0 00-2-2h-2zM4 14a1 1 0 000 2h2a1 1 0 000-2H4zm12 1a1 1 0 10-2 0v1h-1a1 1 0 000 2h1a2 2 0 002-2v-1zM7 7a1 1 0 000 2h6a1 1 0 000-2H7zm0 4a1 1 0 000 2h6a1 1 0 000-2H7z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {t('scanButton')}
           </button>
         </div>
 
@@ -304,6 +319,10 @@ export default function CheckInPanel({eventId}: Props) {
           </div>
         </div>
       </FilterPanel>
+
+      {scannerOpen && (
+        <QrScannerOverlay eventId={eventId} onClose={() => setScannerOpen(false)} />
+      )}
     </div>
   );
 }

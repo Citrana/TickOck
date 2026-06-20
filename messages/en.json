@@ -573,6 +573,17 @@
       },
       "recentSearchPlaceholder": "Name or ticket number…",
       "errorGeneric": "Check-in failed. Please try again.",
+      "scanButton": "Scan",
+      "scanner": {
+        "title": "Scan Ticket",
+        "close": "Close scanner",
+        "hint": "Point the camera at a ticket QR code",
+        "requesting": "Accessing camera…",
+        "processing": "Checking in…",
+        "successTitle": "Checked in!",
+        "permissionDenied": "Camera access was denied. Please allow camera access in your browser settings and try again.",
+        "unsupported": "Camera scanning is not supported on this device or browser."
+      },
       "status": {
         "confirmed": "Ready",
         "used": "Already used",
