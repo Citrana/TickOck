@@ -75,7 +75,7 @@ async function buildPdf(data: PdfData, qrBytes: ArrayBuffer): Promise<Uint8Array
 
   if (data.ticket.ticketNumber) {
     page.drawText(data.ticket.ticketNumber, {
-      x: 50, y: height - 350, size: 44, font: bold, color: dark,
+      x: 50, y: height - 350, size: 28, font: bold, color: dark,
     });
   }
 
