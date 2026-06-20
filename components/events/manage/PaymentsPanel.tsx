@@ -27,7 +27,7 @@ type Payment = NonNullable<
   ReturnType<typeof useQuery<typeof api.payments.listByEvent>>
 >[number];
 
-const ALL_COL_KEYS = ['buyer', 'amount', 'method', 'status', 'proof'] as const;
+const ALL_COL_KEYS = ['buyer', 'amount', 'method', 'status', 'proof', 'actionedBy'] as const;
 
 export default function PaymentsPanel({eventId}: Props) {
   const t = useTranslations('manage.payments');
@@ -165,6 +165,23 @@ export default function PaymentsPanel({eventId}: Props) {
           </a>
         ) : (
           <span className="text-xs text-gray-400">—</span>
+        ),
+    },
+    {
+      key: 'actionedBy',
+      header: t('actionedBy'),
+      render: payment =>
+        payment.actionedByName ? (
+          <div>
+            <p className="text-sm text-gray-700">{payment.actionedByName}</p>
+            {payment.actionedAt && (
+              <p className="text-xs text-gray-400">
+                {new Date(payment.actionedAt).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+        ) : (
+          <span className="text-xs text-gray-400">{t('actionedByNone')}</span>
         ),
     },
   ];

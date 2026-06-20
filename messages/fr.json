@@ -449,6 +449,8 @@
       "proof": "Preuve",
       "viewProof": "Voir la preuve",
       "noProof": "Aucune preuve",
+      "actionedBy": "Traité par",
+      "actionedByNone": "—",
       "methodManual": "Manuel",
       "methodOnline": "En ligne",
       "statusPending": "En attente",

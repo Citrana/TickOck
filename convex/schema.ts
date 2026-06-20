@@ -127,6 +127,8 @@ export default defineSchema({
     evidenceUrl: v.optional(v.string()),
     confirmedBy: v.optional(v.id('users')),
     confirmedAt: v.optional(v.number()),
+    rejectedBy: v.optional(v.id('users')),
+    rejectedAt: v.optional(v.number()),
   })
     .index('by_ticketId', ['ticketId'])
     .index('by_userId', ['userId'])

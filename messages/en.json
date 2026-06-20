@@ -449,6 +449,8 @@
       "proof": "Proof",
       "viewProof": "View proof",
       "noProof": "No proof",
+      "actionedBy": "Actioned By",
+      "actionedByNone": "—",
       "methodManual": "Manual",
       "methodOnline": "Online",
       "statusPending": "Pending",
