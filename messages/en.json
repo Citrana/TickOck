@@ -563,7 +563,13 @@
       "noRecent": "No check-ins yet.",
       "recentColumns": {
         "attendee": "Attendee",
-        "time": "Time"
+        "checkedBy": "Checked By",
+        "time": "Date / Time"
+      },
+      "filterPanel": {
+        "title": "Filter check-ins",
+        "checkedByLabel": "Checked by",
+        "allCheckers": "All staff"
       },
       "recentSearchPlaceholder": "Name or ticket number…",
       "errorGeneric": "Check-in failed. Please try again.",
