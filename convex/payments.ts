@@ -3,6 +3,7 @@ import {mutation, query, QueryCtx} from './_generated/server';
 import {getAuthUserId} from '@convex-dev/auth/server';
 import {getCallerUserId, requirePermission} from './_helpers/permissions';
 import {writeAuditLog} from './_helpers/audit';
+import {buildEventPrefix, generateUniqueTicketNumber} from './tickets';
 
 // ---------------------------------------------------------------------------
 // Mutations
@@ -37,10 +38,13 @@ export const confirmPayment = mutation({
       confirmedAt: Date.now(),
     });
 
+    const prefix = buildEventPrefix(event.title);
+
     // Activate the primary ticket linked to this payment
     const primaryTicket = await ctx.db.get(payment.ticketId);
     if (primaryTicket && primaryTicket.status === 'pending_payment') {
-      await ctx.db.patch(payment.ticketId, {status: 'confirmed'});
+      const ticketNumber = await generateUniqueTicketNumber(ctx, prefix);
+      await ctx.db.patch(payment.ticketId, {status: 'confirmed', ticketNumber});
     }
 
     // Activate any other pending_payment tickets from the same order
@@ -54,7 +58,8 @@ export const confirmPayment = mutation({
 
     for (const ticket of relatedTickets) {
       if (ticket._id !== payment.ticketId && ticket.status === 'pending_payment') {
-        await ctx.db.patch(ticket._id, {status: 'confirmed'});
+        const ticketNumber = await generateUniqueTicketNumber(ctx, prefix);
+        await ctx.db.patch(ticket._id, {status: 'confirmed', ticketNumber});
       }
     }
 

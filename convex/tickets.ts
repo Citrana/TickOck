@@ -12,11 +12,17 @@ import {signTicketQr, buildQrData} from './_helpers/qr';
 
 const TICKET_NUM_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
-async function generateUniqueTicketNumber(ctx: MutationCtx): Promise<string> {
+export function buildEventPrefix(title: string): string {
+  const alpha = title.replace(/[^a-zA-Z]/g, '').toUpperCase();
+  return alpha.slice(0, 4).padEnd(4, 'X');
+}
+
+export async function generateUniqueTicketNumber(ctx: MutationCtx, prefix: string): Promise<string> {
   for (let attempt = 0; attempt < 10; attempt++) {
-    const arr = new Uint8Array(6);
+    const arr = new Uint8Array(5);
     crypto.getRandomValues(arr);
-    const num = Array.from(arr, b => TICKET_NUM_CHARS[b % TICKET_NUM_CHARS.length]).join('');
+    const random = Array.from(arr, b => TICKET_NUM_CHARS[b % TICKET_NUM_CHARS.length]).join('');
+    const num = `${prefix}-${random}`;
     const existing = await ctx.db
       .query('tickets')
       .withIndex('by_ticketNumber', q => q.eq('ticketNumber', num))
@@ -75,14 +81,17 @@ export const purchase = mutation({
     const now = Date.now();
     const ticketIds: Id<'tickets'>[] = [];
 
+    const prefix = isFree ? buildEventPrefix(event.title) : null;
     for (let i = 0; i < args.quantity; i++) {
-      const ticketNumber = await generateUniqueTicketNumber(ctx);
+      const ticketNumber = prefix
+        ? await generateUniqueTicketNumber(ctx, prefix)
+        : undefined;
       const ticketId = await ctx.db.insert('tickets', {
         eventId: args.eventId,
         tierId: args.tierId,
         userId,
         status: isFree ? 'confirmed' : 'pending_payment',
-        ticketNumber,
+        ...(ticketNumber ? {ticketNumber} : {}),
         createdAt: now,
       });
 
