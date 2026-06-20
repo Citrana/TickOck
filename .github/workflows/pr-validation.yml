@@ -1,0 +1,115 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  validate-branch-name:
+    name: Branch name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch name conventions
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          echo "Checking branch: $BRANCH"
+          ERRORS=0
+
+          # Must start with a valid prefix
+          if ! echo "$BRANCH" | grep -qE '^(feat|bugfix|hotfix|refactor|docs|test|chore)/'; then
+            echo "❌ Branch must start with one of: feat/, bugfix/, hotfix/, refactor/, docs/, test/, chore/"
+            ERRORS=$((ERRORS + 1))
+          fi
+
+          # Must only contain lowercase letters, numbers, hyphens (and one slash after prefix)
+          if ! echo "$BRANCH" | grep -qE '^[a-z]+/[a-z0-9][a-z0-9-]*$'; then
+            echo "❌ Branch name may only contain lowercase letters, numbers, and hyphens after the prefix"
+            ERRORS=$((ERRORS + 1))
+          fi
+
+          # Must be under 50 characters
+          if [ ${#BRANCH} -ge 50 ]; then
+            echo "❌ Branch name is ${#BRANCH} characters — must be under 50"
+            ERRORS=$((ERRORS + 1))
+          fi
+
+          if [ $ERRORS -eq 0 ]; then
+            echo "✅ Branch name is valid"
+          else
+            echo ""
+            echo "See docs/conventions/git-conventions.md for the full rules."
+            exit 1
+          fi
+
+  validate-commit-messages:
+    name: Commit messages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check commit message conventions
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          TOTAL_ERRORS=0
+
+          while IFS= read -r HASH; do
+            MSG=$(git log --format=%B -n 1 "$HASH")
+            SUMMARY=$(echo "$MSG" | head -n 1)
+            ERRORS=0
+
+            echo "──────────────────────────────────────"
+            echo "Commit: $HASH"
+            echo "Summary: $SUMMARY"
+
+            # Must start with a capital letter
+            if ! echo "$SUMMARY" | grep -qE '^[A-Z]'; then
+              echo "❌ Must start with a capital letter"
+              ERRORS=$((ERRORS + 1))
+            fi
+
+            # No leading spaces
+            if echo "$SUMMARY" | grep -qE '^ '; then
+              echo "❌ Must not have leading spaces"
+              ERRORS=$((ERRORS + 1))
+            fi
+
+            # No trailing spaces
+            if echo "$SUMMARY" | grep -qE ' $'; then
+              echo "❌ Must not have trailing spaces"
+              ERRORS=$((ERRORS + 1))
+            fi
+
+            # No consecutive spaces
+            if echo "$SUMMARY" | grep -qE '  +'; then
+              echo "❌ Must not have consecutive spaces"
+              ERRORS=$((ERRORS + 1))
+            fi
+
+            # Each line must be 72 characters or fewer
+            LINE_NUM=0
+            while IFS= read -r LINE; do
+              LINE_NUM=$((LINE_NUM + 1))
+              if [ ${#LINE} -gt 72 ]; then
+                echo "❌ Line $LINE_NUM exceeds 72 characters (${#LINE}): '$LINE'"
+                ERRORS=$((ERRORS + 1))
+              fi
+            done <<< "$MSG"
+
+            if [ $ERRORS -eq 0 ]; then
+              echo "✅ OK"
+            fi
+
+            TOTAL_ERRORS=$((TOTAL_ERRORS + ERRORS))
+          done < <(git log --format=%H "$BASE".."$HEAD")
+
+          echo "──────────────────────────────────────"
+          if [ $TOTAL_ERRORS -gt 0 ]; then
+            echo "❌ $TOTAL_ERRORS error(s) found across commits."
+            echo "See docs/conventions/git-conventions.md for the full rules."
+            exit 1
+          else
+            echo "✅ All commit messages are valid"
+          fi
