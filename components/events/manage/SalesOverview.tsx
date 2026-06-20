@@ -5,7 +5,7 @@ import {useTranslations} from 'next-intl';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 
-type Props = {eventId: Id<'events'>};
+type Props = {eventId: Id<'events'>; isOwner: boolean};
 
 function StatCard({
   label,
@@ -44,7 +44,7 @@ function StatCard({
   );
 }
 
-export default function SalesOverview({eventId}: Props) {
+export default function SalesOverview({eventId, isOwner}: Props) {
   const t = useTranslations('manage.overview');
   const stats = useQuery(api.events.getStats, {eventId});
 
@@ -70,16 +70,20 @@ export default function SalesOverview({eventId}: Props) {
     <div className="space-y-8">
       {/* Stat cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          label={t('confirmedRevenue')}
-          value={fmt(stats.totalRevenue)}
-          accent="green"
-        />
-        <StatCard
-          label={t('pendingRevenue')}
-          value={fmt(stats.pendingRevenue)}
-          accent="amber"
-        />
+        {isOwner && (
+          <StatCard
+            label={t('confirmedRevenue')}
+            value={fmt(stats.totalRevenue)}
+            accent="green"
+          />
+        )}
+        {isOwner && (
+          <StatCard
+            label={t('pendingRevenue')}
+            value={fmt(stats.pendingRevenue)}
+            accent="amber"
+          />
+        )}
         <StatCard
           label={t('ticketsSold')}
           value={String(sold)}
@@ -103,31 +107,35 @@ export default function SalesOverview({eventId}: Props) {
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50 text-xs font-medium uppercase tracking-wide text-gray-500">
                   <th className="px-4 py-3 text-left">{t('tierName')}</th>
-                  <th className="px-4 py-3 text-right">{t('tierPrice')}</th>
+                  {isOwner && <th className="px-4 py-3 text-right">{t('tierPrice')}</th>}
                   <th className="px-4 py-3 text-right">{t('tierSold')}</th>
                   <th className="px-4 py-3 text-right">{t('tierAvailable')}</th>
-                  <th className="px-4 py-3 text-right">{t('tierRevenue')}</th>
+                  {isOwner && <th className="px-4 py-3 text-right">{t('tierRevenue')}</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {stats.tiers.map(tier => (
                   <tr key={tier._id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium text-gray-900">{tier.name}</td>
-                    <td className="px-4 py-3 text-right text-gray-600">
-                      {tier.price === 0
-                        ? t('free')
-                        : `${tier.price} ${tier.currency}`}
-                    </td>
+                    {isOwner && (
+                      <td className="px-4 py-3 text-right text-gray-600">
+                        {tier.price === 0
+                          ? t('free')
+                          : `${tier.price} ${tier.currency}`}
+                      </td>
+                    )}
                     <td className="px-4 py-3 text-right text-gray-900">
                       {tier.quantitySold}
                       <span className="ml-1 text-gray-400">/ {tier.quantity}</span>
                     </td>
                     <td className="px-4 py-3 text-right text-gray-600">{tier.available}</td>
-                    <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                      {tier.price === 0
-                        ? '—'
-                        : `${tier.price * tier.quantitySold} ${tier.currency}`}
-                    </td>
+                    {isOwner && (
+                      <td className="px-4 py-3 text-right font-semibold text-gray-900">
+                        {tier.price === 0
+                          ? '—'
+                          : `${tier.price * tier.quantitySold} ${tier.currency}`}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

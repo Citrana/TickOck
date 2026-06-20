@@ -15,7 +15,8 @@
     "announcementText": "Désormais bilingue — TickOck est disponible en anglais et en français.",
     "announcementCta": "Réserver une démo",
     "createEvent": "Créer un événement",
-    "myEvents": "Mes événements"
+    "myEvents": "Mes événements",
+    "staffEvents": "Événements (équipe)"
   },
   "auth": {
     "login": {
@@ -829,5 +830,20 @@
     "vsTicketmaster": "vs Ticketmaster",
     "vsUniverse": "vs Universe",
     "vsHumanitix": "vs Humanitix"
+  },
+  "staffEvents": {
+    "title": "Mes événements (équipe)",
+    "subtitle": "Événements pour lesquels vous avez un rôle dans l'équipe.",
+    "empty": "Vous n'avez pas encore été ajouté comme membre d'équipe à un événement.",
+    "roles": {
+      "co_organizer": "Co-organisateur",
+      "scanner": "Contrôleur de billets",
+      "finance": "Responsable financier"
+    },
+    "inactiveBadge": "Inactif",
+    "inactiveNote": "Accès révoqué",
+    "actions": {
+      "manage": "Gérer"
+    }
   }
 }

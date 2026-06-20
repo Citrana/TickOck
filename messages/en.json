@@ -15,7 +15,8 @@
     "announcementText": "Now bilingual — TickOck is available in English and French.",
     "announcementCta": "Book a demo",
     "createEvent": "Create event",
-    "myEvents": "My Events"
+    "myEvents": "My Events",
+    "staffEvents": "Staff Events"
   },
   "auth": {
     "login": {
@@ -829,5 +830,20 @@
     "vsTicketmaster": "vs Ticketmaster",
     "vsUniverse": "vs Universe",
     "vsHumanitix": "vs Humanitix"
+  },
+  "staffEvents": {
+    "title": "My Staff Events",
+    "subtitle": "Events where you have a staff role.",
+    "empty": "You haven't been added as staff to any events yet.",
+    "roles": {
+      "co_organizer": "Co-organizer",
+      "scanner": "Ticket Scanner",
+      "finance": "Finance Manager"
+    },
+    "inactiveBadge": "Inactive",
+    "inactiveNote": "Access revoked",
+    "actions": {
+      "manage": "Manage"
+    }
   }
 }

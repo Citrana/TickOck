@@ -146,7 +146,7 @@ export default function ManageDashboard({eventId}: Props) {
 
       {/* Panel */}
       <div>
-        {activeTab === 'overview' && <SalesOverview eventId={eventId} />}
+        {activeTab === 'overview' && <SalesOverview eventId={eventId} isOwner={isOwner} />}
         {activeTab === 'payments' && <PaymentsPanel eventId={eventId} />}
         {activeTab === 'attendees' && <AttendeesPanel eventId={eventId} />}
         {activeTab === 'staff' && <StaffPanel eventId={eventId} />}
