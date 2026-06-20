@@ -13,7 +13,7 @@
   },
   "lint-staged": {
     "**/*.{ts,tsx,js,jsx}": [
-      "next lint --fix --file"
+      "next lint --file"
     ]
   },
   "dependencies": {
