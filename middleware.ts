@@ -18,6 +18,7 @@ const isPublicRoute = createRouteMatcher([
   '/:locale/events/(.*)',
   '/:locale/(public)(.*)',
   '/:locale',
+  '/:locale/offline',
   '/',
   '/api/auth(.*)',
 ]);

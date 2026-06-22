@@ -3,6 +3,7 @@ import { Link } from '@/lib/navigation';
 import Image from 'next/image';
 import { Fraunces } from 'next/font/google';
 import WhySection from '@/components/marketing/WhySection';
+import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -147,6 +148,7 @@ export default async function HomePage() {
               >
                 {t('ctaSecondary')}
               </Link>
+              <InstallPrompt />
             </div>
 
             <div className="mt-10 border-t border-gray-200 pt-7">
@@ -310,7 +312,6 @@ export default async function HomePage() {
       {/* ── FEES ─────────────────────────────────────────────────────────── */}
       <div className="full-bleed bg-[#f9f7f4] py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <div className="mb-6 text-4xl" aria-hidden="true">🐝</div>
           <p className="mx-auto max-w-2xl text-2xl font-bold leading-relaxed text-gray-900 sm:text-3xl">
             {th('fees.headline')}
           </p>
@@ -332,7 +333,7 @@ export default async function HomePage() {
             {th('howItWorks.label')}
           </p>
           <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            {th('howItWorks.headline')} 🚀
+            {th('howItWorks.headline')}
           </h2>
         </div>
 

@@ -912,5 +912,12 @@
     "actions": {
       "manage": "Manage"
     }
+  },
+  "pwa": {
+    "install": "Install app",
+    "installTitle": "Install TickOck",
+    "installDescription": "Add TickOck to your home screen for quick access",
+    "offlineTitle": "You're offline",
+    "offlineMessage": "Please check your internet connection and try again."
   }
 }
