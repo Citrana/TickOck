@@ -71,11 +71,11 @@
     }
   },
   "hero": {
-    "headlineStart": "The world's",
-    "headlineHighlight1": "most",
-    "headlineHighlight2": "loved",
-    "headlineEnd": "event ticketing platform.",
-    "subtitle": "Whether it's your first event ever, or your biggest yet — we make it simple and affordable to sell tickets online.",
+    "headlineStart": "The",
+    "headlineHighlight1": "trusted",
+    "headlineHighlight2": "choice",
+    "headlineEnd": "for modern event ticketing.",
+    "subtitle": "Built for your first event, your biggest crowd, and everything in between.",
     "ctaPrimary": "Get started",
     "ctaSecondary": "Book a demo",
     "socialProof": "Don't just take our word for it!",
@@ -764,25 +764,20 @@
   "home": {
     "platform": {
       "label": "Introducing TickOck",
-      "headline": "Design, manage, and sell tickets to your event all in one",
-      "headlineHighlight": "easy-to-use",
-      "headlineEnd": "event ticketing platform!"
+      "headline": "Your complete event ticketing platform. Create, manage, and sell out in minutes.",
+      "headlineHighlight": "",
+      "headlineEnd": ""
     },
     "stats": {
-      "headline": "Join over",
-      "count": "73,000",
-      "countLabel": "Event Creators",
-      "across": "across",
-      "countries": "120",
-      "countriesLabel": "countries",
+      "headline": "We're building a better way to sell tickets. Create your account today and see the difference.",
       "subtitle": "Whether you're organizing a massive food expo in your city, a live comedy night at a coffee shop, or an online masterclass from your living room, we take the hassle out of ticketing.",
       "learnMore": "Learn more",
-      "firstTimers": { "title": "First-timers", "desc": "Easily create events and start selling tickets in minutes, with all the features and 24/7 support you need to succeed." },
-      "eventPros": { "title": "Event pros", "desc": "Level up with powerful ticketing features and unbeatable pricing. With 99.9% uptime and round-the-clock support, we've got you covered." },
-      "freeEvents": { "title": "Free events", "desc": "If your event is free, so are we. Get all the features and support you need to run your event — at zero cost." },
-      "developers": { "title": "Developers", "desc": "Build the future of ticketing with our powerful open API and ready-made integrations. Setup is a breeze." },
-      "charities": { "title": "Charities", "desc": "From local fundraisers to grand annual galas, charities get special rates and everything they need to make more impact." },
-      "attractions": { "title": "Attractions", "desc": "With time-slot management and a free check-in app, we support venues, museums, and attractions of every size." }
+      "firstTimers": { "title": "First-timers", "desc": "Create your event page, sell tickets in minutes, and get 24/7 support." },
+      "eventPros": { "title": "Event pros", "desc": "Powerful event features. Unbeatable prices. 99.9% uptime guaranteed." },
+      "freeEvents": { "title": "Free events", "desc": "Hosting a free event? Sell tickets for zero cost, with full features included." },
+      "developers": { "title": "Developers", "desc": "Connect your event apps with our powerful API and ready-made integrations." },
+      "charities": { "title": "Charities", "desc": "Special pricing for charity events. Keep more of what you raise." },
+      "attractions": { "title": "Attractions", "desc": "Timed entry management. Free event check-in app. Perfect for venues." }
     },
     "fees": {
       "headline": "We believe your revenue belongs to you. That's why we keep our fees lower than major ticketing sites, so you can reinvest in your next big event.",
@@ -790,7 +785,7 @@
     },
     "howItWorks": {
       "label": "Step by step",
-      "headline": "Run your next event like a boss.",
+      "headline": "The smarter way to run your next event.",
       "feature1": {
         "mockupTitle": "Create your event",
         "title": "Incredible events at your fingertips",
@@ -862,14 +857,14 @@
       "cta": "Explore integrations"
     },
     "ctaBanner": {
-      "headline1": "You dream it.",
-      "headline2": "We'll ticket it.",
+      "headline1": "Bring your event to life.",
+      "headline2": "Leave the ticketing to us.",
       "cta1": "Start for free",
       "cta2": "Book a demo"
     }
   },
   "footer": {
-    "tagline": "The world's most loved event ticketing platform.",
+    "tagline": "The trusted choice for modern event ticketing.",
     "copyright": "© 2025 TickOck. All rights reserved.",
     "discoverTitle": "Discover & Legal",
     "findTickets": "Find tickets",

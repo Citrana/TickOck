@@ -241,11 +241,7 @@ export default async function HomePage() {
             {th('platform.label')}
           </p>
           <h2 className="mx-auto max-w-3xl text-center text-3xl font-extrabold leading-tight text-white sm:text-4xl lg:text-5xl">
-            {th('platform.headline')}{' '}
-            <span className="relative whitespace-nowrap">
-              <span className="relative text-amber-400 italic">{th('platform.headlineHighlight')}</span>
-            </span>{' '}
-            {th('platform.headlineEnd')}
+            {th('platform.headline')}
           </h2>
 
           {/* Central image */}
@@ -270,17 +266,7 @@ export default async function HomePage() {
           {/* Heading + subtitle */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-end">
             <h2 className="text-4xl font-black leading-[1.1] text-white sm:text-5xl lg:text-6xl">
-              {th('stats.headline')}{' '}
-              <span className="rounded-xl bg-amber-300 px-2 py-0.5 text-gray-900">
-                {th('stats.count')}
-              </span>
-              <br />
-              <span className="rounded-xl bg-amber-300 px-2 py-0.5 text-gray-900">
-                {th('stats.countLabel')}
-              </span>{' '}
-              {th('stats.across')}
-              <br />
-              {th('stats.countries')} {th('stats.countriesLabel')}
+              {th('stats.headline')}
             </h2>
             <p className="text-base leading-relaxed text-gray-300 sm:text-lg lg:pb-2">
               {th('stats.subtitle')}
@@ -300,9 +286,6 @@ export default async function HomePage() {
                 <p className="mt-3 flex-1 text-sm leading-relaxed text-gray-700">
                   {th(`stats.${card.key}.desc`)}
                 </p>
-                <span className="mt-6 text-sm font-bold text-gray-900 underline underline-offset-2 cursor-pointer">
-                  {th('stats.learnMore')}
-                </span>
               </div>
             ))}
           </div>
