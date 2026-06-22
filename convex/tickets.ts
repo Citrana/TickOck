@@ -482,10 +482,10 @@ export const findTicket = query({
       if (!hasAccess) return null;
     }
 
-    const id = args.identifier.trim().toUpperCase();
+    const id = args.identifier.trim();
     let ticket;
 
-    if (id.startsWith('TOCK:')) {
+    if (id.toUpperCase().startsWith('TOCK:')) {
       const parts = id.split(':');
       if (parts.length >= 2) {
         ticket = await ctx.db.get(parts[1] as Id<'tickets'>).catch(() => null);
@@ -493,7 +493,7 @@ export const findTicket = query({
     } else {
       ticket = await ctx.db
         .query('tickets')
-        .withIndex('by_ticketNumber', q => q.eq('ticketNumber', id))
+        .withIndex('by_ticketNumber', q => q.eq('ticketNumber', id.toUpperCase()))
         .unique();
     }
 
@@ -585,10 +585,10 @@ export const checkIn = mutation({
   handler: async (ctx, args) => {
     const actorId = await requirePermission(ctx, 'tickets:scan', args.eventId);
 
-    const id = args.identifier.trim().toUpperCase();
+    const id = args.identifier.trim();
     let ticket;
 
-    if (id.startsWith('TOCK:')) {
+    if (id.toUpperCase().startsWith('TOCK:')) {
       const parts = id.split(':');
       if (parts.length >= 2) {
         ticket = await ctx.db.get(parts[1] as Id<'tickets'>).catch(() => null);
@@ -596,7 +596,7 @@ export const checkIn = mutation({
     } else {
       ticket = await ctx.db
         .query('tickets')
-        .withIndex('by_ticketNumber', q => q.eq('ticketNumber', id))
+        .withIndex('by_ticketNumber', q => q.eq('ticketNumber', id.toUpperCase()))
         .unique();
     }
 
