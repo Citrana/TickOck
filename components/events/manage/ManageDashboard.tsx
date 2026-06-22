@@ -127,7 +127,7 @@ export default function ManageDashboard({eventId}: Props) {
 
       {/* Tab bar */}
       <div className="border-b border-gray-200">
-        <div className="-mb-px flex gap-0.5 overflow-x-auto">
+        <div className="-mb-px flex gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {visibleTabs.map(tab => (
             <button
               key={tab}

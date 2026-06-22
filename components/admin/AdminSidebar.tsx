@@ -73,12 +73,12 @@ export default function AdminSidebar() {
   const isSuperAdmin = user?.role?.permissionSlugs.includes('*') ?? false;
 
   return (
-    <aside className="w-52 flex-shrink-0">
-      <div className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
+    <aside className="w-full md:w-52 md:flex-shrink-0">
+      <div className="md:sticky md:top-24 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
         <p className="mb-2 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
           {t('sidebarLabel')}
         </p>
-        <nav className="space-y-0.5">
+        <nav className="flex flex-row flex-wrap gap-1 md:flex-col md:flex-nowrap md:space-y-0.5 md:gap-0">
           {NAV.map(item => {
             if (item.superAdminOnly && !isSuperAdmin) return null;
             const isActive =

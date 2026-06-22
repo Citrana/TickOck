@@ -123,7 +123,7 @@ export default function CheckInPanel({eventId}: Props) {
         <h2 className="text-sm font-semibold text-gray-900">{t('title')}</h2>
         <p className="mt-1 text-xs text-gray-500">{t('description')}</p>
 
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <input
             type="text"
             value={input}
@@ -138,26 +138,28 @@ export default function CheckInPanel({eventId}: Props) {
             className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono uppercase placeholder:normal-case placeholder:font-sans focus:border-gray-900 focus:outline-none"
             maxLength={200}
           />
-          <button
-            onClick={handleLookup}
-            className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-50"
-            disabled={!input.trim()}
-          >
-            {t('lookupButton')}
-          </button>
-          <button
-            onClick={() => setScannerOpen(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600"
-          >
-            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path
-                fillRule="evenodd"
-                d="M4 2a2 2 0 00-2 2v2a1 1 0 002 0V4h2a1 1 0 000-2H4zm10 0a1 1 0 000 2h2v2a1 1 0 002 0V4a2 2 0 00-2-2h-2zM4 14a1 1 0 000 2h2a1 1 0 000-2H4zm12 1a1 1 0 10-2 0v1h-1a1 1 0 000 2h1a2 2 0 002-2v-1zM7 7a1 1 0 000 2h6a1 1 0 000-2H7zm0 4a1 1 0 000 2h6a1 1 0 000-2H7z"
-                clipRule="evenodd"
-              />
-            </svg>
-            {t('scanButton')}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleLookup}
+              className="flex-1 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-50 sm:flex-none"
+              disabled={!input.trim()}
+            >
+              {t('lookupButton')}
+            </button>
+            <button
+              onClick={() => setScannerOpen(true)}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 sm:flex-none"
+            >
+              <svg className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fillRule="evenodd"
+                  d="M4 2a2 2 0 00-2 2v2a1 1 0 002 0V4h2a1 1 0 000-2H4zm10 0a1 1 0 000 2h2v2a1 1 0 002 0V4a2 2 0 00-2-2h-2zM4 14a1 1 0 000 2h2a1 1 0 000-2H4zm12 1a1 1 0 10-2 0v1h-1a1 1 0 000 2h1a2 2 0 002-2v-1zM7 7a1 1 0 000 2h6a1 1 0 000-2H7zm0 4a1 1 0 000 2h6a1 1 0 000-2H7z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              {t('scanButton')}
+            </button>
+          </div>
         </div>
 
         {/* Preview card */}
