@@ -1,4 +1,4 @@
-import type {Metadata} from 'next';
+import type {Metadata, Viewport} from 'next';
 import {NextIntlClientProvider} from 'next-intl';
 import {getMessages} from 'next-intl/server';
 import {notFound} from 'next/navigation';
@@ -11,6 +11,7 @@ import {ConvexClientProvider} from '@/components/providers/ConvexClientProvider'
 import {AuthGuard} from '@/components/auth/AuthGuard';
 import {routing} from '@/i18n/routing';
 import {Toaster} from 'sonner';
+import {ServiceWorkerRegistration} from '@/components/pwa/ServiceWorkerRegistration';
 
 const geistSans = localFont({
   src: '../fonts/GeistVF.woff',
@@ -24,9 +25,22 @@ const geistMono = localFont({
   weight: '100 900',
 });
 
+export const viewport: Viewport = {
+  themeColor: '#111827',
+};
+
 export const metadata: Metadata = {
   title: 'TickOck',
   description: 'Bilingual event ticketing platform',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'TickOck',
+    statusBarStyle: 'black-translucent',
+  },
+  icons: {
+    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180' }],
+  },
 };
 
 export function generateStaticParams() {
@@ -66,6 +80,7 @@ export default async function LocaleLayout({
             </ConvexClientProvider>
           </NextIntlClientProvider>
           <Footer />
+          <ServiceWorkerRegistration />
         </body>
       </html>
     </ConvexAuthNextjsServerProvider>
