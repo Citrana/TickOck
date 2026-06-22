@@ -71,11 +71,11 @@
     }
   },
   "hero": {
-    "headlineStart": "La plateforme de billetterie",
-    "headlineHighlight1": "la plus",
-    "headlineHighlight2": "appréciée",
-    "headlineEnd": "au monde.",
-    "subtitle": "Que ce soit votre premier événement ou le plus grand, nous vous simplifions la vente de billets en ligne.",
+    "headlineStart": "Le",
+    "headlineHighlight1": "choix",
+    "headlineHighlight2": "de confiance",
+    "headlineEnd": "pour une billetterie moderne.",
+    "subtitle": "Conçu pour votre premier événement, votre plus grande affluence, et tout ce qui se trouve entre les deux.",
     "ctaPrimary": "Commencer",
     "ctaSecondary": "Réserver une démo",
     "socialProof": "Ne nous prenez pas au mot !",
@@ -764,25 +764,20 @@
   "home": {
     "platform": {
       "label": "Présentation de TickOck",
-      "headline": "Concevez, gérez et vendez des billets pour votre événement, tout en un",
-      "headlineHighlight": "simple à utiliser",
-      "headlineEnd": "plateforme de billetterie !"
+      "headline": "Votre plateforme complète de billetterie. Créez, gérez et faites salle comble en quelques minutes.",
+      "headlineHighlight": "",
+      "headlineEnd": ""
     },
     "stats": {
-      "headline": "Rejoignez plus de",
-      "count": "73 000",
-      "countLabel": "organisateurs d'événements",
-      "across": "dans",
-      "countries": "120",
-      "countriesLabel": "pays",
+      "headline": "Nous construisons une meilleure façon de vendre des billets. Créez votre compte aujourd'hui et voyez la différence.",
       "subtitle": "Que vous organisiez une grande foire alimentaire dans votre ville, une soirée comédie dans un café ou une masterclass en ligne depuis votre salon, nous simplifions la billetterie.",
       "learnMore": "En savoir plus",
-      "firstTimers": { "title": "Débutants", "desc": "Créez des événements et commencez à vendre des billets en quelques minutes, avec toutes les fonctionnalités et le support 24h/24 dont vous avez besoin." },
-      "eventPros": { "title": "Pros de l'événement", "desc": "Passez au niveau supérieur avec des fonctionnalités puissantes et des tarifs imbattables. Avec un support disponible en permanence, nous vous accompagnons." },
-      "freeEvents": { "title": "Événements gratuits", "desc": "Si votre événement est gratuit, nos services aussi. Accédez à toutes les fonctionnalités et au support dont vous avez besoin — sans frais." },
-      "developers": { "title": "Développeurs", "desc": "Construisez l'avenir de la billetterie avec notre API ouverte et nos intégrations prêtes à l'emploi. La mise en place est un jeu d'enfant." },
-      "charities": { "title": "Associations", "desc": "Des collectes locales aux grands galas annuels, les associations bénéficient de tarifs spéciaux et de tout ce dont elles ont besoin pour avoir plus d'impact." },
-      "attractions": { "title": "Attractions", "desc": "Avec la gestion des créneaux horaires et une application de contrôle gratuite, nous accompagnons les lieux, musées et attractions de toutes tailles." }
+      "firstTimers": { "title": "Débutants", "desc": "Créez votre page d'événement, vendez des billets en quelques minutes et bénéficiez d'une assistance 24h/24." },
+      "eventPros": { "title": "Pros de l'événement", "desc": "Fonctionnalités puissantes. Prix imbattables. Disponibilité garantie à 99,9 %." },
+      "freeEvents": { "title": "Événements gratuits", "desc": "Vous organisez un événement gratuit ? Vendez des billets sans frais, avec toutes les fonctionnalités incluses." },
+      "developers": { "title": "Développeurs", "desc": "Connectez vos applications avec notre API puissante et nos intégrations prêtes à l'emploi." },
+      "charities": { "title": "Associations", "desc": "Tarifs spéciaux pour les événements caritatifs. Gardez plus de ce que vous récoltez." },
+      "attractions": { "title": "Attractions", "desc": "Gestion des entrées programmées. Application de contrôle gratuite. Parfait pour les lieux." }
     },
     "fees": {
       "headline": "Nous croyons que vos revenus vous appartiennent. C'est pourquoi nos frais sont inférieurs aux grandes plateformes, pour que vous puissiez réinvestir dans votre prochain événement.",
@@ -790,7 +785,7 @@
     },
     "howItWorks": {
       "label": "Étape par étape",
-      "headline": "Gérez votre prochain événement comme un pro.",
+      "headline": "La façon la plus intelligente de gérer votre prochain événement.",
       "feature1": {
         "mockupTitle": "Créer votre événement",
         "title": "Des événements incroyables à portée de main",
@@ -862,14 +857,14 @@
       "cta": "Explorer les intégrations"
     },
     "ctaBanner": {
-      "headline1": "Vous rêvez d'un événement.",
-      "headline2": "Nous vendons les billets.",
+      "headline1": "Donnez vie à votre événement.",
+      "headline2": "La billetterie, c'est notre affaire.",
       "cta1": "Commencer gratuitement",
       "cta2": "Réserver une démo"
     }
   },
   "footer": {
-    "tagline": "La plateforme de billetterie la plus appréciée au monde.",
+    "tagline": "Le choix de confiance pour une billetterie moderne.",
     "copyright": "© 2025 TickOck. Tous droits réservés.",
     "discoverTitle": "Découvrir & Légal",
     "findTickets": "Trouver des billets",
