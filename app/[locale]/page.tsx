@@ -577,14 +577,24 @@ export default async function HomePage() {
       </section>
 
       {/* ── CTA BANNER (last section — flush with footer) ────────────────── */}
-      <div className="full-bleed -mb-8 bg-gray-900 py-24 sm:py-32">
+      <div className="full-bleed relative -mb-8 bg-gray-900 py-24 sm:py-32">
+        <div
+          className="absolute inset-x-0 top-0 -translate-y-full pointer-events-none z-10"
+          aria-hidden="true"
+        >
+          <svg
+            viewBox="0 0 1440 80"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none"
+            className="block w-full h-20"
+          >
+            <path
+              d="M0,75 C680,75 900,5 1440,25 L1440,80 L0,80 Z"
+              fill="#111827"
+            />
+          </svg>
+        </div>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          {/* Decorative dots */}
-          <div className="mb-8 flex justify-center gap-2" aria-hidden="true">
-            {['bg-rose-400', 'bg-amber-400', 'bg-emerald-400', 'bg-blue-400', 'bg-violet-400'].map(c => (
-              <div key={c} className={`h-2.5 w-2.5 rounded-full ${c}`} />
-            ))}
-          </div>
 
           <h2 className="text-4xl font-extrabold text-white sm:text-5xl lg:text-6xl">
             <span className="block">{th('ctaBanner.headline1')}</span>
