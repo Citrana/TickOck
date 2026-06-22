@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { Fraunces } from 'next/font/google';
 import WhySection from '@/components/marketing/WhySection';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
+import HomeEventsFeed from '@/components/events/HomeEventsFeed';
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -64,30 +65,6 @@ const statsCards = [
   { key: 'attractions', bg: 'bg-white', radius: 'rounded-tl-xl  rounded-tr-3xl rounded-br-3xl rounded-bl-xl' },
 ] satisfies Array<{ key: string; bg: string; radius: string }>;
 
-// ── Sample event cards for Discover section ──────────────────────────────────
-const sampleEvents = [
-  {
-    gradient: 'from-rose-300 to-orange-300',
-    title: 'Summer Music Festival 2025',
-    date: 'SAT 12 JULY',
-    venue: 'Central Park, New York',
-    organizer: 'EventCo Productions',
-  },
-  {
-    gradient: 'from-violet-300 to-blue-300',
-    title: 'Boston Food & Drink Festival',
-    date: 'SUN 20 JULY',
-    venue: 'City Hall Plaza, Boston',
-    organizer: 'FoodFest Inc.',
-  },
-  {
-    gradient: 'from-emerald-300 to-teal-300',
-    title: 'The Wellington Jazz Festival',
-    date: 'FRI 1 AUG',
-    venue: 'Wellington Town Hall',
-    organizer: 'Jazz Society NZ',
-  },
-];
 
 // ── Integration placeholder grid ─────────────────────────────────────────────
 const integrationColors = [
@@ -456,29 +433,7 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {sampleEvents.map(event => (
-              <div
-                key={event.title}
-                className="group overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md"
-              >
-                <div className={`aspect-video bg-gradient-to-br ${event.gradient}`} />
-                <div className="p-5">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                    {event.date}
-                  </p>
-                  <h3 className="mt-1 text-base font-bold text-gray-900 transition-colors group-hover:text-rose-600">
-                    {event.title}
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">{event.venue}</p>
-                  <div className="mt-3 flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-full bg-gray-200" aria-hidden="true" />
-                    <p className="text-xs text-gray-400">{event.organizer}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <HomeEventsFeed />
         </div>
       </div>
 

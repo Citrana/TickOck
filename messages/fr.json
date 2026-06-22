@@ -100,6 +100,7 @@
     "soldOut": "Complet",
     "from": "à partir de",
     "available": "disponible(s)",
+    "seeEvent": "Voir l'événement",
     "detail": {
       "tickets": "Billets",
       "buyButton": "Acheter des billets",
