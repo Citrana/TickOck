@@ -57,7 +57,7 @@ export default function EventDetail({eventId}: Props) {
   return (
     <div className="mx-auto max-w-3xl">
       {/* Cover image */}
-      <div className="relative h-64 w-full overflow-hidden rounded-2xl bg-gray-100 sm:h-80">
+      <div className="relative h-48 w-full overflow-hidden rounded-2xl bg-gray-100 sm:h-64">
         {event.coverImageUrl ? (
           <Image
             src={event.coverImageUrl}
@@ -86,6 +86,14 @@ export default function EventDetail({eventId}: Props) {
             <span className="mt-1 inline-block rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-700">
               {event.category}
             </span>
+          )}
+          {!isOwner && event.status === 'live' && (
+            <Link
+              href={`/checkout?event=${event._id}`}
+              className="btn-ticket mt-3 inline-block rounded-xl bg-gray-900 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gray-700"
+            >
+              {t('buyButton')}
+            </Link>
           )}
         </div>
 
