@@ -168,9 +168,10 @@ export const addStaff = mutation({
     }
 
     // Look up the target user by email
+    const normEmail = args.email.toLowerCase().trim();
     const target = await ctx.db
       .query('users')
-      .withIndex('by_email', q => q.eq('email', args.email))
+      .withIndex('by_email', q => q.eq('email', normEmail))
       .unique();
     if (!target) throw new Error('No user found with that email address');
     if (target._id === event.ownerId) {

@@ -118,9 +118,10 @@ export const bootstrapSuperAdmin = mutation({
     }
 
     // Find the target user by email
+    const normEmail = args.email.toLowerCase().trim();
     const user = await ctx.db
       .query('users')
-      .withIndex('by_email', q => q.eq('email', args.email))
+      .withIndex('by_email', q => q.eq('email', normEmail))
       .unique();
     if (!user) {
       return {ok: false, message: `No user found with email "${args.email}". Register first, then run this again.`};
