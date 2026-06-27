@@ -944,6 +944,11 @@
     "installTitle": "Install TickOck",
     "installDescription": "Add TickOck to your home screen for quick access",
     "offlineTitle": "You're offline",
-    "offlineMessage": "Please check your internet connection and try again."
+    "offlineMessage": "Please check your internet connection and try again.",
+    "notifications": {
+      "enable": "Enable notifications",
+      "disable": "Disable notifications",
+      "permissionDenied": "Notifications blocked — enable in browser settings"
+    }
   }
 }

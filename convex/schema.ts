@@ -191,6 +191,17 @@ export default defineSchema({
     .index('by_targetType_and_targetId', ['targetType', 'targetId'])
     .index('by_createdAt', ['createdAt']),
 
+  pushSubscriptions: defineTable({
+    userId: v.id('users'),
+    endpoint: v.string(),
+    p256dh: v.string(),
+    auth: v.string(),
+    userAgent: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index('by_userId', ['userId'])
+    .index('by_endpoint', ['endpoint']),
+
   // Email verification tokens — one active token per user at a time
   emailVerifications: defineTable({
     userId: v.id('users'),

@@ -5,6 +5,7 @@ import {useAuthActions} from '@convex-dev/auth/react';
 import {useTranslations} from 'next-intl';
 import {Link, useRouter} from '@/lib/navigation';
 import {useCurrentUser} from '@/hooks/useCurrentUser';
+import {PushNotificationSetup} from '@/components/pwa/PushNotificationSetup';
 
 export function NavbarAuth() {
   const {user, isLoading, isAuthenticated} = useCurrentUser();
@@ -171,6 +172,11 @@ export function NavbarAuth() {
                 {t('admin')}
               </Link>
             )}
+          </div>
+
+          {/* Notification toggle */}
+          <div className="border-t border-gray-100 px-4 py-3">
+            <PushNotificationSetup />
           </div>
 
           {/* Logout */}
