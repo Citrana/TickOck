@@ -1,7 +1,6 @@
 import {convexAuth} from '@convex-dev/auth/server';
 import {Password} from '@convex-dev/auth/providers/Password';
 import {ConvexError, type Value} from 'convex/values';
-import {internal} from './_generated/api';
 
 export const {auth, signIn, signOut, store, isAuthenticated} = convexAuth({
   providers: [
@@ -14,8 +13,8 @@ export const {auth, signIn, signOut, store, isAuthenticated} = convexAuth({
       // not a valid Convex Value and would break the index-signature check.
       profile(params) {
         const result: Record<string, Value> & {email: string} = {
-          email: params.email as string,
-          status: 'pending_verification',
+          email: (params.email as string).toLowerCase().trim(),
+          status: 'active',
           createdAt: 0,
         };
         if (typeof params.name === 'string') result.name = params.name;
@@ -36,16 +35,9 @@ export const {auth, signIn, signOut, store, isAuthenticated} = convexAuth({
       const userId = await ctx.db.insert('users', {
         email: profile.email,
         name: profile.name,
-        status: 'pending_verification',
+        status: 'active',
         createdAt: Date.now(),
       });
-
-      // Fire-and-forget: send verification email via Node.js action.
-      await ctx.scheduler.runAfter(
-        0,
-        internal.emailVerification.sendVerificationEmail,
-        {userId},
-      );
 
       return userId;
     },

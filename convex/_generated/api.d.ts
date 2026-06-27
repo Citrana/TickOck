@@ -17,6 +17,7 @@ import type * as emailVerification from "../emailVerification.js";
 import type * as eventStaff from "../eventStaff.js";
 import type * as events from "../events.js";
 import type * as http from "../http.js";
+import type * as migrations from "../migrations.js";
 import type * as payments from "../payments.js";
 import type * as platformPricing from "../platformPricing.js";
 import type * as roles from "../roles.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   eventStaff: typeof eventStaff;
   events: typeof events;
   http: typeof http;
+  migrations: typeof migrations;
   payments: typeof payments;
   platformPricing: typeof platformPricing;
   roles: typeof roles;
