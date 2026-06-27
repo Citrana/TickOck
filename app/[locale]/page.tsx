@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { Link } from '@/lib/navigation';
 import Image from 'next/image';
 import { Fraunces } from 'next/font/google';
@@ -76,6 +77,8 @@ const integrationColors = [
 ];
 
 export default async function HomePage() {
+  const token = await convexAuthNextjsToken();
+  const ctaHref = token ? '/events/create' : '/register';
   const t = await getTranslations('hero');
   const th = await getTranslations('home');
 
@@ -115,7 +118,7 @@ export default async function HomePage() {
 
             <div className="mt-7 flex flex-wrap items-center gap-4">
               <Link
-                href="/register"
+                href={ctaHref}
                 className="btn-ticket rounded-lg bg-gray-900 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-gray-700"
               >
                 {t('ctaPrimary')}
@@ -328,7 +331,7 @@ export default async function HomePage() {
               ))}
             </ul>
             <Link
-              href="/register"
+              href={ctaHref}
               className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-gray-900 underline underline-offset-4 hover:text-gray-600"
             >
               {th('howItWorks.feature1.cta')} →
@@ -553,7 +556,7 @@ export default async function HomePage() {
 
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <Link
-              href="/register"
+              href={ctaHref}
               className="btn-ticket rounded-lg bg-white px-8 py-3 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-100"
             >
               {th('ctaBanner.cta1')}
