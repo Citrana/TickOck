@@ -3,6 +3,7 @@
 import {useState} from 'react';
 import Image from 'next/image';
 import {Link} from '@/lib/navigation';
+import {CirclePlus} from 'lucide-react';
 
 type Tab = {
   id: string;
@@ -98,9 +99,7 @@ export default function WhySection({headline, tabs}: Props) {
                       : 'pointer-events-none opacity-0 delay-0'
                   }`}
                 >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-900 text-base font-black text-white">
-                    +
-                  </div>
+                  <CirclePlus className="h-9 w-9 shrink-0 text-gray-900" />
                   <span
                     className="mt-3 flex-1 text-xs font-bold text-gray-900"
                     style={{writingMode: 'vertical-rl', transform: 'rotate(180deg)'}}
@@ -124,7 +123,7 @@ export default function WhySection({headline, tabs}: Props) {
                   tab.id === activeId ? 'opacity-100' : 'opacity-50 hover:opacity-75'
                 }`}
               >
-                {tab.id === activeId ? '−' : '+'} {tab.stripLabel}
+                {tab.id !== activeId && <CirclePlus className="mr-1.5 inline h-4 w-4" />}{tab.stripLabel}
               </button>
             ))}
           </div>
