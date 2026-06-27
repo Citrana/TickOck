@@ -7,7 +7,7 @@ export default async function Navbar() {
   const t = await getTranslations('nav');
 
   return (
-    <header>
+    <header className="sticky top-0 z-50">
       {/* Announcement bar */}
       <div className="bg-gray-900 px-4 py-2.5 text-center text-sm text-white">
         <span className="mr-1">{t('announcementText')}</span>
