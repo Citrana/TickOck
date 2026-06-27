@@ -944,6 +944,11 @@
     "installTitle": "Installer TickOck",
     "installDescription": "Ajoutez TickOck à votre écran d'accueil pour un accès rapide",
     "offlineTitle": "Vous êtes hors ligne",
-    "offlineMessage": "Veuillez vérifier votre connexion internet et réessayer."
+    "offlineMessage": "Veuillez vérifier votre connexion internet et réessayer.",
+    "notifications": {
+      "enable": "Activer les notifications",
+      "disable": "Désactiver les notifications",
+      "permissionDenied": "Notifications bloquées — activez-les dans les paramètres du navigateur"
+    }
   }
 }

@@ -5,6 +5,7 @@ import {getAuthUserId} from '@convex-dev/auth/server';
 import {getCallerUserId, requirePermission} from './_helpers/permissions';
 import {writeAuditLog} from './_helpers/audit';
 import {signTicketQr, buildQrData} from './_helpers/qr';
+import {internal} from './_generated/api';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -135,6 +136,15 @@ export const purchase = mutation({
       },
     });
 
+    if (isFree) {
+      await ctx.scheduler.runAfter(0, internal.pushNotifications.deliver, {
+        userId,
+        title: 'Ticket confirmed',
+        body: `Your free ticket for ${event.title} is ready!`,
+        url: '/en/tickets',
+      });
+    }
+
     return {ticketIds, paymentId};
   },
 });
@@ -186,6 +196,16 @@ export const submitPaymentProof = mutation({
       targetId: args.paymentId,
       metadata: {eventId: payment.eventId},
     });
+
+    const event = await ctx.db.get(payment.eventId);
+    if (event) {
+      await ctx.scheduler.runAfter(0, internal.pushNotifications.deliver, {
+        userId: event.ownerId,
+        title: 'New payment submitted',
+        body: `A payment was submitted for ${event.title}.`,
+        url: `/en/events/${event._id}/manage`,
+      });
+    }
   },
 });
 

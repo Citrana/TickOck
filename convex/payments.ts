@@ -4,6 +4,7 @@ import {getAuthUserId} from '@convex-dev/auth/server';
 import {getCallerUserId, requirePermission} from './_helpers/permissions';
 import {writeAuditLog} from './_helpers/audit';
 import {buildEventPrefix, generateUniqueTicketNumber} from './tickets';
+import {internal} from './_generated/api';
 
 // ---------------------------------------------------------------------------
 // Mutations
@@ -70,6 +71,13 @@ export const confirmPayment = mutation({
       targetId: args.paymentId,
       metadata: {eventId: payment.eventId, userId: payment.userId},
     });
+
+    await ctx.scheduler.runAfter(0, internal.pushNotifications.deliver, {
+      userId: payment.userId,
+      title: 'Payment confirmed',
+      body: 'Your payment was confirmed — your ticket is ready!',
+      url: '/en/tickets',
+    });
   },
 });
 
@@ -111,6 +119,13 @@ export const rejectPayment = mutation({
       targetType: 'payments',
       targetId: args.paymentId,
       metadata: {reason: args.reason ?? '', eventId: payment.eventId},
+    });
+
+    await ctx.scheduler.runAfter(0, internal.pushNotifications.deliver, {
+      userId: payment.userId,
+      title: 'Payment rejected',
+      body: 'Your payment was rejected. See the reason in your tickets.',
+      url: '/en/tickets',
     });
   },
 });
