@@ -94,6 +94,50 @@ export const listAllUsers = query({
   },
 });
 
+// ---------------------------------------------------------------------------
+// Audit log report
+// ---------------------------------------------------------------------------
+
+// Super-admin only: most recent 500 audit log entries, enriched with actor details.
+// Filtering is client-side.
+export const listAuditLogs = query({
+  args: {},
+  handler: async ctx => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    const user = await ctx.db.get(userId);
+    if (!user?.platformRoleId) return [];
+
+    const role = await ctx.db.get(user.platformRoleId);
+    const canView =
+      role?.permissionSlugs.includes('*') ||
+      role?.permissionSlugs.includes('events:approve');
+    if (!canView) return [];
+
+    const logs = await ctx.db.query('auditLogs').order('desc').take(500);
+
+    return await Promise.all(
+      logs.map(async log => {
+        const actor = await ctx.db.get(log.actorId);
+        return {
+          _id: log._id,
+          actorId: log.actorId,
+          actorEmail: actor?.email ?? null,
+          actorName: actor?.name ?? null,
+          actorRole: log.actorRole ?? null,
+          action: log.action,
+          targetType: log.targetType,
+          targetId: log.targetId,
+          metadata: log.metadata ?? null,
+          ip: log.ip ?? null,
+          createdAt: log.createdAt,
+        };
+      }),
+    );
+  },
+});
+
 // Suspend or reactivate a user. Never deletes. Requires users:suspend permission.
 export const setUserStatus = mutation({
   args: {
