@@ -117,7 +117,7 @@ export default defineSchema({
     userId: v.id('users'),
     amount: v.number(),
     currency: v.string(),
-    method: v.union(v.literal('online'), v.literal('manual')),
+    method: v.union(v.literal('online'), v.literal('manual'), v.literal('cash')),
     status: v.union(
       v.literal('pending'),
       v.literal('confirmed'),
@@ -125,6 +125,7 @@ export default defineSchema({
       v.literal('refunded'),
     ),
     evidenceUrl: v.optional(v.string()),
+    referenceNumber: v.optional(v.string()),
     confirmedBy: v.optional(v.id('users')),
     confirmedAt: v.optional(v.number()),
     rejectedBy: v.optional(v.id('users')),
@@ -133,7 +134,8 @@ export default defineSchema({
     .index('by_ticketId', ['ticketId'])
     .index('by_userId', ['userId'])
     .index('by_eventId', ['eventId'])
-    .index('by_status', ['status']),
+    .index('by_status', ['status'])
+    .index('by_referenceNumber_and_eventId', ['referenceNumber', 'eventId']),
 
   eventStaff: defineTable({
     eventId: v.id('events'),
