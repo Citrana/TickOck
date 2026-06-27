@@ -130,6 +130,7 @@ export default defineSchema({
     confirmedAt: v.optional(v.number()),
     rejectedBy: v.optional(v.id('users')),
     rejectedAt: v.optional(v.number()),
+    rejectionReason: v.optional(v.string()),
   })
     .index('by_ticketId', ['ticketId'])
     .index('by_userId', ['userId'])

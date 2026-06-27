@@ -344,6 +344,7 @@ export const listMine = query({
                 method: payment.method,
                 evidenceUrl: payment.evidenceUrl ?? null,
                 referenceNumber: payment.referenceNumber ?? null,
+                rejectionReason: payment.rejectionReason ?? null,
               }
             : null,
         };
