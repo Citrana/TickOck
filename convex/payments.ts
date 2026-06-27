@@ -102,6 +102,7 @@ export const rejectPayment = mutation({
       status: 'rejected',
       rejectedBy: callerId,
       rejectedAt: Date.now(),
+      rejectionReason: args.reason,
     });
 
     await writeAuditLog(ctx, {
@@ -110,6 +111,88 @@ export const rejectPayment = mutation({
       targetType: 'payments',
       targetId: args.paymentId,
       metadata: {reason: args.reason ?? '', eventId: payment.eventId},
+    });
+  },
+});
+
+/**
+ * Resubmit a new payment proof after a rejection.
+ * Resets the payment to pending so the event owner can review again.
+ */
+export const resubmitPaymentProof = mutation({
+  args: {
+    paymentId: v.id('payments'),
+    storageId: v.id('_storage'),
+    referenceNumber: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+
+    const payment = await ctx.db.get(args.paymentId);
+    if (!payment) throw new Error('Payment not found');
+    if (payment.userId !== userId) throw new Error('Forbidden');
+    if (payment.status !== 'rejected') {
+      throw new Error('Only rejected payments can be resubmitted');
+    }
+
+    if (args.referenceNumber) {
+      const duplicate = await ctx.db
+        .query('payments')
+        .withIndex('by_referenceNumber_and_eventId', q =>
+          q.eq('referenceNumber', args.referenceNumber).eq('eventId', payment.eventId),
+        )
+        .first();
+      if (duplicate && duplicate._id !== args.paymentId) {
+        throw new Error('This payment reference number has already been used for this event');
+      }
+    }
+
+    const evidenceUrl = await ctx.storage.getUrl(args.storageId);
+    if (!evidenceUrl) throw new Error('Failed to retrieve uploaded file');
+
+    await ctx.db.patch(args.paymentId, {
+      status: 'pending',
+      evidenceUrl,
+      ...(args.referenceNumber ? {referenceNumber: args.referenceNumber} : {}),
+    });
+
+    await writeAuditLog(ctx, {
+      actorId: userId,
+      action: 'payments:resubmit_proof',
+      targetType: 'payments',
+      targetId: args.paymentId,
+      metadata: {eventId: payment.eventId},
+    });
+  },
+});
+
+/**
+ * Resubmit a rejected payment as cash. No proof needed — resets status to
+ * pending and updates method to cash so the event owner can confirm on receipt.
+ */
+export const resubmitAsCash = mutation({
+  args: {paymentId: v.id('payments')},
+  handler: async (ctx, args) => {
+    const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+
+    const payment = await ctx.db.get(args.paymentId);
+    if (!payment) throw new Error('Payment not found');
+    if (payment.userId !== userId) throw new Error('Forbidden');
+    if (payment.status !== 'rejected') {
+      throw new Error('Only rejected payments can be resubmitted');
+    }
+
+    await ctx.db.patch(args.paymentId, {
+      status: 'pending',
+      method: 'cash',
+    });
+
+    await writeAuditLog(ctx, {
+      actorId: userId,
+      action: 'payments:resubmit_as_cash',
+      targetType: 'payments',
+      targetId: args.paymentId,
+      metadata: {eventId: payment.eventId},
     });
   },
 });

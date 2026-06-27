@@ -9,6 +9,7 @@ import {Link} from '@/lib/navigation';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 import {parseConvexError} from '@/lib/errors';
+import Button from '@/components/ui/Button';
 
 type TicketStatus = 'pending_payment' | 'confirmed' | 'cancelled' | 'used' | 'expired';
 
@@ -36,6 +37,7 @@ type TicketCardProps = {
       currency: string;
       method: string;
       evidenceUrl: string | null;
+      rejectionReason: string | null;
     } | null;
   };
 };
@@ -51,9 +53,22 @@ const STATUS_STYLES: Record<TicketStatus, string> = {
 export default function TicketCard({ticket}: TicketCardProps) {
   const t = useTranslations('tickets');
   const cancelMutation = useMutation(api.tickets.cancel);
+  const generateUploadUrl = useMutation(api.events.generateUploadUrl);
+  const resubmitProof = useMutation(api.payments.resubmitPaymentProof);
+  const resubmitCash = useMutation(api.payments.resubmitAsCash);
 
   const [cancelling, setCancelling] = useState(false);
   const [showQr, setShowQr] = useState(false);
+
+  const [showResubmit, setShowResubmit] = useState(false);
+  const [resubmitMethod, setResubmitMethod] = useState<'manual' | 'cash'>(
+    ticket.payment?.method === 'cash' ? 'cash' : 'manual',
+  );
+  const [resubmitFile, setResubmitFile] = useState<File | null>(null);
+  const [resubmitRef, setResubmitRef] = useState('');
+  const [resubmitting, setResubmitting] = useState(false);
+  const [resubmitError, setResubmitError] = useState('');
+  const [resubmitDone, setResubmitDone] = useState(false);
 
   const event = ticket.event;
   const tier = ticket.tier;
@@ -84,6 +99,57 @@ export default function TicketCard({ticket}: TicketCardProps) {
       toast.error(parseConvexError(err, t('cancelFailed')));
     } finally {
       setCancelling(false);
+    }
+  }
+
+  async function handleResubmit() {
+    if (!resubmitRef.trim()) {
+      setResubmitError(t('errors.referenceRequired'));
+      return;
+    }
+    if (!resubmitFile) {
+      setResubmitError(t('errors.proofRequired'));
+      return;
+    }
+    if (!payment?._id) return;
+    setResubmitError('');
+    setResubmitting(true);
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const res = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {'Content-Type': resubmitFile.type},
+        body: resubmitFile,
+      });
+      if (!res.ok) throw new Error('Upload failed');
+      const {storageId} = await res.json() as {storageId: Id<'_storage'>};
+      await resubmitProof({paymentId: payment._id, storageId, referenceNumber: resubmitRef.trim()});
+      setResubmitDone(true);
+      setShowResubmit(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('reference number has already been used')) {
+        setResubmitError(t('errors.referenceDuplicate'));
+      } else {
+        setResubmitError(t('resubmitError'));
+      }
+    } finally {
+      setResubmitting(false);
+    }
+  }
+
+  async function handleResubmitCash() {
+    if (!payment?._id) return;
+    setResubmitError('');
+    setResubmitting(true);
+    try {
+      await resubmitCash({paymentId: payment._id});
+      setResubmitDone(true);
+      setShowResubmit(false);
+    } catch {
+      setResubmitError(t('resubmitError'));
+    } finally {
+      setResubmitting(false);
     }
   }
 
@@ -155,7 +221,7 @@ export default function TicketCard({ticket}: TicketCardProps) {
           </div>
 
           {/* Pending payment note */}
-          {ticket.status === 'pending_payment' && payment?.method === 'manual' && (
+          {ticket.status === 'pending_payment' && payment?.method === 'manual' && payment.status === 'pending' && (
             <p className="mt-2 text-xs text-amber-700">
               {payment.evidenceUrl ? t('awaitingConfirmation') : t('uploadProofButton')}
             </p>
@@ -202,6 +268,109 @@ export default function TicketCard({ticket}: TicketCardProps) {
               </p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Rejection banner */}
+      {ticket.status === 'pending_payment' && payment?.status === 'rejected' && (
+        <div className="border-t border-red-100 bg-red-50 px-4 py-3">
+          <p className="text-xs font-semibold text-red-700">{t('paymentRejected')}</p>
+          {payment.rejectionReason && (
+            <p className="mt-0.5 text-xs text-red-600">
+              {t('paymentRejectedReason', {reason: payment.rejectionReason})}
+            </p>
+          )}
+          {!resubmitDone && (
+            <button
+              onClick={() => setShowResubmit(v => !v)}
+              className="mt-2 text-xs font-medium text-red-700 underline underline-offset-2"
+            >
+              {showResubmit ? t('hideResubmit') : t('resubmitPayment')}
+            </button>
+          )}
+          {resubmitDone && (
+            <p className="mt-2 text-xs font-medium text-green-700">{t('resubmitSuccess')}</p>
+          )}
+        </div>
+      )}
+
+      {/* Resubmit form */}
+      {ticket.status === 'pending_payment' && payment?.status === 'rejected' && showResubmit && !resubmitDone && (
+        <div className="border-t border-gray-100 bg-gray-50 px-4 py-4 space-y-3">
+          {/* Method picker */}
+          <div>
+            <p className="mb-2 text-xs font-medium text-gray-700">{t('resubmitMethodLabel')}</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setResubmitMethod('manual')}
+                className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors ${
+                  resubmitMethod === 'manual'
+                    ? 'border-gray-900 bg-gray-900 text-white'
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'
+                }`}
+              >
+                {t('resubmitMethodBankTransfer')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setResubmitMethod('cash')}
+                className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors ${
+                  resubmitMethod === 'cash'
+                    ? 'border-gray-900 bg-gray-900 text-white'
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'
+                }`}
+              >
+                {t('resubmitMethodCash')}
+              </button>
+            </div>
+          </div>
+
+          {/* Bank transfer fields */}
+          {resubmitMethod === 'manual' && (
+            <>
+              <div>
+                <label className="block text-xs font-medium text-gray-700">
+                  {t('resubmitReferenceLabel')}
+                </label>
+                <input
+                  type="text"
+                  value={resubmitRef}
+                  onChange={e => setResubmitRef(e.target.value)}
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700">
+                  {t('resubmitProofLabel')}
+                </label>
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={e => setResubmitFile(e.target.files?.[0] ?? null)}
+                  className="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-gray-800 hover:file:bg-gray-200"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Cash note */}
+          {resubmitMethod === 'cash' && (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              {t('resubmitCashNote')}
+            </p>
+          )}
+
+          {resubmitError && (
+            <p className="text-xs text-red-600">{resubmitError}</p>
+          )}
+          <Button
+            onClick={resubmitMethod === 'cash' ? handleResubmitCash : handleResubmit}
+            disabled={resubmitting || (resubmitMethod === 'manual' && !resubmitFile)}
+            className="w-full"
+          >
+            {resubmitting ? t('resubmitting') : t('resubmitPayment')}
+          </Button>
         </div>
       )}
 
