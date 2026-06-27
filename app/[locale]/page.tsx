@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/lib/navigation';
 import Image from 'next/image';
 import { Fraunces } from 'next/font/google';
+import { CircleCheckBig } from 'lucide-react';
 import WhySection from '@/components/marketing/WhySection';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 import HomeEventsFeed from '@/components/events/HomeEventsFeed';
@@ -319,9 +320,7 @@ export default async function HomePage() {
             <ul className="mt-6 space-y-4">
               {(['bullet1', 'bullet2', 'bullet3'] as const).map(b => (
                 <li key={b} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-100 text-xs font-bold text-rose-600">
-                    ✓
-                  </span>
+                  <CircleCheckBig className="mt-0.5 h-5 w-5 shrink-0 text-rose-500" />
                   <span className="text-sm leading-relaxed text-gray-600">
                     {th(`howItWorks.feature1.${b}`)}
                   </span>
@@ -349,9 +348,7 @@ export default async function HomePage() {
             <ul className="mt-6 space-y-4">
               {(['bullet1', 'bullet2', 'bullet3'] as const).map(b => (
                 <li key={b} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-100 text-xs font-bold text-rose-600">
-                    ✓
-                  </span>
+                  <CircleCheckBig className="mt-0.5 h-5 w-5 shrink-0 text-rose-500" />
                   <span className="text-sm leading-relaxed text-gray-600">
                     {th(`howItWorks.feature2.${b}`)}
                   </span>
@@ -399,9 +396,7 @@ export default async function HomePage() {
             <ul className="mt-6 space-y-4">
               {(['bullet1', 'bullet2', 'bullet3'] as const).map(b => (
                 <li key={b} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-100 text-xs font-bold text-rose-600">
-                    ✓
-                  </span>
+                  <CircleCheckBig className="mt-0.5 h-5 w-5 shrink-0 text-rose-500" />
                   <span className="text-sm leading-relaxed text-gray-600">
                     {th(`howItWorks.feature3.${b}`)}
                   </span>
