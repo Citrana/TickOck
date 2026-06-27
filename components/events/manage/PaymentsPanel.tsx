@@ -15,7 +15,7 @@ import FilterPanel from '@/components/ui/FilterPanel';
 type Props = {eventId: Id<'events'>};
 
 type FilterStatus = 'all' | 'pending' | 'confirmed' | 'rejected';
-type MethodFilter = 'all' | 'manual' | 'online';
+type MethodFilter = 'all' | 'manual' | 'online' | 'cash';
 
 const STATUS_BADGE: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-800',
@@ -28,7 +28,7 @@ type Payment = NonNullable<
   ReturnType<typeof useQuery<typeof api.payments.listByEvent>>
 >[number];
 
-const ALL_COL_KEYS = ['buyer', 'amount', 'method', 'status', 'proof', 'actionedBy'] as const;
+const ALL_COL_KEYS = ['buyer', 'amount', 'method', 'status', 'reference', 'proof', 'actionedBy'] as const;
 
 export default function PaymentsPanel({eventId}: Props) {
   const t = useTranslations('manage.payments');
@@ -143,7 +143,11 @@ export default function PaymentsPanel({eventId}: Props) {
       header: t('method'),
       render: payment => (
         <span className="text-gray-500">
-          {payment.method === 'manual' ? t('methodManual') : t('methodOnline')}
+          {payment.method === 'manual'
+            ? t('methodManual')
+            : payment.method === 'cash'
+              ? t('methodCash')
+              : t('methodOnline')}
         </span>
       ),
     },
@@ -159,6 +163,16 @@ export default function PaymentsPanel({eventId}: Props) {
           )}
         </span>
       ),
+    },
+    {
+      key: 'reference',
+      header: t('reference'),
+      render: payment =>
+        payment.referenceNumber ? (
+          <span className="font-mono text-xs text-gray-700">{payment.referenceNumber}</span>
+        ) : (
+          <span className="text-xs text-gray-400">{t('noReference')}</span>
+        ),
     },
     {
       key: 'proof',
@@ -361,6 +375,7 @@ export default function PaymentsPanel({eventId}: Props) {
             <option value="all">{tFP('methodAll')}</option>
             <option value="manual">{t('methodManual')}</option>
             <option value="online">{t('methodOnline')}</option>
+            <option value="cash">{t('methodCash')}</option>
           </select>
         </div>
         <div className="space-y-2">

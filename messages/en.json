@@ -167,13 +167,22 @@
     "eventNotFound": "Event not found.",
     "eventNotLive": "This event is not currently accepting orders.",
     "noTiersAvailable": "No ticket tiers available.",
+    "paymentMethodLabel": "How would you like to pay?",
+    "methodBankTransfer": "Bank transfer",
+    "methodCash": "Cash payment",
+    "referenceLabel": "Payment reference number",
+    "referencePlaceholder": "e.g. TXN12345678",
+    "referenceHint": "Enter the transaction ID shown in your bank app.",
+    "cashPaymentMessage": "You've selected cash payment. The organizer will confirm and activate your ticket when they receive your cash.",
     "errors": {
       "tierRequired": "Please select a ticket tier.",
       "quantityRequired": "Please select at least 1 ticket.",
       "noStock": "Not enough tickets available.",
       "generic": "Failed to place order. Please try again.",
       "proofRequired": "Please upload your payment proof.",
-      "proofFailed": "Failed to upload proof. Please try again."
+      "proofFailed": "Failed to upload proof. Please try again.",
+      "referenceRequired": "Please enter your payment reference number.",
+      "referenceDuplicate": "This reference number has already been used for another payment on this event."
     }
   },
   "dashboard": {
@@ -454,6 +463,9 @@
       "actionedByNone": "—",
       "methodManual": "Manual",
       "methodOnline": "Online",
+      "methodCash": "Cash",
+      "reference": "Reference",
+      "noReference": "—",
       "statusPending": "Pending",
       "statusConfirmed": "Confirmed",
       "statusRejected": "Rejected",

@@ -32,9 +32,13 @@ export default function CheckoutForm({eventId}: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // Payment method choice (for manual payment events)
+  const [paymentMethodChoice, setPaymentMethodChoice] = useState<'manual' | 'cash'>('manual');
+
   // Post-order state
   const [order, setOrder] = useState<OrderResult | null>(null);
   const [proofFile, setProofFile] = useState<File | null>(null);
+  const [referenceNumber, setReferenceNumber] = useState('');
   const [uploadingProof, setUploadingProof] = useState(false);
   const [proofSubmitted, setProofSubmitted] = useState(false);
   const [proofError, setProofError] = useState('');
@@ -107,6 +111,7 @@ export default function CheckoutForm({eventId}: Props) {
         eventId: event!._id,
         tierId: selectedTierId,
         quantity,
+        ...(isManual && !isFree ? {paymentMethod: paymentMethodChoice} : {}),
       });
       setOrder(result);
     } catch (err: unknown) {
@@ -117,6 +122,10 @@ export default function CheckoutForm({eventId}: Props) {
   }
 
   async function handleProofUpload() {
+    if (!referenceNumber.trim()) {
+      setProofError(t('errors.referenceRequired'));
+      return;
+    }
     if (!proofFile) {
       setProofError(t('errors.proofRequired'));
       return;
@@ -133,10 +142,15 @@ export default function CheckoutForm({eventId}: Props) {
       });
       if (!res.ok) throw new Error('Upload failed');
       const {storageId} = await res.json() as {storageId: Id<'_storage'>};
-      await submitProof({paymentId: order.paymentId, storageId});
+      await submitProof({paymentId: order.paymentId, storageId, referenceNumber: referenceNumber.trim()});
       setProofSubmitted(true);
-    } catch {
-      setProofError(t('errors.proofFailed'));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('reference number has already been used')) {
+        setProofError(t('errors.referenceDuplicate'));
+      } else {
+        setProofError(t('errors.proofFailed'));
+      }
     } finally {
       setUploadingProof(false);
     }
@@ -154,8 +168,15 @@ export default function CheckoutForm({eventId}: Props) {
           <p className="mt-1 text-sm text-green-700">{t('orderPlacedMessage')}</p>
         </div>
 
-        {/* Manual payment proof upload */}
-        {!isFree && isManual && !proofSubmitted && (
+        {/* Cash payment confirmation */}
+        {!isFree && isManual && paymentMethodChoice === 'cash' && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+            <p className="text-sm font-medium text-amber-800">{t('cashPaymentMessage')}</p>
+          </div>
+        )}
+
+        {/* Manual bank-transfer proof upload */}
+        {!isFree && isManual && paymentMethodChoice === 'manual' && !proofSubmitted && (
           <div className="rounded-2xl border border-gray-200 bg-white p-5">
             <h3 className="font-semibold text-gray-900">{t('paymentInstructions')}</h3>
             <p className="mt-2 text-sm text-gray-600">{t('manualNextStep')}</p>
@@ -168,6 +189,19 @@ export default function CheckoutForm({eventId}: Props) {
               </p>
             )}
             <div className="mt-4 space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  {t('referenceLabel')}
+                  <span className="ml-1 text-xs font-normal text-gray-400">{t('referenceHint')}</span>
+                </label>
+                <input
+                  type="text"
+                  value={referenceNumber}
+                  onChange={e => setReferenceNumber(e.target.value)}
+                  placeholder={t('referencePlaceholder')}
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+                />
+              </div>
               <label className="block text-sm font-medium text-gray-700">
                 {t('proofLabel')}
                 <span className="ml-1 text-xs font-normal text-gray-400">{t('proofHint')}</span>
@@ -358,11 +392,40 @@ export default function CheckoutForm({eventId}: Props) {
             </div>
           </dl>
 
-          {/* Manual payment note */}
+          {/* Manual payment method choice + note */}
           {isManual && !isFree && (
-            <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
-              {t('manualPaymentNote')}
-            </p>
+            <>
+              <div className="mt-4">
+                <p className="mb-2 text-sm font-medium text-gray-700">{t('paymentMethodLabel')}</p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethodChoice('manual')}
+                    className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors ${
+                      paymentMethodChoice === 'manual'
+                        ? 'border-gray-900 bg-gray-900 text-white'
+                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'
+                    }`}
+                  >
+                    {t('methodBankTransfer')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethodChoice('cash')}
+                    className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors ${
+                      paymentMethodChoice === 'cash'
+                        ? 'border-gray-900 bg-gray-900 text-white'
+                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'
+                    }`}
+                  >
+                    {t('methodCash')}
+                  </button>
+                </div>
+              </div>
+              <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                {t('manualPaymentNote')}
+              </p>
+            </>
           )}
         </div>
       )}

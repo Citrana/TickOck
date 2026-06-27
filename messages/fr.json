@@ -167,13 +167,22 @@
     "eventNotFound": "Événement introuvable.",
     "eventNotLive": "Cet événement n'accepte pas de commandes pour le moment.",
     "noTiersAvailable": "Aucun niveau de billet disponible.",
+    "paymentMethodLabel": "Comment souhaitez-vous payer ?",
+    "methodBankTransfer": "Virement bancaire",
+    "methodCash": "Paiement en espèces",
+    "referenceLabel": "Numéro de référence du paiement",
+    "referencePlaceholder": "ex. TXN12345678",
+    "referenceHint": "Saisissez l'identifiant de transaction affiché dans votre application bancaire.",
+    "cashPaymentMessage": "Vous avez choisi le paiement en espèces. L'organisateur confirmera et activera votre billet dès réception de votre paiement.",
     "errors": {
       "tierRequired": "Veuillez choisir un niveau de billet.",
       "quantityRequired": "Veuillez sélectionner au moins 1 billet.",
       "noStock": "Pas assez de billets disponibles.",
       "generic": "Impossible de passer la commande. Veuillez réessayer.",
       "proofRequired": "Veuillez télécharger votre preuve de paiement.",
-      "proofFailed": "Échec du téléchargement. Veuillez réessayer."
+      "proofFailed": "Échec du téléchargement. Veuillez réessayer.",
+      "referenceRequired": "Veuillez saisir votre numéro de référence de paiement.",
+      "referenceDuplicate": "Ce numéro de référence est déjà associé à un autre paiement pour cet événement."
     }
   },
   "dashboard": {
@@ -454,6 +463,9 @@
       "actionedByNone": "—",
       "methodManual": "Manuel",
       "methodOnline": "En ligne",
+      "methodCash": "Espèces",
+      "reference": "Référence",
+      "noReference": "—",
       "statusPending": "En attente",
       "statusConfirmed": "Confirmé",
       "statusRejected": "Rejeté",

@@ -47,6 +47,7 @@ export const purchase = mutation({
     eventId: v.id('events'),
     tierId: v.id('ticketTiers'),
     quantity: v.number(),
+    paymentMethod: v.optional(v.union(v.literal('manual'), v.literal('cash'))),
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
@@ -105,13 +106,17 @@ export const purchase = mutation({
     // Create a single payment record for the whole order (skipped for free tiers)
     let paymentId: Id<'payments'> | null = null;
     if (!isFree) {
+      const method =
+        event.paymentMode === 'manual' && args.paymentMethod === 'cash'
+          ? 'cash'
+          : event.paymentMode;
       paymentId = await ctx.db.insert('payments', {
         ticketId: ticketIds[0],
         eventId: args.eventId,
         userId,
         amount: tier.price * args.quantity,
         currency: tier.currency,
-        method: event.paymentMode,
+        method,
         status: 'pending',
       });
     }
@@ -142,6 +147,7 @@ export const submitPaymentProof = mutation({
   args: {
     paymentId: v.id('payments'),
     storageId: v.id('_storage'),
+    referenceNumber: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
@@ -153,10 +159,25 @@ export const submitPaymentProof = mutation({
       throw new Error('This payment has already been processed');
     }
 
+    if (args.referenceNumber) {
+      const duplicate = await ctx.db
+        .query('payments')
+        .withIndex('by_referenceNumber_and_eventId', q =>
+          q.eq('referenceNumber', args.referenceNumber).eq('eventId', payment.eventId),
+        )
+        .first();
+      if (duplicate && duplicate._id !== args.paymentId) {
+        throw new Error('This payment reference number has already been used for this event');
+      }
+    }
+
     const evidenceUrl = await ctx.storage.getUrl(args.storageId);
     if (!evidenceUrl) throw new Error('Failed to retrieve uploaded file');
 
-    await ctx.db.patch(args.paymentId, {evidenceUrl});
+    await ctx.db.patch(args.paymentId, {
+      evidenceUrl,
+      ...(args.referenceNumber ? {referenceNumber: args.referenceNumber} : {}),
+    });
 
     await writeAuditLog(ctx, {
       actorId: userId,
@@ -322,6 +343,7 @@ export const listMine = query({
                 currency: payment.currency,
                 method: payment.method,
                 evidenceUrl: payment.evidenceUrl ?? null,
+                referenceNumber: payment.referenceNumber ?? null,
               }
             : null,
         };
