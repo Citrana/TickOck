@@ -23,8 +23,20 @@ const isPublicRoute = createRouteMatcher([
   '/api/auth(.*)',
 ]);
 
+// Auth-only routes that authenticated users should not see.
+const isAuthRoute = createRouteMatcher([
+  '/:locale/login',
+  '/:locale/register',
+]);
+
 export default convexAuthNextjsMiddleware(async (request, {convexAuth}) => {
   const isAuthenticated = await convexAuth.isAuthenticated();
+
+  if (isAuthRoute(request) && isAuthenticated) {
+    const locale =
+      (request.nextUrl.pathname.split('/')[1] ?? '') || routing.defaultLocale;
+    return nextjsMiddlewareRedirect(request, `/${locale}/`);
+  }
 
   if (!isPublicRoute(request) && !isAuthenticated) {
     // Extract locale from the current URL to keep the redirect locale-aware.
