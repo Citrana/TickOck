@@ -436,6 +436,38 @@
         "online": "En ligne",
         "manual": "Manuel"
       }
+    },
+    "auditLog": {
+      "pageTitle": "Journal d'audit",
+      "pageSubtitle": "Consultez le journal d'audit immuable de toutes les actions de la plateforme.",
+      "loading": "Chargement du journal d'audit…",
+      "empty": "Aucune entrée du journal d'audit ne correspond aux filtres.",
+      "emptySubtitle": "Essayez d'ajuster ou d'effacer les filtres.",
+      "filterButton": "Filtrer",
+      "columnsButton": "Colonnes",
+      "clearFilters": "Effacer les filtres",
+      "resultsCount": "{count} entrées",
+      "filterPanel": {
+        "title": "Filtres",
+        "actor": "Acteur (nom ou e-mail)",
+        "actorPlaceholder": "Rechercher…",
+        "action": "Action",
+        "actionPlaceholder": "ex. events:approve",
+        "targetType": "Type de cible",
+        "all": "Tous",
+        "dateFrom": "Date de début",
+        "dateTo": "Date de fin",
+        "clearAll": "Tout effacer",
+        "close": "Fermer"
+      },
+      "cols": {
+        "actor": "Acteur",
+        "role": "Rôle",
+        "action": "Action",
+        "targetType": "Cible",
+        "targetId": "ID cible",
+        "date": "Date"
+      }
     }
   },
   "manage": {

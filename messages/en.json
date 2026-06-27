@@ -436,6 +436,38 @@
         "online": "Online",
         "manual": "Manual"
       }
+    },
+    "auditLog": {
+      "pageTitle": "Audit Log",
+      "pageSubtitle": "Browse the append-only audit trail for all platform actions.",
+      "loading": "Loading audit log…",
+      "empty": "No audit log entries match your filters.",
+      "emptySubtitle": "Try adjusting or clearing the filters.",
+      "filterButton": "Filter",
+      "columnsButton": "Columns",
+      "clearFilters": "Clear filters",
+      "resultsCount": "{count} entries",
+      "filterPanel": {
+        "title": "Filters",
+        "actor": "Actor (name or email)",
+        "actorPlaceholder": "Search…",
+        "action": "Action",
+        "actionPlaceholder": "e.g. events:approve",
+        "targetType": "Target type",
+        "all": "All",
+        "dateFrom": "Date from",
+        "dateTo": "Date to",
+        "clearAll": "Clear all",
+        "close": "Close"
+      },
+      "cols": {
+        "actor": "Actor",
+        "role": "Role",
+        "action": "Action",
+        "targetType": "Target",
+        "targetId": "Target ID",
+        "date": "Date"
+      }
     }
   },
   "manage": {

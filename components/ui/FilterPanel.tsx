@@ -25,7 +25,7 @@ export default function FilterPanel({
     <>
       {open && (
         <div
-          className="fixed inset-0 z-30 bg-black/20"
+          className="fixed inset-0 z-[55] bg-black/20"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -33,7 +33,7 @@ export default function FilterPanel({
 
       <div
         className={[
-          'fixed right-0 top-0 z-40 flex h-full w-80 flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out',
+          'fixed right-0 top-0 z-[60] flex h-full w-80 flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out',
           open ? 'translate-x-0' : 'translate-x-full',
         ].join(' ')}
         aria-modal="true"
