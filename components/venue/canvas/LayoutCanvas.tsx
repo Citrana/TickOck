@@ -1,6 +1,6 @@
 'use client';
 
-import {useMemo} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {Stage, Layer, Group} from 'react-konva';
 import {Id} from '@/convex/_generated/dataModel';
 import {VenueSection, VenueTier, VenueSeat, SeatStatus, CanvasMode, SEAT_RADIUS} from '../types';
@@ -15,6 +15,9 @@ const SECTION_LABEL_LEFT = 16;
 const SECTION_LABEL_TOP = 32;
 const SECTION_LABEL_WIDTH = 140;
 const SECTION_LABEL_HEIGHT = 24;
+const CONTENT_PADDING = 24;
+const MIN_SELECT_SCALE = 0.5;
+const MAX_SELECT_SCALE = 2;
 
 type LayoutCanvasProps = {
   canvasWidth: number;
@@ -53,13 +56,46 @@ export default function LayoutCanvas({
 }: LayoutCanvasProps) {
   const tierById = new Map(tiers.map(t => [t._id, t]));
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number | null>(null);
+
+  // Only the read-only "select" view needs to be responsive to its
+  // container — the edit-mode builder must stay pinned at a fixed 1:1
+  // pixel scale so onDragEnd's persisted coordinates match what's drawn.
+  useEffect(() => {
+    if (mode !== 'select') return;
+    const node = containerRef.current;
+    if (!node) return;
+
+    const observer = new ResizeObserver(entries => {
+      const entry = entries[0];
+      if (entry) setContainerWidth(entry.contentRect.width);
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [mode]);
+
   // Sections/seats keep their stored absolute x,y (edit mode relies on
   // that — onDragEnd persists coordinates relative to the Stage). In
-  // read-only "select" mode nothing is dragged, so we can safely offset the
-  // whole layer to center the actual content inside the fixed canvas size
-  // instead of leaving it pinned wherever it happened to be authored.
-  const {offsetX, offsetY} = useMemo(() => {
-    if (mode !== 'select') return {offsetX: 0, offsetY: 0};
+  // read-only "select" mode nothing is dragged, so we can safely scale and
+  // offset the whole layer to fit the actual content into the measured
+  // container width instead of leaving it pinned at the authored canvas
+  // size, which usually leaves the seat map tiny inside a lot of dead space.
+  const layoutMetrics = useMemo<{
+    scale: number;
+    stageWidth: number;
+    stageHeight: number;
+    groupX: number;
+    groupY: number;
+  }>(() => {
+    const fallback = {
+      scale: 1,
+      stageWidth: canvasWidth,
+      stageHeight: canvasHeight,
+      groupX: 0,
+      groupY: 0,
+    };
+    if (mode !== 'select') return fallback;
 
     const xs: number[] = [];
     const ys: number[] = [];
@@ -77,24 +113,38 @@ export default function LayoutCanvas({
       ys.push(seat.y - SEAT_RADIUS, seat.y + SEAT_RADIUS);
     }
 
-    if (xs.length === 0) return {offsetX: 0, offsetY: 0};
+    if (xs.length === 0) return fallback;
 
     const minX = Math.min(...xs);
     const maxX = Math.max(...xs);
     const minY = Math.min(...ys);
     const maxY = Math.max(...ys);
+    const contentWidth = Math.max(1, maxX - minX);
+    const contentHeight = Math.max(1, maxY - minY);
+
+    const availableWidth = containerWidth ?? canvasWidth;
+    const rawScale = availableWidth / contentWidth;
+    const scale = Math.min(MAX_SELECT_SCALE, Math.max(MIN_SELECT_SCALE, rawScale));
 
     return {
-      offsetX: Math.max(0, (canvasWidth - (maxX - minX)) / 2) - minX,
-      offsetY: Math.max(0, (canvasHeight - (maxY - minY)) / 2) - minY,
+      scale,
+      stageWidth: contentWidth * scale + CONTENT_PADDING * 2,
+      stageHeight: contentHeight * scale + CONTENT_PADDING * 2,
+      groupX: CONTENT_PADDING - minX * scale,
+      groupY: CONTENT_PADDING - minY * scale,
     };
-  }, [mode, sections, seats, canvasWidth, canvasHeight]);
+  }, [mode, sections, seats, canvasWidth, canvasHeight, containerWidth]);
 
   return (
-    <div className="overflow-auto rounded-xl border border-gray-200 bg-gray-50">
-      <Stage width={canvasWidth} height={canvasHeight}>
+    <div ref={containerRef} className="w-full overflow-auto rounded-xl border border-gray-200 bg-gray-50">
+      <Stage width={layoutMetrics.stageWidth} height={layoutMetrics.stageHeight}>
         <Layer>
-          <Group x={offsetX} y={offsetY}>
+          <Group
+            x={layoutMetrics.groupX}
+            y={layoutMetrics.groupY}
+            scaleX={layoutMetrics.scale}
+            scaleY={layoutMetrics.scale}
+          >
             {sections.map(section => {
               if (section.kind === 'ga') {
                 const tier = section.tierId ? tierById.get(section.tierId) : undefined;
