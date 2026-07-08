@@ -10,4 +10,11 @@ crons.interval(
   {},
 );
 
+crons.interval(
+  'release-expired-seat-holds',
+  {minutes: 1},
+  internal.seatHolds.releaseExpiredInternal,
+  {},
+);
+
 export default crons;

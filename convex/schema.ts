@@ -69,6 +69,11 @@ export default defineSchema({
     platformFeeTotal: v.optional(v.number()),
     platformFeeCurrency: v.optional(v.string()),
     platformFeeEvidenceStorageId: v.optional(v.id('_storage')),
+    // Venue layout / seating add-on
+    seatMapEnabled: v.optional(v.boolean()),
+    venueLayoutSnapshotId: v.optional(v.id('venueLayoutTemplates')),
+    venueLayoutFeeTotal: v.optional(v.number()),
+    venueLayoutFeeCurrency: v.optional(v.string()),
     rejectionReason: v.optional(v.string()),
     createdAt: v.number(),
   })
@@ -86,6 +91,13 @@ export default defineSchema({
     quantity: v.number(),
     quantitySold: v.number(),
     description: v.optional(v.string()),
+    // Color shown on the seat-map canvas — only set when the event uses a
+    // venue layout, since non-seat-map tiers have no visual representation.
+    color: v.optional(v.string()),
+    // Bridge to the seat/GA category (a venueLayoutTiers row) this tier is
+    // mapped to, when the event uses a venue layout. Price/quantity remain
+    // authoritative here — venueLayoutTiers is just a named color category.
+    venueLayoutTierId: v.optional(v.id('venueLayoutTiers')),
   }).index('by_eventId', ['eventId']),
 
   tickets: defineTable({
@@ -103,13 +115,16 @@ export default defineSchema({
     qrSignature: v.optional(v.string()),
     scannedBy: v.optional(v.id('users')),
     scannedAt: v.optional(v.number()),
+    // Set only for tickets purchased against a specific seat on a venue layout.
+    seatId: v.optional(v.id('venueLayoutSeats')),
     createdAt: v.number(),
   })
     .index('by_userId', ['userId'])
     .index('by_eventId', ['eventId'])
     .index('by_tierId', ['tierId'])
     .index('by_eventId_and_userId', ['eventId', 'userId'])
-    .index('by_ticketNumber', ['ticketNumber']),
+    .index('by_ticketNumber', ['ticketNumber'])
+    .index('by_seatId', ['seatId']),
 
   payments: defineTable({
     ticketId: v.id('tickets'),
@@ -158,10 +173,16 @@ export default defineSchema({
     displayOrder: v.number(),
   }).index('by_eventId', ['eventId']),
 
-  // Platform fee rules — multiple rules, first matching rule per tier wins
+  // Pricing rules — multiple rules, first matching rule per tier wins.
+  // feeCategory distinguishes the platform fee from the venue-layout add-on
+  // fee; each category's rules are ordered/matched independently via
+  // displayOrder. Optional (not required) so pre-existing rows created
+  // before this field existed still validate — treat a missing value as
+  // 'platform' everywhere this is read.
   platformPricingRules: defineTable({
     label: v.string(),
     isActive: v.boolean(),
+    feeCategory: v.optional(v.union(v.literal('platform'), v.literal('venue_layout'))),
     // Optional condition: ticket unit price range (both inclusive)
     ticketPriceMin: v.optional(v.number()),
     ticketPriceMax: v.optional(v.number()),
@@ -210,4 +231,101 @@ export default defineSchema({
   })
     .index('by_token', ['token'])
     .index('by_userId', ['userId']),
+
+  // ---------------------------------------------------------------------
+  // Venue layout / seat map (paid add-on)
+  // ---------------------------------------------------------------------
+
+  // A reusable venue layout template OR, when isSnapshot is true, an
+  // immutable copy attached to exactly one event (never edited afterward).
+  venueLayoutTemplates: defineTable({
+    ownerId: v.id('users'),
+    name: v.string(),
+    description: v.optional(v.string()),
+    backgroundImageStorageId: v.optional(v.id('_storage')),
+    canvasWidth: v.number(),
+    canvasHeight: v.number(),
+    status: v.union(v.literal('draft'), v.literal('published')),
+    isSnapshot: v.boolean(),
+    snapshotOfTemplateId: v.optional(v.id('venueLayoutTemplates')),
+    snapshotEventId: v.optional(v.id('events')),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_ownerId', ['ownerId'])
+    .index('by_snapshotEventId', ['snapshotEventId']),
+
+  venueLayoutSections: defineTable({
+    layoutId: v.id('venueLayoutTemplates'),
+    name: v.string(),
+    kind: v.union(v.literal('seated'), v.literal('ga')),
+    // Free-form generator hint ('grid'|'curve'|'round-table'|'ga-zone'),
+    // used only to re-open a section for editing — not authoritative.
+    shape: v.optional(v.string()),
+    x: v.number(),
+    y: v.number(),
+    rotation: v.optional(v.number()),
+    gaCapacity: v.optional(v.number()),
+    // Only used for kind:'ga' sections — a GA zone still has one price/tier,
+    // it just isn't broken into individual seat rows. Seated sections price
+    // per-seat instead, via venueLayoutSeats.tierId.
+    tierId: v.optional(v.id('venueLayoutTiers')),
+    displayOrder: v.number(),
+  }).index('by_layoutId', ['layoutId']),
+
+  // A named color category within a layout (e.g. "VIP" red, "General" blue).
+  // Price lives on ticketTiers, linked via ticketTiers.venueLayoutTierId, so
+  // the same layout shape can be reused across events at different prices
+  // each time. price/currency are kept optional (rather than removed) only
+  // so pre-existing rows from the old auto-derived-pricing flow still
+  // validate against the schema — Convex rejects a schema push if any
+  // stored document has a field the new schema doesn't declare, so dropping
+  // these entirely would require migrating/deleting old rows first. New
+  // code never reads or writes them.
+  venueLayoutTiers: defineTable({
+    layoutId: v.id('venueLayoutTemplates'),
+    name: v.string(),
+    color: v.string(),
+    price: v.optional(v.number()),
+    currency: v.optional(v.string()),
+    displayOrder: v.number(),
+  }).index('by_layoutId', ['layoutId']),
+
+  // Individual seat/chair/table-seat. Kept in its own table (never an array
+  // on venueLayoutTemplates) since a layout can have hundreds/thousands of
+  // seats and Convex documents must stay small and cheap to rewrite.
+  venueLayoutSeats: defineTable({
+    layoutId: v.id('venueLayoutTemplates'),
+    sectionId: v.id('venueLayoutSections'),
+    tierId: v.optional(v.id('venueLayoutTiers')),
+    rowLabel: v.optional(v.string()),
+    seatLabel: v.string(),
+    tableLabel: v.optional(v.string()),
+    x: v.number(),
+    y: v.number(),
+    displayOrder: v.number(),
+  })
+    .index('by_layoutId', ['layoutId'])
+    .index('by_sectionId', ['sectionId']),
+
+  // Temporary per-seat reservations during checkout. Kept separate from
+  // venueLayoutSeats because holds are high-churn and would otherwise
+  // contend with canvas-rendering reads of seat positions.
+  seatHolds: defineTable({
+    eventId: v.id('events'),
+    seatId: v.id('venueLayoutSeats'),
+    userId: v.id('users'),
+    status: v.union(
+      v.literal('held'),
+      v.literal('purchased'),
+      v.literal('released'),
+    ),
+    expiresAt: v.number(),
+    ticketId: v.optional(v.id('tickets')),
+    createdAt: v.number(),
+  })
+    .index('by_seatId', ['seatId'])
+    .index('by_eventId_and_status', ['eventId', 'status'])
+    .index('by_userId', ['userId'])
+    .index('by_status_and_expiresAt', ['status', 'expiresAt']),
 });

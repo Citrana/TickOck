@@ -1,10 +1,14 @@
 'use client';
 
-import {useQuery} from 'convex/react';
+import {useState} from 'react';
+import {useQuery, useMutation} from 'convex/react';
 import {useTranslations} from 'next-intl';
 import Image from 'next/image';
+import {toast} from 'sonner';
 import {Link} from '@/lib/navigation';
 import {api} from '@/convex/_generated/api';
+import {Id} from '@/convex/_generated/dataModel';
+import {parseConvexError} from '@/lib/errors';
 import EventStatusBadge from './EventStatusBadge';
 
 type Props = {
@@ -15,6 +19,21 @@ type Props = {
 export default function MyEventsList({limit}: Props) {
   const t = useTranslations('myEvents');
   const events = useQuery(api.events.listMine);
+  const deleteEvent = useMutation(api.events.remove);
+  const [deletingId, setDeletingId] = useState<Id<'events'> | null>(null);
+
+  async function handleDelete(eventId: Id<'events'>) {
+    if (!confirm(t('actions.deleteConfirm'))) return;
+    setDeletingId(eventId);
+    try {
+      await deleteEvent({eventId});
+      toast.success(t('actions.deleteSuccess'));
+    } catch (err: unknown) {
+      toast.error(parseConvexError(err, t('actions.deleteFailed')));
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   if (events === undefined) {
     return (
@@ -52,6 +71,8 @@ export default function MyEventsList({limit}: Props) {
         });
 
         const canEdit = event.status === 'draft' || event.status === 'rejected';
+        const canDelete = canEdit;
+        const isDeleting = deletingId === event._id;
 
         return (
           <div
@@ -118,6 +139,16 @@ export default function MyEventsList({limit}: Props) {
                   >
                     {t('actions.edit')}
                   </Link>
+                )}
+                {canDelete && (
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(event._id)}
+                    disabled={isDeleting}
+                    className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {t('actions.delete')}
+                  </button>
                 )}
               </div>
             </div>

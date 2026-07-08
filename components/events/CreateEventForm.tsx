@@ -63,8 +63,11 @@ function validateStep(step: number, data: EventFormData): FormErrors {
     if (!data.startTime) errors.startTime = 'required';
   }
   if (step === 4) {
-    if (data.tiers.length === 0) errors.tiers = 'required';
-    else {
+    if (data.seatMapEnabled && !data.venueLayoutTemplateId) {
+      errors.tiers = 'venueLayoutTemplateRequired';
+    } else if (data.tiers.length === 0) {
+      errors.tiers = 'required';
+    } else {
       for (const tier of data.tiers) {
         if (!tier.name.trim() || !tier.price || !tier.quantity) {
           errors.tiers = 'incomplete';
@@ -83,7 +86,11 @@ function validateForSubmission(data: EventFormData): FormErrors {
   if (!data.venueName.trim()) errors.venueName = 'required';
   if (!data.date) errors.date = 'required';
   if (!data.startTime) errors.startTime = 'required';
-  if (data.tiers.length === 0) errors.tiers = 'required';
+  if (data.seatMapEnabled && !data.venueLayoutTemplateId) {
+    errors.tiers = 'venueLayoutTemplateRequired';
+  } else if (data.tiers.length === 0) {
+    errors.tiers = 'required';
+  }
   if (!data.paymentScreenshotFile && !data.paymentScreenshotStorageId) {
     errors.paymentScreenshotFile = 'required' as unknown as string;
   }
@@ -121,7 +128,8 @@ export default function CreateEventForm({existingEventId, locale: _locale}: Prop
   const createEvent = useMutation(api.events.create);
   const updateEvent = useMutation(api.events.update);
   const submitForApproval = useMutation(api.events.submitForApproval);
-  const pricingRules = useQuery(api.platformPricing.listActive);
+  const platformRules = useQuery(api.platformPricing.listActive, {category: 'platform'});
+  const venueLayoutRules = useQuery(api.platformPricing.listActive, {category: 'venue_layout'});
 
   // Load existing event data when editing
   const existingEvent = useQuery(
@@ -141,6 +149,7 @@ export default function CreateEventForm({existingEventId, locale: _locale}: Prop
   // ---------------------------------------------------------------------------
 
   const [data, setData] = useState<EventFormData>(EMPTY_FORM);
+
   // Guard so we only populate the form once — on the first time the query resolves.
   // useState's lazy initializer only runs on the first render, before the query
   // returns, so existingEvent is always undefined there.
@@ -159,6 +168,7 @@ export default function CreateEventForm({existingEventId, locale: _locale}: Prop
       quantity: String(tier.quantity),
       description: tier.description ?? '',
       priceLocked: tier.quantitySold > 0,
+      color: tier.color,
     }));
 
     const speakers: FormSpeaker[] = (existingEvent.speakers ?? []).map(s => ({
@@ -194,6 +204,8 @@ export default function CreateEventForm({existingEventId, locale: _locale}: Prop
       ),
       speakers,
       tiers,
+      seatMapEnabled: existingEvent.seatMapEnabled ?? false,
+      venueLayoutTemplateId: existingEvent.venueLayoutSnapshotId ?? null,
       paymentScreenshotFile: null,
       paymentScreenshotStorageId:
         existingEvent.platformFeeEvidenceStorageId ?? null,
@@ -259,12 +271,23 @@ export default function CreateEventForm({existingEventId, locale: _locale}: Prop
   // ---------------------------------------------------------------------------
 
   function buildEventArgs(current: EventFormData) {
+    // Tiers are always organizer-entered now (seat-map or not), so fee
+    // calculations can use current.tiers directly for every event.
     const feeResult =
-      pricingRules && pricingRules.length > 0
-        ? calculatePlatformFee(current.tiers, pricingRules)
+      platformRules && platformRules.length > 0
+        ? calculatePlatformFee(current.tiers, platformRules)
         : null;
     const platformFeeTotal =
       feeResult && feeResult.totalFee > 0 ? feeResult.totalFee : undefined;
+
+    const venueLayoutFeeResult =
+      current.seatMapEnabled && venueLayoutRules && venueLayoutRules.length > 0
+        ? calculatePlatformFee(current.tiers, venueLayoutRules)
+        : null;
+    const venueLayoutFeeTotal =
+      venueLayoutFeeResult && venueLayoutFeeResult.totalFee > 0
+        ? venueLayoutFeeResult.totalFee
+        : undefined;
 
     return {
       title: current.title.trim(),
@@ -295,6 +318,7 @@ export default function CreateEventForm({existingEventId, locale: _locale}: Prop
         currency: tier.currency,
         quantity: parseInt(tier.quantity, 10) || 0,
         description: tier.description || undefined,
+        color: tier.color || undefined,
       })),
       speakers: current.speakers.map((s, i) => ({
         existingId: s.existingId,
@@ -306,6 +330,12 @@ export default function CreateEventForm({existingEventId, locale: _locale}: Prop
       })),
       platformFeeTotal,
       platformFeeCurrency: feeResult?.currency ?? undefined,
+      venueLayoutTemplateId:
+        current.seatMapEnabled && current.venueLayoutTemplateId
+          ? current.venueLayoutTemplateId
+          : undefined,
+      venueLayoutFeeTotal,
+      venueLayoutFeeCurrency: venueLayoutFeeResult?.currency ?? undefined,
     };
   }
 
@@ -424,7 +454,7 @@ export default function CreateEventForm({existingEventId, locale: _locale}: Prop
         {step === 1 && <StepVenue {...stepProps} />}
         {step === 2 && <StepSettings {...stepProps} />}
         {step === 3 && <StepSpeakers data={data} onChange={patch} />}
-        {step === 4 && <StepTickets {...stepProps} />}
+        {step === 4 && <StepTickets {...stepProps} savedEventId={savedEventId ?? undefined} />}
         {step === 5 && (
           <StepReview {...stepProps} existingEventId={savedEventId ?? undefined} />
         )}

@@ -150,6 +150,173 @@ export const purchase = mutation({
 });
 
 /**
+ * Purchase specific seats on a venue-layout event. Each seatId must be
+ * covered by a live, unexpired seatHold owned by the caller — see
+ * convex/seatHolds.ts's holdSeats. Structurally parallel to purchase()
+ * above: free seats confirm immediately, paid seats start as
+ * pending_payment and share a single payment record for the whole order,
+ * exactly like the quantity-based flow, so submitPaymentProof / confirmPayment
+ * need no changes to handle seat-based orders.
+ */
+export const purchaseSeats = mutation({
+  args: {
+    eventId: v.id('events'),
+    holdIds: v.array(v.id('seatHolds')),
+    paymentMethod: v.optional(v.union(v.literal('manual'), v.literal('cash'))),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+
+    if (args.holdIds.length === 0) {
+      throw new Error('No seats selected');
+    }
+    if (args.holdIds.length > 20) {
+      throw new Error('Cannot purchase more than 20 seats in a single order');
+    }
+
+    const event = await ctx.db.get(args.eventId);
+    if (!event || event.status !== 'live') {
+      throw new Error('Event is not available for purchase');
+    }
+    if (!event.venueLayoutSnapshotId) {
+      throw new Error('This event has no seating layout');
+    }
+
+    const now = Date.now();
+    const holds = [];
+    for (const holdId of args.holdIds) {
+      const hold = await ctx.db.get(holdId);
+      if (!hold) throw new Error('Seat hold not found');
+      if (hold.userId !== userId) throw new Error('Forbidden');
+      if (hold.eventId !== args.eventId) {
+        throw new Error('Seat hold does not belong to this event');
+      }
+      if (hold.status !== 'held' || hold.expiresAt <= now) {
+        throw new Error('Your seat hold has expired — please reselect your seats');
+      }
+      holds.push(hold);
+    }
+
+    // Bridge each seat's venueLayoutTierId back to this event's ticketTiers
+    // row, which remains the single source of truth for price/inventory.
+    const ticketTiersForEvent = await ctx.db
+      .query('ticketTiers')
+      .withIndex('by_eventId', q => q.eq('eventId', args.eventId))
+      .collect();
+    const ticketTierByVenueLayoutTierId = new Map(
+      ticketTiersForEvent
+        .filter(tier => tier.venueLayoutTierId)
+        .map(tier => [tier.venueLayoutTierId!, tier]),
+    );
+
+    const quantitySoldDelta = new Map<Id<'ticketTiers'>, number>();
+    const seatPurchases: {
+      seatId: Id<'venueLayoutSeats'>;
+      seatLabel: string;
+      ticketTier: (typeof ticketTiersForEvent)[number];
+    }[] = [];
+
+    for (const hold of holds) {
+      const seat = await ctx.db.get(hold.seatId);
+      if (!seat) throw new Error('Seat not found');
+      if (!seat.tierId) throw new Error(`Seat ${seat.seatLabel} has no pricing tier assigned`);
+
+      const ticketTier = ticketTierByVenueLayoutTierId.get(seat.tierId);
+      if (!ticketTier) {
+        throw new Error(`Seat ${seat.seatLabel}'s pricing tier is not linked to this event`);
+      }
+
+      const alreadyReserved = quantitySoldDelta.get(ticketTier._id) ?? 0;
+      const available = ticketTier.quantity - ticketTier.quantitySold - alreadyReserved;
+      if (available < 1) {
+        throw new Error(`No remaining capacity for tier "${ticketTier.name}"`);
+      }
+      quantitySoldDelta.set(ticketTier._id, alreadyReserved + 1);
+
+      seatPurchases.push({seatId: seat._id, seatLabel: seat.seatLabel, ticketTier});
+    }
+
+    const isFree = seatPurchases.every(p => p.ticketTier.price === 0);
+    const prefix = isFree ? buildEventPrefix(event.title) : null;
+    const ticketIds: Id<'tickets'>[] = [];
+    let totalAmount = 0;
+    let currency = '';
+
+    for (let i = 0; i < seatPurchases.length; i++) {
+      const {seatId, ticketTier} = seatPurchases[i];
+      const hold = holds[i];
+      const ticketNumber = prefix
+        ? await generateUniqueTicketNumber(ctx, prefix)
+        : undefined;
+
+      const ticketId = await ctx.db.insert('tickets', {
+        eventId: args.eventId,
+        tierId: ticketTier._id,
+        userId,
+        status: isFree ? 'confirmed' : 'pending_payment',
+        ...(ticketNumber ? {ticketNumber} : {}),
+        seatId,
+        createdAt: now,
+      });
+
+      const qrSignature = await signTicketQr(ticketId, event.hmacSecret);
+      await ctx.db.patch(ticketId, {qrSignature});
+      await ctx.db.patch(hold._id, {status: 'purchased', ticketId});
+
+      ticketIds.push(ticketId);
+      totalAmount += ticketTier.price;
+      currency = ticketTier.currency;
+    }
+
+    for (const [tierId, delta] of Array.from(quantitySoldDelta.entries())) {
+      const tier = ticketTiersForEvent.find(t => t._id === tierId)!;
+      await ctx.db.patch(tierId, {quantitySold: tier.quantitySold + delta});
+    }
+
+    let paymentId: Id<'payments'> | null = null;
+    if (!isFree) {
+      const method =
+        event.paymentMode === 'manual' && args.paymentMethod === 'cash'
+          ? 'cash'
+          : event.paymentMode;
+      paymentId = await ctx.db.insert('payments', {
+        ticketId: ticketIds[0],
+        eventId: args.eventId,
+        userId,
+        amount: totalAmount,
+        currency,
+        method,
+        status: 'pending',
+      });
+    }
+
+    await writeAuditLog(ctx, {
+      actorId: userId,
+      action: 'tickets:create',
+      targetType: 'tickets',
+      targetId: ticketIds[0],
+      metadata: {
+        eventId: args.eventId,
+        seatCount: seatPurchases.length,
+        totalAmount,
+        isFree,
+      },
+    });
+
+    if (isFree) {
+      await ctx.scheduler.runAfter(0, internal.pushNotifications.deliver, {
+        userId,
+        title: 'Ticket confirmed',
+        body: `Your ticket${seatPurchases.length > 1 ? 's are' : ' is'} ready for ${event.title}!`,
+        url: '/en/tickets',
+      });
+    }
+
+    return {ticketIds, paymentId};
+  },
+});
+
+/**
  * Attach a payment proof screenshot to a pending payment.
  * Only the payment owner may call this.
  */

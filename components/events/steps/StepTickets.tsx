@@ -2,25 +2,33 @@
 
 import {useTranslations} from 'next-intl';
 import {EventFormData, FormTier, CURRENCIES} from '@/types/eventForm';
+import {Id} from '@/convex/_generated/dataModel';
 import FormField from '@/components/ui/FormField';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
+import ColorPicker from '@/components/ui/ColorPicker';
+import VenueLayoutAttachPanel from '../VenueLayoutAttachPanel';
 
 type Props = {
   data: EventFormData;
   onChange: (patch: Partial<EventFormData>) => void;
   errors: Partial<Record<keyof EventFormData, string>>;
+  savedEventId?: Id<'events'>;
 };
+
+const DEFAULT_TIER_COLOR = '#2563EB';
 
 function TierCard({
   tier,
   index,
+  showColor,
   onUpdate,
   onRemove,
 }: {
   tier: FormTier;
   index: number;
+  showColor: boolean;
   onUpdate: (patch: Partial<FormTier>) => void;
   onRemove: () => void;
 }) {
@@ -95,6 +103,15 @@ function TierCard({
           </FormField>
         </div>
 
+        {showColor && (
+          <FormField label={t('colorLabel')} hint={t('colorHint')}>
+            <ColorPicker
+              value={tier.color ?? DEFAULT_TIER_COLOR}
+              onChange={color => onUpdate({color})}
+            />
+          </FormField>
+        )}
+
         <FormField label={t('tierDescriptionLabel')}>
           <Textarea
             value={tier.description}
@@ -108,7 +125,13 @@ function TierCard({
   );
 }
 
-export default function StepTickets({data, onChange, errors}: Props) {
+const TIER_ERROR_KEYS: Record<string, string> = {
+  required: 'tickets.errorRequired',
+  incomplete: 'tickets.errorIncomplete',
+  venueLayoutTemplateRequired: 'tickets.errorVenueLayoutTemplateRequired',
+};
+
+export default function StepTickets({data, onChange, errors, savedEventId}: Props) {
   const t = useTranslations('eventCreate');
 
   const totalTickets = data.tiers.reduce((sum, tier) => {
@@ -125,6 +148,7 @@ export default function StepTickets({data, onChange, errors}: Props) {
       quantity: '',
       description: '',
       priceLocked: false,
+      color: data.seatMapEnabled ? DEFAULT_TIER_COLOR : undefined,
     };
     onChange({tiers: [...data.tiers, newTier]});
   }
@@ -147,7 +171,9 @@ export default function StepTickets({data, onChange, errors}: Props) {
       </div>
 
       {errors.tiers && (
-        <p className="text-sm text-red-600">{errors.tiers}</p>
+        <p className="text-sm text-red-600">
+          {t(TIER_ERROR_KEYS[errors.tiers] ?? TIER_ERROR_KEYS.required)}
+        </p>
       )}
 
       {data.tiers.length === 0 ? (
@@ -161,6 +187,7 @@ export default function StepTickets({data, onChange, errors}: Props) {
               key={tier.tempId}
               tier={tier}
               index={i}
+              showColor={data.seatMapEnabled}
               onUpdate={patch => updateTier(tier.tempId, patch)}
               onRemove={() => removeTier(tier.tempId)}
             />
@@ -182,6 +209,8 @@ export default function StepTickets({data, onChange, errors}: Props) {
           {t('tickets.totalTickets', {count: totalTickets})}
         </div>
       )}
+
+      <VenueLayoutAttachPanel data={data} onChange={onChange} savedEventId={savedEventId} />
     </div>
   );
 }

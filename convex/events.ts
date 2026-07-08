@@ -4,6 +4,7 @@ import {Id} from './_generated/dataModel';
 import {getCallerUserId, requirePermission} from './_helpers/permissions';
 import {writeAuditLog} from './_helpers/audit';
 import {getAuthUserId} from '@convex-dev/auth/server';
+import {copyLayout, deleteLayoutCascade} from './venueLayout';
 
 // ---------------------------------------------------------------------------
 // Shared validators
@@ -27,6 +28,7 @@ const tierInputValidator = v.object({
   currency: v.string(),
   quantity: v.number(),
   description: v.optional(v.string()),
+  color: v.optional(v.string()),
 });
 
 const speakerInputValidator = v.object({
@@ -55,6 +57,7 @@ type TierInput = {
   currency: string;
   quantity: number;
   description?: string;
+  color?: string;
 };
 
 type SpeakerInput = {
@@ -118,6 +121,7 @@ async function reconcileTiers(
         currency: tier.currency,
         quantity: tier.quantity,
         description: tier.description,
+        color: tier.color,
       });
     } else {
       await ctx.db.insert('ticketTiers', {
@@ -128,9 +132,60 @@ async function reconcileTiers(
         quantity: tier.quantity,
         quantitySold: 0,
         description: tier.description,
+        color: tier.color,
       });
     }
   }
+}
+
+/**
+ * If the organizer chose a venue layout template for this event and it
+ * hasn't been attached yet, deep-copy it into an immutable snapshot scoped
+ * to this event. Idempotent: a no-op once the event already has a
+ * snapshot, so re-saving the same event repeatedly (or resubmitting after
+ * a rejection) never re-copies the layout.
+ *
+ * Ticket tiers are always organizer-owned now (reconciled via
+ * reconcileTiers, same as any non-seat-map event) — this function never
+ * creates/derives ticketTiers itself. If the organizer built this layout
+ * from within this same event (event-scoped builder mode), some
+ * ticketTiers may already be linked to the DRAFT template's shadow
+ * categories (see ensureShadowTiersForEvent); those links are re-pointed
+ * onto the snapshot's copies here so the checkout price bridge keeps
+ * resolving correctly. Reused templates have no such links yet — the
+ * organizer maps categories to tiers manually afterward.
+ */
+async function attachVenueLayoutIfNeeded(
+  ctx: MutationCtx,
+  eventId: Id<'events'>,
+  venueLayoutTemplateId: Id<'venueLayoutTemplates'> | undefined,
+  ownerId: Id<'users'>,
+): Promise<void> {
+  if (!venueLayoutTemplateId) return;
+
+  const event = await ctx.db.get(eventId);
+  if (!event || event.venueLayoutSnapshotId) return;
+
+  const {layoutId: snapshotId, tierIdMap} = await copyLayout(ctx, venueLayoutTemplateId, {
+    ownerId,
+    isSnapshot: true,
+    snapshotEventId: eventId,
+  });
+
+  const eventTiers = await ctx.db
+    .query('ticketTiers')
+    .withIndex('by_eventId', q => q.eq('eventId', eventId))
+    .collect();
+  for (const tier of eventTiers) {
+    if (tier.venueLayoutTierId && tierIdMap.has(tier.venueLayoutTierId)) {
+      await ctx.db.patch(tier._id, {venueLayoutTierId: tierIdMap.get(tier.venueLayoutTierId)!});
+    }
+  }
+
+  await ctx.db.patch(eventId, {
+    seatMapEnabled: true,
+    venueLayoutSnapshotId: snapshotId,
+  });
 }
 
 async function reconcileSpeakers(
@@ -214,6 +269,9 @@ const eventWriteArgs = {
   speakers: v.array(speakerInputValidator),
   platformFeeTotal: v.optional(v.number()),
   platformFeeCurrency: v.optional(v.string()),
+  venueLayoutTemplateId: v.optional(v.id('venueLayoutTemplates')),
+  venueLayoutFeeTotal: v.optional(v.number()),
+  venueLayoutFeeCurrency: v.optional(v.string()),
 };
 
 // ---------------------------------------------------------------------------
@@ -244,20 +302,13 @@ export const create = mutation({
       hmacSecret: generateHmacSecret(),
       platformFeeTotal: args.platformFeeTotal,
       platformFeeCurrency: args.platformFeeCurrency,
+      venueLayoutFeeTotal: args.venueLayoutFeeTotal,
+      venueLayoutFeeCurrency: args.venueLayoutFeeCurrency,
       createdAt: Date.now(),
     });
 
-    for (const tier of args.tiers) {
-      await ctx.db.insert('ticketTiers', {
-        eventId,
-        name: tier.name,
-        price: tier.price,
-        currency: tier.currency,
-        quantity: tier.quantity,
-        quantitySold: 0,
-        description: tier.description,
-      });
-    }
+    await reconcileTiers(ctx, eventId, args.tiers);
+    await attachVenueLayoutIfNeeded(ctx, eventId, args.venueLayoutTemplateId, ownerId);
 
     for (const speaker of args.speakers) {
       await ctx.db.insert('eventSpeakers', {
@@ -311,9 +362,12 @@ export const update = mutation({
       cancellationPolicy: args.cancellationPolicy,
       platformFeeTotal: args.platformFeeTotal,
       platformFeeCurrency: args.platformFeeCurrency,
+      venueLayoutFeeTotal: args.venueLayoutFeeTotal,
+      venueLayoutFeeCurrency: args.venueLayoutFeeCurrency,
     });
 
     await reconcileTiers(ctx, args.eventId, args.tiers);
+    await attachVenueLayoutIfNeeded(ctx, args.eventId, args.venueLayoutTemplateId, event.ownerId);
     await reconcileSpeakers(ctx, args.eventId, args.speakers);
 
     await writeAuditLog(ctx, {
@@ -366,6 +420,49 @@ export const submitForApproval = mutation({
       targetType: 'events',
       targetId: args.eventId,
       metadata: {previousStatus: event.status},
+    });
+  },
+});
+
+// Deletes an event that never went live — draft or rejected only. Cascades
+// its ticket tiers, speakers, and (if attached) its private venue layout
+// snapshot. Never touches payments/tickets/eventStaff since those can't
+// exist for an event that hasn't been live.
+export const remove = mutation({
+  args: {eventId: v.id('events')},
+  handler: async (ctx, args) => {
+    const event = await ctx.db.get(args.eventId);
+    if (!event) throw new Error('Event not found');
+    if (event.status !== 'draft' && event.status !== 'rejected') {
+      throw new Error('Only draft or rejected events can be deleted');
+    }
+
+    const actorId = await requirePermission(ctx, 'events:delete', args.eventId);
+
+    const tiers = await ctx.db
+      .query('ticketTiers')
+      .withIndex('by_eventId', q => q.eq('eventId', args.eventId))
+      .collect();
+    for (const tier of tiers) await ctx.db.delete(tier._id);
+
+    const speakers = await ctx.db
+      .query('eventSpeakers')
+      .withIndex('by_eventId', q => q.eq('eventId', args.eventId))
+      .collect();
+    for (const speaker of speakers) await ctx.db.delete(speaker._id);
+
+    if (event.venueLayoutSnapshotId) {
+      await deleteLayoutCascade(ctx, event.venueLayoutSnapshotId);
+    }
+
+    await ctx.db.delete(args.eventId);
+
+    await writeAuditLog(ctx, {
+      actorId,
+      action: 'events:delete',
+      targetType: 'events',
+      targetId: args.eventId,
+      metadata: {title: event.title, status: event.status},
     });
   },
 });

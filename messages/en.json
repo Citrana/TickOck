@@ -16,7 +16,8 @@
     "announcementCta": "Book a demo",
     "createEvent": "Create event",
     "myEvents": "My Events",
-    "staffEvents": "Staff Events"
+    "staffEvents": "Staff Events",
+    "myVenues": "My Venues"
   },
   "auth": {
     "login": {
@@ -222,7 +223,11 @@
     "actions": {
       "view": "View",
       "edit": "Edit",
-      "manage": "Manage"
+      "manage": "Manage",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this event? This cannot be undone.",
+      "deleteSuccess": "Event deleted.",
+      "deleteFailed": "Couldn't delete this event."
     }
   },
   "eventDetail": {
@@ -311,7 +316,10 @@
         "feeInvalid": "Enter a valid fee amount (0 or more).",
         "percentageTooHigh": "Percentage cannot exceed 100.",
         "saveFailed": "Failed to save rule. Please try again."
-      }
+      },
+      "noRulesVenueLayout": "No venue layout fee rules yet. Add a rule to start charging for the seating add-on.",
+      "platformSectionTitle": "Platform fee rules",
+      "venueLayoutSectionTitle": "Venue layout fee rules"
     },
     "events": {
       "pageTitle": "Pending Events",
@@ -332,7 +340,9 @@
       "reject": "Reject",
       "confirmReject": "Confirm rejection",
       "cancel": "Cancel",
-      "processing": "Processing…"
+      "processing": "Processing…",
+      "platformFee": "Platform fee",
+      "venueLayoutFee": "Venue layout fee"
     },
     "usersReport": {
       "pageTitle": "Users",
@@ -479,7 +489,8 @@
       "payments": "Payments",
       "attendees": "Attendees",
       "staff": "Staff",
-      "checkin": "Check-In"
+      "checkin": "Check-In",
+      "seating": "Seating"
     },
     "overview": {
       "confirmedRevenue": "Confirmed revenue",
@@ -654,6 +665,10 @@
         "pending_payment": "Not paid",
         "expired": "Expired"
       }
+    },
+    "seating": {
+      "noLayout": "No venue layout is attached to this event.",
+      "lockedNotice": "This layout is locked to the version used when the event was submitted."
     }
   },
   "ui": {
@@ -787,7 +802,32 @@
       "tierDescriptionPlaceholder": "What's included in this tier?",
       "removeTierButton": "Remove tier",
       "priceLockedNotice": "Price locked — tickets have already been sold for this tier.",
-      "totalTickets": "Total tickets: {count}"
+      "totalTickets": "Total tickets: {count}",
+      "venueLayout": {
+        "toggleLabel": "Add Venue Layout / Seating",
+        "toggleHint": "Let attendees pick a specific seat at checkout. This is a paid add-on.",
+        "toggleFeeHint": "Adds a flat fee of {fee} {currency}, paid alongside your platform fee.",
+        "choosePlaceholder": "Choose a saved venue layout…",
+        "manageLink": "Manage / edit this layout →",
+        "createNewLink": "Create a new venue layout →",
+        "previewHeading": "Categories in this layout",
+        "previewEmpty": "This layout has no seats or capacity assigned to a category yet.",
+        "previewQuantity": "{count} available",
+        "saveDraftFirstHint": "Save this event as a draft with at least one ticket tier first, then come back here to build a seat map for it.",
+        "browseExistingLink": "Browse your saved venue layouts →",
+        "mapping": {
+          "heading": "Map categories to your ticket tiers",
+          "prompt": "This layout was built independently — match each category to one of your ticket tiers so seats get the right price.",
+          "paintedCount": "{count} seats/capacity painted",
+          "unmapped": "Not mapped yet",
+          "quantityMismatchWarning": "This tier's quantity is lower than the number of seats painted for this category — some seats won't be purchasable once the tier sells out."
+        }
+      },
+      "errorRequired": "Add at least one ticket tier before continuing.",
+      "errorIncomplete": "Fill in a name, price, and quantity for every ticket tier.",
+      "colorLabel": "Seat map color",
+      "colorHint": "Shown on the seat map canvas so attendees can tell tiers apart.",
+      "errorVenueLayoutTemplateRequired": "Choose or create a venue layout before continuing, or turn off \"Add Venue Layout / Seating.\""
     },
     "review": {
       "heading": "Review & pay",
@@ -813,7 +853,10 @@
       "noRuleMatch": "No matching fee rule",
       "noFee": "No fee",
       "screenshotUploaded": "✓ Proof uploaded",
-      "approvalNote": "Your event will be reviewed by the TickOck team before going live. You will be notified once approved."
+      "approvalNote": "Your event will be reviewed by the TickOck team before going live. You will be notified once approved.",
+      "venueLayoutFeeTitle": "Venue layout add-on fee",
+      "combinedTotal": "Total to pay",
+      "noVenueLayoutFeeConfigured": "No venue layout fee has been configured. You can submit without an additional seating charge."
     },
     "nav": {
       "back": "Back",
@@ -835,12 +878,30 @@
       "headline": "We're building a better way to sell tickets. Create your account today and see the difference.",
       "subtitle": "Whether you're organizing a massive food expo in your city, a live comedy night at a coffee shop, or an online masterclass from your living room, we take the hassle out of ticketing.",
       "learnMore": "Learn more",
-      "firstTimers": { "title": "First-timers", "desc": "Create your event page, sell tickets in minutes, and get 24/7 support." },
-      "eventPros": { "title": "Event pros", "desc": "Powerful event features. Unbeatable prices. 99.9% uptime guaranteed." },
-      "freeEvents": { "title": "Free events", "desc": "Hosting a free event? Sell tickets for zero cost, with full features included." },
-      "developers": { "title": "Developers", "desc": "Connect your event apps with our powerful API and ready-made integrations." },
-      "charities": { "title": "Charities", "desc": "Special pricing for charity events. Keep more of what you raise." },
-      "attractions": { "title": "Attractions", "desc": "Timed entry management. Free event check-in app. Perfect for venues." }
+      "firstTimers": {
+        "title": "First-timers",
+        "desc": "Create your event page, sell tickets in minutes, and get 24/7 support."
+      },
+      "eventPros": {
+        "title": "Event pros",
+        "desc": "Powerful event features. Unbeatable prices. 99.9% uptime guaranteed."
+      },
+      "freeEvents": {
+        "title": "Free events",
+        "desc": "Hosting a free event? Sell tickets for zero cost, with full features included."
+      },
+      "developers": {
+        "title": "Developers",
+        "desc": "Connect your event apps with our powerful API and ready-made integrations."
+      },
+      "charities": {
+        "title": "Charities",
+        "desc": "Special pricing for charity events. Keep more of what you raise."
+      },
+      "attractions": {
+        "title": "Attractions",
+        "desc": "Timed entry management. Free event check-in app. Perfect for venues."
+      }
     },
     "fees": {
       "headline": "We believe your revenue belongs to you. That's why we keep our fees lower than major ticketing sites, so you can reinvest in your next big event.",
@@ -981,6 +1042,88 @@
       "enable": "Enable notifications",
       "disable": "Disable notifications",
       "permissionDenied": "Notifications blocked — enable in browser settings"
+    }
+  },
+  "venueLayout": {
+    "list": {
+      "heading": "Venue layouts",
+      "createButton": "New layout",
+      "empty": "You haven't created any venue layouts yet.",
+      "published": "Published",
+      "draft": "Draft",
+      "open": "Open",
+      "duplicate": "Duplicate",
+      "delete": "Delete",
+      "deleteConfirmTitle": "Delete venue layout?",
+      "deleteConfirmMessage": "Delete \"{name}\"? This cannot be undone.",
+      "deleteSuccess": "Venue layout deleted.",
+      "deleteFailed": "Couldn't delete this venue layout.",
+      "createModalTitle": "Name your venue layout",
+      "nameLabel": "Layout name",
+      "namePlaceholder": "e.g. Main Hall — 800 cap",
+      "cancel": "Cancel",
+      "create": "Create"
+    },
+    "builder": {
+      "notFound": "Venue layout not found.",
+      "autosaved": "Changes save automatically",
+      "publish": "Publish layout",
+      "sections": {
+        "heading": "Sections",
+        "customNamePlaceholder": "Section name",
+        "addSeated": "Add seated section",
+        "addGa": "Add GA zone",
+        "gaCapacityLabel": "GA capacity"
+      },
+      "generators": {
+        "heading": "Generators",
+        "selectSectionHint": "Select a seated section to generate seats.",
+        "typeLabel": "Generator type",
+        "grid": "Grid of rows",
+        "curvedRow": "Curved rows",
+        "roundTable": "Round table",
+        "rowsLabel": "Rows",
+        "seatsPerRowLabel": "Seats per row",
+        "seatCountLabel": "Seats at table",
+        "tierLabel": "Pricing tier",
+        "noTier": "No tier",
+        "generate": "Generate seats"
+      },
+      "tiers": {
+        "heading": "Pricing tiers",
+        "remove": "Remove",
+        "nameLabel": "Tier name",
+        "namePlaceholder": "e.g. VIP",
+        "colorLabel": "Color",
+        "save": "Save",
+        "cancel": "Cancel",
+        "addTier": "Add pricing tier",
+        "manageInTicketsStep": "Manage tiers in the Tickets step →"
+      },
+      "properties": {
+        "seatHeading": "Seat",
+        "seatLabelField": "Seat label",
+        "rowLabelField": "Row label",
+        "tierField": "Pricing tier",
+        "noTier": "No tier",
+        "deleteSeat": "Delete seat",
+        "sectionHeading": "Section",
+        "sectionNameField": "Section name",
+        "gaCapacityField": "GA capacity",
+        "deleteSection": "Delete section",
+        "emptyState": "Select a section or seat to edit its properties."
+      },
+      "noEventTiers": "This event has no ticket tiers yet — add at least one in the Tickets step before building its seat map."
+    },
+    "checkout": {
+      "selectSeats": "Select your seats",
+      "yourSeats": "Your seats",
+      "noSeatsSelected": "No seats selected yet — click seats on the map to add them.",
+      "continueButton": "Hold selected seats",
+      "holdExpiring": "Seats held — complete your order within {seconds}s",
+      "holdExpired": "Your hold expired. Please reselect your seats.",
+      "changeSeats": "Change seats",
+      "genericError": "Something went wrong. Please try again."
     }
   }
 }

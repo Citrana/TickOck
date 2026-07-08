@@ -23,8 +23,10 @@ import type * as payments from "../payments.js";
 import type * as platformPricing from "../platformPricing.js";
 import type * as pushNotifications from "../pushNotifications.js";
 import type * as roles from "../roles.js";
+import type * as seatHolds from "../seatHolds.js";
 import type * as tickets from "../tickets.js";
 import type * as users from "../users.js";
+import type * as venueLayout from "../venueLayout.js";
 
 import type {
   ApiFromModules,
@@ -48,8 +50,10 @@ declare const fullApi: ApiFromModules<{
   platformPricing: typeof platformPricing;
   pushNotifications: typeof pushNotifications;
   roles: typeof roles;
+  seatHolds: typeof seatHolds;
   tickets: typeof tickets;
   users: typeof users;
+  venueLayout: typeof venueLayout;
 }>;
 
 /**
