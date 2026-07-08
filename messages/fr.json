@@ -16,7 +16,8 @@
     "announcementCta": "Réserver une démo",
     "createEvent": "Créer un événement",
     "myEvents": "Mes événements",
-    "staffEvents": "Événements (équipe)"
+    "staffEvents": "Événements (équipe)",
+    "myVenues": "Mes plans de salle"
   },
   "auth": {
     "login": {
@@ -222,7 +223,11 @@
     "actions": {
       "view": "Voir",
       "edit": "Modifier",
-      "manage": "Gérer"
+      "manage": "Gérer",
+      "delete": "Supprimer",
+      "deleteConfirm": "Supprimer cet événement ? Cette action est irréversible.",
+      "deleteSuccess": "Événement supprimé.",
+      "deleteFailed": "Impossible de supprimer cet événement."
     }
   },
   "eventDetail": {
@@ -311,7 +316,10 @@
         "feeInvalid": "Entrez un montant de frais valide (0 ou plus).",
         "percentageTooHigh": "Le pourcentage ne peut pas dépasser 100.",
         "saveFailed": "Échec de l'enregistrement. Veuillez réessayer."
-      }
+      },
+      "noRulesVenueLayout": "Aucune règle de frais de plan de salle. Ajoutez une règle pour commencer à facturer l'option places assises.",
+      "platformSectionTitle": "Règles de frais de plateforme",
+      "venueLayoutSectionTitle": "Règles de frais de plan de salle"
     },
     "events": {
       "pageTitle": "Événements en attente",
@@ -332,7 +340,9 @@
       "reject": "Rejeter",
       "confirmReject": "Confirmer le rejet",
       "cancel": "Annuler",
-      "processing": "Traitement…"
+      "processing": "Traitement…",
+      "platformFee": "Frais de plateforme",
+      "venueLayoutFee": "Frais de plan de salle"
     },
     "usersReport": {
       "pageTitle": "Utilisateurs",
@@ -479,7 +489,8 @@
       "payments": "Paiements",
       "attendees": "Participants",
       "staff": "Équipe",
-      "checkin": "Contrôle"
+      "checkin": "Contrôle",
+      "seating": "Places assises"
     },
     "overview": {
       "confirmedRevenue": "Revenus confirmés",
@@ -654,6 +665,10 @@
         "pending_payment": "Paiement manquant",
         "expired": "Expiré"
       }
+    },
+    "seating": {
+      "noLayout": "Aucun plan de salle n'est associé à cet événement.",
+      "lockedNotice": "Ce plan est verrouillé à la version utilisée lors de la soumission de l'événement."
     }
   },
   "ui": {
@@ -787,7 +802,32 @@
       "tierDescriptionPlaceholder": "Qu'est-ce qui est inclus dans ce niveau ?",
       "removeTierButton": "Supprimer le niveau",
       "priceLockedNotice": "Prix verrouillé — des billets ont déjà été vendus pour ce niveau.",
-      "totalTickets": "Total des billets : {count}"
+      "totalTickets": "Total des billets : {count}",
+      "venueLayout": {
+        "toggleLabel": "Ajouter un plan de salle / des places assises",
+        "toggleHint": "Permet aux participants de choisir un siège précis lors du paiement. Ceci est une option payante.",
+        "toggleFeeHint": "Ajoute des frais fixes de {fee} {currency}, payés en plus de vos frais de plateforme.",
+        "choosePlaceholder": "Choisissez un plan de salle enregistré…",
+        "manageLink": "Gérer / modifier ce plan →",
+        "createNewLink": "Créer un nouveau plan de salle →",
+        "previewHeading": "Catégories de ce plan",
+        "previewEmpty": "Ce plan n'a encore aucun siège ni capacité associée à une catégorie.",
+        "previewQuantity": "{count} disponibles",
+        "saveDraftFirstHint": "Enregistrez d'abord cet événement en brouillon avec au moins une catégorie de billets, puis revenez ici pour créer un plan de salle.",
+        "browseExistingLink": "Parcourir vos plans de salle enregistrés →",
+        "mapping": {
+          "heading": "Associer les catégories à vos billets",
+          "prompt": "Ce plan a été créé indépendamment — associez chaque catégorie à une de vos catégories de billets pour que les sièges aient le bon prix.",
+          "paintedCount": "{count} sièges/capacité dessinés",
+          "unmapped": "Pas encore associé",
+          "quantityMismatchWarning": "La quantité de cette catégorie de billets est inférieure au nombre de sièges dessinés pour cette catégorie — certains sièges ne pourront pas être achetés une fois la catégorie épuisée."
+        }
+      },
+      "errorRequired": "Ajoutez au moins une catégorie de billets avant de continuer.",
+      "errorIncomplete": "Renseignez un nom, un prix et une quantité pour chaque catégorie de billets.",
+      "colorLabel": "Couleur sur le plan de salle",
+      "colorHint": "Affichée sur le plan de salle pour que les participants distinguent les catégories.",
+      "errorVenueLayoutTemplateRequired": "Choisissez ou créez un plan de salle avant de continuer, ou désactivez « Ajouter un plan de salle / des places assises »."
     },
     "review": {
       "heading": "Révision & paiement",
@@ -813,7 +853,10 @@
       "noRuleMatch": "Aucune règle de frais correspondante",
       "noFee": "Pas de frais",
       "screenshotUploaded": "✓ Preuve téléchargée",
-      "approvalNote": "Votre événement sera examiné par l'équipe TickOck avant d'être mis en ligne. Vous serez notifié une fois approuvé."
+      "approvalNote": "Votre événement sera examiné par l'équipe TickOck avant d'être mis en ligne. Vous serez notifié une fois approuvé.",
+      "venueLayoutFeeTitle": "Frais de l'option plan de salle",
+      "combinedTotal": "Total à payer",
+      "noVenueLayoutFeeConfigured": "Aucun frais de plan de salle n'est configuré. Vous pouvez soumettre sans frais de places assises supplémentaires."
     },
     "nav": {
       "back": "Retour",
@@ -835,12 +878,30 @@
       "headline": "Nous construisons une meilleure façon de vendre des billets. Créez votre compte aujourd'hui et voyez la différence.",
       "subtitle": "Que vous organisiez une grande foire alimentaire dans votre ville, une soirée comédie dans un café ou une masterclass en ligne depuis votre salon, nous simplifions la billetterie.",
       "learnMore": "En savoir plus",
-      "firstTimers": { "title": "Débutants", "desc": "Créez votre page d'événement, vendez des billets en quelques minutes et bénéficiez d'une assistance 24h/24." },
-      "eventPros": { "title": "Pros de l'événement", "desc": "Fonctionnalités puissantes. Prix imbattables. Disponibilité garantie à 99,9 %." },
-      "freeEvents": { "title": "Événements gratuits", "desc": "Vous organisez un événement gratuit ? Vendez des billets sans frais, avec toutes les fonctionnalités incluses." },
-      "developers": { "title": "Développeurs", "desc": "Connectez vos applications avec notre API puissante et nos intégrations prêtes à l'emploi." },
-      "charities": { "title": "Associations", "desc": "Tarifs spéciaux pour les événements caritatifs. Gardez plus de ce que vous récoltez." },
-      "attractions": { "title": "Attractions", "desc": "Gestion des entrées programmées. Application de contrôle gratuite. Parfait pour les lieux." }
+      "firstTimers": {
+        "title": "Débutants",
+        "desc": "Créez votre page d'événement, vendez des billets en quelques minutes et bénéficiez d'une assistance 24h/24."
+      },
+      "eventPros": {
+        "title": "Pros de l'événement",
+        "desc": "Fonctionnalités puissantes. Prix imbattables. Disponibilité garantie à 99,9 %."
+      },
+      "freeEvents": {
+        "title": "Événements gratuits",
+        "desc": "Vous organisez un événement gratuit ? Vendez des billets sans frais, avec toutes les fonctionnalités incluses."
+      },
+      "developers": {
+        "title": "Développeurs",
+        "desc": "Connectez vos applications avec notre API puissante et nos intégrations prêtes à l'emploi."
+      },
+      "charities": {
+        "title": "Associations",
+        "desc": "Tarifs spéciaux pour les événements caritatifs. Gardez plus de ce que vous récoltez."
+      },
+      "attractions": {
+        "title": "Attractions",
+        "desc": "Gestion des entrées programmées. Application de contrôle gratuite. Parfait pour les lieux."
+      }
     },
     "fees": {
       "headline": "Nous croyons que vos revenus vous appartiennent. C'est pourquoi nos frais sont inférieurs aux grandes plateformes, pour que vous puissiez réinvestir dans votre prochain événement.",
@@ -981,6 +1042,88 @@
       "enable": "Activer les notifications",
       "disable": "Désactiver les notifications",
       "permissionDenied": "Notifications bloquées — activez-les dans les paramètres du navigateur"
+    }
+  },
+  "venueLayout": {
+    "list": {
+      "heading": "Plans de salle",
+      "createButton": "Nouveau plan",
+      "empty": "Vous n'avez pas encore créé de plan de salle.",
+      "published": "Publié",
+      "draft": "Brouillon",
+      "open": "Ouvrir",
+      "duplicate": "Dupliquer",
+      "delete": "Supprimer",
+      "deleteConfirmTitle": "Supprimer ce plan de salle ?",
+      "deleteConfirmMessage": "Supprimer « {name} » ? Cette action est irréversible.",
+      "deleteSuccess": "Plan de salle supprimé.",
+      "deleteFailed": "Impossible de supprimer ce plan de salle.",
+      "createModalTitle": "Nommez votre plan de salle",
+      "nameLabel": "Nom du plan",
+      "namePlaceholder": "ex. Salle principale — 800 places",
+      "cancel": "Annuler",
+      "create": "Créer"
+    },
+    "builder": {
+      "notFound": "Plan de salle introuvable.",
+      "autosaved": "Les modifications sont enregistrées automatiquement",
+      "publish": "Publier le plan",
+      "sections": {
+        "heading": "Sections",
+        "customNamePlaceholder": "Nom de la section",
+        "addSeated": "Ajouter une section assise",
+        "addGa": "Ajouter une zone debout",
+        "gaCapacityLabel": "Capacité debout"
+      },
+      "generators": {
+        "heading": "Générateurs",
+        "selectSectionHint": "Sélectionnez une section assise pour générer des sièges.",
+        "typeLabel": "Type de générateur",
+        "grid": "Grille de rangées",
+        "curvedRow": "Rangées courbes",
+        "roundTable": "Table ronde",
+        "rowsLabel": "Rangées",
+        "seatsPerRowLabel": "Sièges par rangée",
+        "seatCountLabel": "Sièges à la table",
+        "tierLabel": "Catégorie tarifaire",
+        "noTier": "Aucune catégorie",
+        "generate": "Générer les sièges"
+      },
+      "tiers": {
+        "heading": "Catégories tarifaires",
+        "remove": "Retirer",
+        "nameLabel": "Nom de la catégorie",
+        "namePlaceholder": "ex. VIP",
+        "colorLabel": "Couleur",
+        "save": "Enregistrer",
+        "cancel": "Annuler",
+        "addTier": "Ajouter une catégorie",
+        "manageInTicketsStep": "Gérer les catégories dans l'étape Billets →"
+      },
+      "properties": {
+        "seatHeading": "Siège",
+        "seatLabelField": "Étiquette du siège",
+        "rowLabelField": "Étiquette de la rangée",
+        "tierField": "Catégorie tarifaire",
+        "noTier": "Aucune catégorie",
+        "deleteSeat": "Supprimer le siège",
+        "sectionHeading": "Section",
+        "sectionNameField": "Nom de la section",
+        "gaCapacityField": "Capacité debout",
+        "deleteSection": "Supprimer la section",
+        "emptyState": "Sélectionnez une section ou un siège pour modifier ses propriétés."
+      },
+      "noEventTiers": "Cet événement n'a pas encore de catégorie de billets — ajoutez-en au moins une dans l'étape Billets avant de créer son plan de salle."
+    },
+    "checkout": {
+      "selectSeats": "Choisissez vos sièges",
+      "yourSeats": "Vos sièges",
+      "noSeatsSelected": "Aucun siège sélectionné — cliquez sur les sièges du plan pour les ajouter.",
+      "continueButton": "Réserver les sièges sélectionnés",
+      "holdExpiring": "Sièges réservés — finalisez votre commande dans {seconds}s",
+      "holdExpired": "Votre réservation a expiré. Veuillez sélectionner à nouveau vos sièges.",
+      "changeSeats": "Changer de sièges",
+      "genericError": "Une erreur est survenue. Veuillez réessayer."
     }
   }
 }

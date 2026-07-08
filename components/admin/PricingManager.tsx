@@ -39,9 +39,13 @@ function parseOptionalNumber(v: string): number | undefined {
   return v.trim() === '' || isNaN(n) ? undefined : n;
 }
 
-export default function PricingManager() {
+type Props = {
+  category: 'platform' | 'venue_layout';
+};
+
+export default function PricingManager({category}: Props) {
   const t = useTranslations('admin.pricing');
-  const rules = useQuery(api.platformPricing.listAll);
+  const rules = useQuery(api.platformPricing.listAll, {category});
   const createRule = useMutation(api.platformPricing.createRule);
   const toggleRule = useMutation(api.platformPricing.toggleRule);
   const removeRule = useMutation(api.platformPricing.removeRule);
@@ -70,6 +74,7 @@ export default function PricingManager() {
     setSaving(true);
     try {
       await createRule({
+        category,
         label: form.label.trim(),
         ticketPriceMin: parseOptionalNumber(form.ticketPriceMin),
         ticketPriceMax: parseOptionalNumber(form.ticketPriceMax),
@@ -273,7 +278,7 @@ export default function PricingManager() {
           </div>
         ) : rules.length === 0 ? (
           <div className="px-5 py-8 text-center text-sm text-gray-500">
-            {t('noRules')}
+            {t(category === 'venue_layout' ? 'noRulesVenueLayout' : 'noRules')}
           </div>
         ) : (
           <ul className="divide-y divide-gray-100">

@@ -120,6 +120,18 @@ export default function PendingEventsList() {
                   <span className="font-medium text-gray-700">{t('totalTickets')}:</span>{' '}
                   {event.totalTickets}
                 </span>
+                {event.platformFeeTotal !== undefined && (
+                  <span>
+                    <span className="font-medium text-gray-700">{t('platformFee')}:</span>{' '}
+                    {event.platformFeeTotal.toFixed(2)} {event.platformFeeCurrency}
+                  </span>
+                )}
+                {event.venueLayoutFeeTotal !== undefined && (
+                  <span>
+                    <span className="font-medium text-gray-700">{t('venueLayoutFee')}:</span>{' '}
+                    {event.venueLayoutFeeTotal.toFixed(2)} {event.venueLayoutFeeCurrency}
+                  </span>
+                )}
               </div>
 
               {/* Fee evidence */}

@@ -28,7 +28,8 @@ export type PermissionSlug =
   | 'roles:view'
   | 'staff:manage'
   | 'platform:configure'
-  | 'auditlogs:view';
+  | 'auditlogs:view'
+  | 'events:manage_seating';
 
 function slugMatches(granted: string[], required: PermissionSlug): boolean {
   return granted.includes('*') || granted.includes(required);

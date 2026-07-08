@@ -13,11 +13,12 @@ import PaymentsPanel from './PaymentsPanel';
 import AttendeesPanel from './AttendeesPanel';
 import StaffPanel from './StaffPanel';
 import CheckInPanel from './CheckInPanel';
+import SeatingPanel from './SeatingPanel';
 
 type Props = {eventId: Id<'events'>};
 
-type Tab = 'overview' | 'payments' | 'attendees' | 'staff' | 'checkin';
-const OWNER_TABS: Tab[] = ['overview', 'payments', 'attendees', 'staff', 'checkin'];
+type Tab = 'overview' | 'payments' | 'attendees' | 'staff' | 'checkin' | 'seating';
+const OWNER_TABS: Tab[] = ['overview', 'payments', 'attendees', 'staff', 'checkin', 'seating'];
 
 export default function ManageDashboard({eventId}: Props) {
   const t = useTranslations('manage');
@@ -67,6 +68,7 @@ export default function ManageDashboard({eventId}: Props) {
   // Build tab list based on permissions
   const hasAll = isOwner || perms.includes('*');
   const visibleTabs = OWNER_TABS.filter(tab => {
+    if (tab === 'seating') return event.seatMapEnabled === true && (hasAll || isOwner);
     if (hasAll) return true;
     if (tab === 'overview') return true;
     if (tab === 'payments') return perms.some(p => p.startsWith('payments:'));
@@ -151,6 +153,7 @@ export default function ManageDashboard({eventId}: Props) {
         {activeTab === 'attendees' && <AttendeesPanel eventId={eventId} />}
         {activeTab === 'staff' && <StaffPanel eventId={eventId} />}
         {activeTab === 'checkin' && <CheckInPanel eventId={eventId} />}
+        {activeTab === 'seating' && <SeatingPanel eventId={eventId} />}
       </div>
     </div>
   );

@@ -9,6 +9,8 @@ export type FormTier = {
   quantity: string;
   description: string;
   priceLocked: boolean;
+  // Only used when the event has a venue layout — shown on the seat-map canvas.
+  color?: string;
 };
 
 export type FormSpeaker = {
@@ -47,6 +49,9 @@ export type EventFormData = {
   speakers: FormSpeaker[];
   // Step 5 — Ticket Tiers
   tiers: FormTier[];
+  // Step 5 — Venue layout add-on (paid)
+  seatMapEnabled: boolean;
+  venueLayoutTemplateId: Id<'venueLayoutTemplates'> | null;
   // Step 6 — Review & Pay
   paymentScreenshotFile: File | null;
   paymentScreenshotStorageId: Id<'_storage'> | null;
@@ -72,6 +77,8 @@ export const EMPTY_FORM: EventFormData = {
   cancellationCutoffHours: '24',
   speakers: [],
   tiers: [],
+  seatMapEnabled: false,
+  venueLayoutTemplateId: null,
   paymentScreenshotFile: null,
   paymentScreenshotStorageId: null,
 };
