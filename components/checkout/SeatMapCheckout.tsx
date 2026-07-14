@@ -95,6 +95,14 @@ export default function SeatMapCheckout({event}: Props) {
   function toggleSeat(seatId: Id<'venueLayoutSeats'>) {
     if (holdIds) return; // seats already held — must confirm or start over
     setError('');
+    if (!selectedSeatIds.has(seatId)) {
+      const seat = seatById.get(seatId);
+      const tier = seat?.tierId ? ticketTierByVenueLayoutTierId.get(seat.tierId) : undefined;
+      if (!tier) {
+        setError(tSeat('seatPricingMissing'));
+        return;
+      }
+    }
     setSelectedSeatIds(prev => {
       const next = new Set(prev);
       if (next.has(seatId)) next.delete(seatId);
@@ -236,15 +244,24 @@ export default function SeatMapCheckout({event}: Props) {
               <p className="mt-2 text-sm text-gray-400">{tSeat('noSeatsSelected')}</p>
             ) : (
               <ul className="mt-3 space-y-1.5 text-sm text-gray-700">
-                {selectedSeats.map(seat => (
-                  <li key={seat._id} className="flex justify-between">
-                    <span>{seat.seatLabel}</span>
-                    <span>
-                      {seat.tierId ? ticketTierByVenueLayoutTierId.get(seat.tierId)?.price ?? 0 : 0}{' '}
-                      {selectedCurrency}
-                    </span>
-                  </li>
-                ))}
+                {selectedSeats.map(seat => {
+                  const tier = seat.tierId ? ticketTierByVenueLayoutTierId.get(seat.tierId) : undefined;
+                  const category = seat.tierId ? tierById.get(seat.tierId) : undefined;
+                  return (
+                    <li key={seat._id} className="flex justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <span
+                          className="h-2.5 w-2.5 rounded-full"
+                          style={{backgroundColor: category?.color ?? '#9CA3AF'}}
+                        />
+                        {tier?.name} · {seat.seatLabel}
+                      </span>
+                      <span>
+                        {tier?.price ?? 0} {selectedCurrency}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             )}
             <div className="mt-3 flex justify-between border-t border-gray-100 pt-2 text-sm font-semibold text-gray-900">

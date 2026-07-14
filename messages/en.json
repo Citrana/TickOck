@@ -1123,7 +1123,8 @@
       "holdExpiring": "Seats held — complete your order within {seconds}s",
       "holdExpired": "Your hold expired. Please reselect your seats.",
       "changeSeats": "Change seats",
-      "genericError": "Something went wrong. Please try again."
+      "genericError": "Something went wrong. Please try again.",
+      "seatPricingMissing": "This seat isn't priced yet — please choose another seat."
     }
   }
 }
