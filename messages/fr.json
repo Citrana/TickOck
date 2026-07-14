@@ -1123,7 +1123,8 @@
       "holdExpiring": "Sièges réservés — finalisez votre commande dans {seconds}s",
       "holdExpired": "Votre réservation a expiré. Veuillez sélectionner à nouveau vos sièges.",
       "changeSeats": "Changer de sièges",
-      "genericError": "Une erreur est survenue. Veuillez réessayer."
+      "genericError": "Une erreur est survenue. Veuillez réessayer.",
+      "seatPricingMissing": "Ce siège n'a pas encore de prix — veuillez choisir un autre siège."
     }
   }
 }
