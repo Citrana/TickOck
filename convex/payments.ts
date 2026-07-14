@@ -1,7 +1,6 @@
 import {v} from 'convex/values';
 import {mutation, query, QueryCtx} from './_generated/server';
-import {getAuthUserId} from '@convex-dev/auth/server';
-import {getCallerUserId, requirePermission} from './_helpers/permissions';
+import {assertPermission, getCallerUserId, requirePermission} from './_helpers/permissions';
 import {writeAuditLog} from './_helpers/audit';
 import {buildEventPrefix, generateUniqueTicketNumber} from './tickets';
 import {internal} from './_generated/api';
@@ -217,17 +216,18 @@ export const resubmitAsCash = mutation({
 // ---------------------------------------------------------------------------
 
 /**
- * Lists all payments for an event. Only the event owner can view these.
- * Used by the event owner's dashboard to confirm/reject payments.
+ * Lists all payments for an event. Available to the event owner and any
+ * event staff holding the payments:view permission (or a broader payments
+ * permission / platform role).
  */
 export const listByEvent = query({
   args: {eventId: v.id('events')},
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
-
-    const event = await ctx.db.get(args.eventId);
-    if (!event || event.ownerId !== userId) return [];
+    try {
+      await assertPermission(ctx, 'payments:view', args.eventId);
+    } catch {
+      return [];
+    }
 
     const payments = await ctx.db
       .query('payments')
