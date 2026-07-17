@@ -7,6 +7,21 @@ import {seedUser, seedEvent, seedTier} from './helpers';
 
 const modules = import.meta.glob('../**/*.ts');
 
+/**
+ * Covers: tickets.purchase happy path — buying one ticket on a paid tier.
+ * Business logic:
+ * - Self-service: any active, non-suspended/banned user may buy — no
+ *   `requirePermission` check, just `getCallerUserId`.
+ * - Requires quantity in [1, 10], event.status === 'live', and the tier
+ *   to belong to that event with enough unsold inventory.
+ * - Reserves inventory up front by patching tier.quantitySold before any
+ *   ticket rows are created.
+ * - Free tiers (price === 0) auto-confirm; paid tiers start as
+ *   pending_payment and wait for a separate confirmPayment step.
+ * - One `payments` row covers the whole order, not one per ticket.
+ * - Each ticket's QR is signed with the event's own per-event HMAC
+ *   secret (never a global one).
+ */
 test('purchase creates a pending ticket and payment for a paid tier', async () => {
   const t = convexTest(schema, modules);
 
