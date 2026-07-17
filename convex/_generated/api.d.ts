@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as __tests___helpers from "../__tests__/helpers.js";
 import type * as _helpers_audit from "../_helpers/audit.js";
 import type * as _helpers_permissions from "../_helpers/permissions.js";
 import type * as _helpers_qr from "../_helpers/qr.js";
@@ -35,6 +36,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "__tests__/helpers": typeof __tests___helpers;
   "_helpers/audit": typeof _helpers_audit;
   "_helpers/permissions": typeof _helpers_permissions;
   "_helpers/qr": typeof _helpers_qr;
