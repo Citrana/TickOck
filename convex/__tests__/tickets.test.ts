@@ -3,7 +3,7 @@ import {convexTest} from 'convex-test';
 import {expect, test} from 'vitest';
 import {api} from '../_generated/api';
 import schema from '../schema';
-import {seedUser, seedEvent, seedTier} from './helpers';
+import {seedUser, seedEvent, seedTier, seedTicket} from './helpers';
 
 const modules = import.meta.glob('../**/*.ts');
 
@@ -101,5 +101,50 @@ test('purchase rejects when the tier has no remaining inventory', async () => {
       )
       .collect();
     expect(tickets).toHaveLength(0);
+  });
+});
+
+/**
+ * Covers: tickets.checkIn rejects re-scanning an already-used ticket.
+ * Business logic:
+ * - Only the event owner or staff granted `tickets:scan` may check
+ *   tickets in — `requirePermission(ctx, 'tickets:scan', eventId)`.
+ * - Ticket is looked up by ticket number (or a "TOCK:<id>" QR
+ *   identifier), scoped to the given event.
+ * - Only `confirmed` tickets can be checked in; each other status
+ *   (pending_payment, cancelled, used, expired) gets its own specific
+ *   rejection message.
+ * - A successful check-in flips status to `used` and stamps
+ *   scannedBy/scannedAt, so scanning the same ticket again always hits
+ *   the "already been used" branch and makes no further writes.
+ */
+test('checkIn rejects scanning the same ticket twice', async () => {
+  const t = convexTest(schema, modules);
+
+  const {ownerId, eventId, ticketId, ticketNumber} = await t.run(async ctx => {
+    const ownerId = await seedUser(ctx, {email: 'scanner-owner@example.com'});
+    const buyerId = await seedUser(ctx, {email: 'scanner-buyer@example.com'});
+    const eventId = await seedEvent(ctx, ownerId);
+    const tierId = await seedTier(ctx, eventId);
+    const ticketNumber = 'TEST-DOUBLESCAN';
+    const ticketId = await seedTicket(ctx, eventId, tierId, buyerId, {ticketNumber});
+    return {ownerId, eventId, ticketId, ticketNumber};
+  });
+
+  const asOwner = t.withIdentity({subject: ownerId});
+
+  const first = await asOwner.mutation(api.tickets.checkIn, {eventId, identifier: ticketNumber});
+  expect(first.ticketId).toBe(ticketId);
+
+  const scannedAtAfterFirst = await t.run(async ctx => (await ctx.db.get(ticketId))?.scannedAt);
+
+  await expect(
+    asOwner.mutation(api.tickets.checkIn, {eventId, identifier: ticketNumber}),
+  ).rejects.toThrow('This ticket has already been used');
+
+  await t.run(async ctx => {
+    const ticket = await ctx.db.get(ticketId);
+    expect(ticket?.status).toBe('used');
+    expect(ticket?.scannedAt).toBe(scannedAtAfterFirst);
   });
 });

@@ -51,3 +51,23 @@ export async function seedTier(
     ...overrides,
   });
 }
+
+export async function seedTicket(
+  ctx: MutationCtx,
+  eventId: Id<'events'>,
+  tierId: Id<'ticketTiers'>,
+  userId: Id<'users'>,
+  overrides?: Partial<
+    Omit<Doc<'tickets'>, '_id' | '_creationTime' | 'eventId' | 'tierId' | 'userId'>
+  >,
+): Promise<Id<'tickets'>> {
+  return ctx.db.insert('tickets', {
+    eventId,
+    tierId,
+    userId,
+    status: 'confirmed',
+    ticketNumber: `TEST-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+    createdAt: Date.now(),
+    ...overrides,
+  });
+}
