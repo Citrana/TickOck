@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import {convexTest} from 'convex-test';
-import {expect, test} from 'vitest';
+import {expect, test, vi} from 'vitest';
 import {api} from '../_generated/api';
 import schema from '../schema';
 import {seedUser, seedEvent, seedTier, seedTicket} from './helpers';
@@ -184,5 +184,48 @@ test('checkIn rejects a ticket scanned against a different event', async () => {
   await t.run(async ctx => {
     const ticket = await ctx.db.get(ticketId);
     expect(ticket?.status).toBe('confirmed');
+  });
+});
+
+/**
+ * Covers: tickets.purchase rejects buying after the event has ended.
+ * Business logic:
+ * - Event end = event.date (UTC midnight of the event's day) + endTime
+ *   ("HH:mm", treated as UTC) — or +24h if endTime isn't set. Naive,
+ *   ignores event.timezone, consistent with the existing
+ *   cancellation-cutoff check elsewhere in this file.
+ * - The check runs alongside the existing `status === 'live'` check,
+ *   before any inventory reservation or ticket/payment rows are
+ *   written — a purchase attempt after the cutoff leaves everything
+ *   unchanged.
+ */
+test('purchase rejects buying after the event has ended', async () => {
+  const t = convexTest(schema, modules);
+
+  const eventDate = new Date('2024-06-01T00:00:00.000Z').getTime();
+
+  const {userId, eventId, tierId} = await t.run(async ctx => {
+    const ownerId = await seedUser(ctx, {email: 'ended-owner@example.com'});
+    const userId = await seedUser(ctx, {email: 'ended-buyer@example.com'});
+    const eventId = await seedEvent(ctx, ownerId, {date: eventDate, endTime: '12:00'});
+    const tierId = await seedTier(ctx, eventId);
+    return {userId, eventId, tierId};
+  });
+
+  vi.useFakeTimers();
+  try {
+    vi.setSystemTime(eventDate + 12 * 3_600_000 + 60_000); // 12:01, one minute after end
+
+    const asBuyer = t.withIdentity({subject: userId});
+    await expect(
+      asBuyer.mutation(api.tickets.purchase, {eventId, tierId, quantity: 1}),
+    ).rejects.toThrow('This event has ended');
+  } finally {
+    vi.useRealTimers();
+  }
+
+  await t.run(async ctx => {
+    const tier = await ctx.db.get(tierId);
+    expect(tier?.quantitySold).toBe(0);
   });
 });
