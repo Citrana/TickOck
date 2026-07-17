@@ -148,3 +148,41 @@ test('checkIn rejects scanning the same ticket twice', async () => {
     expect(ticket?.scannedAt).toBe(scannedAtAfterFirst);
   });
 });
+
+/**
+ * Covers: tickets.checkIn rejects a ticket that belongs to a different event.
+ * Business logic:
+ * - Ticket lookup (by ticket number or "TOCK:<id>" QR identifier) is not
+ *   scoped by event at the query level — ticketNumber is globally
+ *   unique — so the same identifier could resolve to a ticket from any
+ *   event.
+ * - checkIn explicitly rejects afterward if `ticket.eventId !==
+ *   args.eventId` ("This ticket is for a different event"), so a ticket
+ *   valid for event A can never be checked in against event B's
+ *   scanner, even by staff who has scan access to both events.
+ */
+test('checkIn rejects a ticket scanned against a different event', async () => {
+  const t = convexTest(schema, modules);
+
+  const {ownerId, eventBId, ticketId, ticketNumber} = await t.run(async ctx => {
+    const ownerId = await seedUser(ctx, {email: 'two-events-owner@example.com'});
+    const buyerId = await seedUser(ctx, {email: 'cross-event-buyer@example.com'});
+    const eventAId = await seedEvent(ctx, ownerId, {title: 'Event A'});
+    const eventBId = await seedEvent(ctx, ownerId, {title: 'Event B'});
+    const tierAId = await seedTier(ctx, eventAId);
+    const ticketNumber = 'TEST-CROSSEVENT';
+    const ticketId = await seedTicket(ctx, eventAId, tierAId, buyerId, {ticketNumber});
+    return {ownerId, eventBId, ticketId, ticketNumber};
+  });
+
+  const asOwner = t.withIdentity({subject: ownerId});
+
+  await expect(
+    asOwner.mutation(api.tickets.checkIn, {eventId: eventBId, identifier: ticketNumber}),
+  ).rejects.toThrow('This ticket is for a different event');
+
+  await t.run(async ctx => {
+    const ticket = await ctx.db.get(ticketId);
+    expect(ticket?.status).toBe('confirmed');
+  });
+});
