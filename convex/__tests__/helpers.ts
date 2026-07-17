@@ -52,6 +52,19 @@ export async function seedTier(
   });
 }
 
+export async function seedSpeaker(
+  ctx: MutationCtx,
+  eventId: Id<'events'>,
+  overrides?: Partial<Omit<Doc<'eventSpeakers'>, '_id' | '_creationTime' | 'eventId'>>,
+): Promise<Id<'eventSpeakers'>> {
+  return ctx.db.insert('eventSpeakers', {
+    eventId,
+    name: 'Jane Doe',
+    displayOrder: 0,
+    ...overrides,
+  });
+}
+
 export async function seedTicket(
   ctx: MutationCtx,
   eventId: Id<'events'>,
