@@ -30,6 +30,7 @@ Stack: Next.js 14 App Router · Convex · Tailwind · next-intl · npm
 - Shared primitives (buttons, inputs) live in `/components/ui/` only.
 - Permission slugs follow `resource:action` format — e.g. `tickets:cancel`, `events:edit`.
 - New features get their own Convex file — don't extend existing files beyond their domain.
+- Every `test()` gets a JSDoc header comment directly above it: what it covers, plus a bulleted summary of the business rules the code under test enforces — so future changes have an immediate reference point without re-reading the implementation.
 
 ## Before writing code
 - Scan the codebase first — check `/components/ui/`, `/lib/`, and `convex/_helpers/` for anything reusable before creating something new.
