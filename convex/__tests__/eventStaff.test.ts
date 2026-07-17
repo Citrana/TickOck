@@ -59,3 +59,64 @@ test('addStaff creates a staff record whose granted permission authorizes checkI
   const result = await asStaff.mutation(api.tickets.checkIn, {eventId, identifier: ticketNumber});
   expect(result.ticketId).toBe(ticketId);
 });
+
+/**
+ * Covers: eventStaff.deactivateStaff revokes a staff member's access.
+ * Business logic:
+ * - deactivateStaff patches `isActive: false` on the eventStaff row; the
+ *   record itself is never deleted (soft revoke, preserves audit
+ *   history) — only the event owner (or staff:manage) may call it.
+ * - requirePermission's event-scoped fallback requires
+ *   `staff.isActive !== false` in addition to a matching permission
+ *   slug, so a deactivated staff member fails permission checks
+ *   immediately on their next call, even though permissionSlugs are
+ *   untouched.
+ */
+test('deactivateStaff revokes access for a deactivated staff member', async () => {
+  const t = convexTest(schema, modules);
+
+  const {ownerId, staffUserId, eventId, ticketNumber, ticketId} = await t.run(async ctx => {
+    const ownerId = await seedUser(ctx, {email: 'deactivate-owner@example.com'});
+    const staffUserId = await seedUser(ctx, {email: 'deactivate-staff@example.com'});
+    const buyerId = await seedUser(ctx, {email: 'deactivate-buyer@example.com'});
+    const eventId = await seedEvent(ctx, ownerId);
+    const tierId = await seedTier(ctx, eventId);
+    const ticketNumber = 'TEST-DEACTIVATED';
+    const ticketId = await seedTicket(ctx, eventId, tierId, buyerId, {ticketNumber});
+    return {ownerId, staffUserId, eventId, ticketNumber, ticketId};
+  });
+
+  const asOwner = t.withIdentity({subject: ownerId});
+  await asOwner.mutation(api.eventStaff.addStaff, {
+    eventId,
+    email: 'deactivate-staff@example.com',
+    permissionSlugs: ['tickets:scan'],
+  });
+
+  const staffId = await t.run(async ctx => {
+    const staff = await ctx.db
+      .query('eventStaff')
+      .withIndex('by_eventId_and_userId', q =>
+        q.eq('eventId', eventId).eq('userId', staffUserId),
+      )
+      .unique();
+    return staff!._id;
+  });
+
+  await asOwner.mutation(api.eventStaff.deactivateStaff, {staffId});
+
+  await t.run(async ctx => {
+    const staff = await ctx.db.get(staffId);
+    expect(staff?.isActive).toBe(false);
+  });
+
+  const asStaff = t.withIdentity({subject: staffUserId});
+  await expect(
+    asStaff.mutation(api.tickets.checkIn, {eventId, identifier: ticketNumber}),
+  ).rejects.toThrow('Forbidden: missing permission "tickets:scan"');
+
+  await t.run(async ctx => {
+    const ticket = await ctx.db.get(ticketId);
+    expect(ticket?.status).toBe('confirmed');
+  });
+});
