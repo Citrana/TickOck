@@ -62,3 +62,44 @@ test('purchase creates a pending ticket and payment for a paid tier', async () =
     expect(tier?.quantitySold).toBe(1);
   });
 });
+
+/**
+ * Covers: tickets.purchase rejects when a tier is sold out.
+ * Business logic:
+ * - Available inventory = tier.quantity - tier.quantitySold; the
+ *   mutation throws before writing anything if the requested quantity
+ *   exceeds what's available.
+ * - The availability check runs before tier.quantitySold is patched and
+ *   before any ticket/payment rows are inserted, so a rejected purchase
+ *   leaves the tier and ticket count completely unchanged — no partial
+ *   reservation, no orphaned rows.
+ */
+test('purchase rejects when the tier has no remaining inventory', async () => {
+  const t = convexTest(schema, modules);
+
+  const {userId, eventId, tierId} = await t.run(async ctx => {
+    const ownerId = await seedUser(ctx, {email: 'owner2@example.com'});
+    const userId = await seedUser(ctx, {email: 'buyer2@example.com'});
+    const eventId = await seedEvent(ctx, ownerId);
+    const tierId = await seedTier(ctx, eventId, {quantity: 5, quantitySold: 5});
+    return {userId, eventId, tierId};
+  });
+
+  const asBuyer = t.withIdentity({subject: userId});
+  await expect(
+    asBuyer.mutation(api.tickets.purchase, {eventId, tierId, quantity: 1}),
+  ).rejects.toThrow(/0 tickets? remaining/);
+
+  await t.run(async ctx => {
+    const tier = await ctx.db.get(tierId);
+    expect(tier?.quantitySold).toBe(5);
+
+    const tickets = await ctx.db
+      .query('tickets')
+      .withIndex('by_eventId_and_userId', q =>
+        q.eq('eventId', eventId).eq('userId', userId),
+      )
+      .collect();
+    expect(tickets).toHaveLength(0);
+  });
+});
