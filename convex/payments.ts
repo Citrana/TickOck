@@ -25,7 +25,7 @@ export const confirmPayment = mutation({
     // Resolve caller and check authorization
     const callerId = await getCallerUserId(ctx as unknown as QueryCtx);
     if (event.ownerId !== callerId) {
-      await requirePermission(ctx, 'payments:confirm');
+      await requirePermission(ctx, 'payments:confirm', payment.eventId);
     }
 
     if (payment.status !== 'pending') {
@@ -98,7 +98,7 @@ export const rejectPayment = mutation({
 
     const callerId = await getCallerUserId(ctx as unknown as QueryCtx);
     if (event.ownerId !== callerId) {
-      await requirePermission(ctx, 'payments:reject');
+      await requirePermission(ctx, 'payments:reject', payment.eventId);
     }
 
     if (payment.status !== 'pending') {
