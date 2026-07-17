@@ -56,6 +56,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | `npm run lint` | Lint the codebase |
 | `npm run lint:fix` | Lint and auto-fix issues |
 | `npm run typecheck` | Run TypeScript type checks |
+| `npm test` | Run the Convex function test suite |
 | `npx convex dev` | Start the Convex backend in watch mode |
 
 ## Project Structure
@@ -67,7 +68,8 @@ tickOck/
 │   ├── ui/            # Shared primitives (buttons, inputs, etc.)
 │   └── {domain}/      # Feature-scoped components
 ├── convex/            # Convex backend (queries, mutations, schema)
-│   └── _helpers/      # Shared helpers (permissions, etc.)
+│   ├── _helpers/      # Shared helpers (permissions, etc.)
+│   └── __tests__/     # Convex function tests (vitest + convex-test)
 ├── messages/
 │   ├── en.json        # English strings
 │   └── fr.json        # French strings
@@ -85,6 +87,16 @@ tickOck/
 - Ticket PDFs generated on-demand via API route
 - Event owner dashboard with Overview, Payments, Attendees, and Staff tabs
 - RBAC: platform-level roles + event-scoped staff permissions
+
+## Testing
+
+Convex functions are tested with [vitest](https://vitest.dev) and [convex-test](https://www.npmjs.com/package/convex-test) (a mock Convex backend). Test files live in `convex/__tests__/`, with shared seed helpers in `convex/__tests__/helpers.ts`.
+
+```bash
+npm test
+```
+
+`npm test`, `npm run typecheck`, and `npm run lint` all run automatically on every commit via a husky pre-commit hook, and the commit is blocked if any of them fails.
 
 ## Deployment
 

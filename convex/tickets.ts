@@ -1,6 +1,6 @@
 import {v} from 'convex/values';
 import {mutation, query, MutationCtx, QueryCtx} from './_generated/server';
-import {Id} from './_generated/dataModel';
+import {Id, Doc} from './_generated/dataModel';
 import {getAuthUserId} from '@convex-dev/auth/server';
 import {getCallerUserId, requirePermission} from './_helpers/permissions';
 import {writeAuditLog} from './_helpers/audit';
@@ -33,6 +33,15 @@ export async function generateUniqueTicketNumber(ctx: MutationCtx, prefix: strin
   throw new Error('Could not generate unique ticket number');
 }
 
+// Event end = date (UTC midnight of the event's day) + endTime ("HH:mm",
+// treated as UTC), or +24h if endTime isn't set. Naive, ignores
+// event.timezone — consistent with the cancellation-cutoff check below.
+function getEventEndMs(event: Doc<'events'>): number {
+  if (!event.endTime) return event.date + 24 * 3_600_000;
+  const [hours, minutes] = event.endTime.split(':').map(Number);
+  return event.date + hours * 3_600_000 + minutes * 60_000;
+}
+
 // ---------------------------------------------------------------------------
 // Mutations
 // ---------------------------------------------------------------------------
@@ -60,6 +69,9 @@ export const purchase = mutation({
     const event = await ctx.db.get(args.eventId);
     if (!event || event.status !== 'live') {
       throw new Error('Event is not available for purchase');
+    }
+    if (Date.now() > getEventEndMs(event)) {
+      throw new Error('This event has ended');
     }
 
     const tier = await ctx.db.get(args.tierId);
@@ -177,6 +189,9 @@ export const purchaseSeats = mutation({
     const event = await ctx.db.get(args.eventId);
     if (!event || event.status !== 'live') {
       throw new Error('Event is not available for purchase');
+    }
+    if (Date.now() > getEventEndMs(event)) {
+      throw new Error('This event has ended');
     }
     if (!event.venueLayoutSnapshotId) {
       throw new Error('This event has no seating layout');
