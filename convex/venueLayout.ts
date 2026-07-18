@@ -1,6 +1,6 @@
 import {v} from 'convex/values';
 import {mutation, query, MutationCtx, QueryCtx} from './_generated/server';
-import {Id} from './_generated/dataModel';
+import {Doc, Id} from './_generated/dataModel';
 import {getAuthUserId} from '@convex-dev/auth/server';
 import {getCallerUserId} from './_helpers/permissions';
 import {writeAuditLog} from './_helpers/audit';
@@ -16,7 +16,11 @@ const seatDraftValidator = v.object({
   tierId: v.optional(v.id('venueLayoutTiers')),
 });
 
-async function requireOwnedEditableTemplate(
+// Ownership check only — no snapshot lock. Used by every mutation that only
+// touches structure (sections, tiers, elements) or seats that are verified
+// unlocked (see assertSeatsUnlocked below), so organizers can keep editing a
+// live event's plan at any time.
+export async function requireOwnedTemplate(
   ctx: MutationCtx,
   layoutId: Id<'venueLayoutTemplates'>,
   userId: Id<'users'>,
@@ -24,8 +28,68 @@ async function requireOwnedEditableTemplate(
   const template = await ctx.db.get(layoutId);
   if (!template) throw new Error('Venue layout not found');
   if (template.ownerId !== userId) throw new Error('Forbidden: not the layout owner');
+  return template;
+}
+
+// Stricter guard, kept only for operations that destroy or rename the whole
+// locked layout row itself (as opposed to editing its contents) — those
+// remain blocked once a layout is an immutable event snapshot.
+async function requireOwnedEditableTemplate(
+  ctx: MutationCtx,
+  layoutId: Id<'venueLayoutTemplates'>,
+  userId: Id<'users'>,
+) {
+  const template = await requireOwnedTemplate(ctx, layoutId, userId);
   if (template.isSnapshot) throw new Error('Cannot modify a locked event snapshot');
   return template;
+}
+
+// A seat is locked the moment it has any non-cancelled/expired ticket, or an
+// unexpired hold — mirrors seatHolds.ts::getAvailability's definition of
+// "unavailable" exactly, so "sold or reserved" here means the same thing it
+// means to a buyer. Editing the venue plan must never touch these seats'
+// position, label, or pricing tier.
+async function findLockedSeats(
+  ctx: MutationCtx,
+  seatIds: Id<'venueLayoutSeats'>[],
+): Promise<{seatId: Id<'venueLayoutSeats'>; seatLabel: string}[]> {
+  const now = Date.now();
+  const locked: {seatId: Id<'venueLayoutSeats'>; seatLabel: string}[] = [];
+
+  for (const seatId of seatIds) {
+    const ticket = await ctx.db
+      .query('tickets')
+      .withIndex('by_seatId', q => q.eq('seatId', seatId))
+      .filter(q => q.and(q.neq(q.field('status'), 'cancelled'), q.neq(q.field('status'), 'expired')))
+      .first();
+
+    const hold = ticket
+      ? null
+      : await ctx.db
+          .query('seatHolds')
+          .withIndex('by_seatId', q => q.eq('seatId', seatId))
+          .filter(q => q.and(q.eq(q.field('status'), 'held'), q.gt(q.field('expiresAt'), now)))
+          .first();
+
+    if (ticket || hold) {
+      const seat = await ctx.db.get(seatId);
+      if (seat) locked.push({seatId, seatLabel: seat.seatLabel});
+    }
+  }
+
+  return locked;
+}
+
+async function assertSeatsUnlocked(ctx: MutationCtx, seatIds: Id<'venueLayoutSeats'>[]): Promise<void> {
+  if (seatIds.length === 0) return;
+  const locked = await findLockedSeats(ctx, seatIds);
+  if (locked.length === 0) return;
+
+  const labels = locked.slice(0, 5).map(s => s.seatLabel).join(', ');
+  const more = locked.length > 5 ? ` and ${locked.length - 5} more` : '';
+  throw new Error(
+    `Cannot modify ${locked.length} seat(s) that are already sold or reserved: ${labels}${more}`,
+  );
 }
 
 async function deleteSeatsForSection(
@@ -146,6 +210,30 @@ export async function copyLayout(
     });
   }
 
+  const elements = await ctx.db
+    .query('venueLayoutElements')
+    .withIndex('by_layoutId', q => q.eq('layoutId', sourceLayoutId))
+    .collect();
+  for (const el of elements) {
+    await ctx.db.insert('venueLayoutElements', {
+      layoutId: newLayoutId,
+      kind: el.kind,
+      x: el.x,
+      y: el.y,
+      x2: el.x2,
+      y2: el.y2,
+      width: el.width,
+      height: el.height,
+      rotation: el.rotation,
+      doorType: el.doorType,
+      amenityType: el.amenityType,
+      capacity: el.capacity,
+      label: el.label,
+      color: el.color,
+      displayOrder: el.displayOrder,
+    });
+  }
+
   return {layoutId: newLayoutId, tierIdMap};
 }
 
@@ -263,6 +351,12 @@ export async function deleteLayoutCascade(
     .collect();
   for (const tier of tiers) await ctx.db.delete(tier._id);
 
+  const elements = await ctx.db
+    .query('venueLayoutElements')
+    .withIndex('by_layoutId', q => q.eq('layoutId', layoutId))
+    .collect();
+  for (const el of elements) await ctx.db.delete(el._id);
+
   await ctx.db.delete(layoutId);
 }
 
@@ -302,7 +396,7 @@ export const addSection = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
-    await requireOwnedEditableTemplate(ctx, args.layoutId, userId);
+    await requireOwnedTemplate(ctx, args.layoutId, userId);
 
     const existing = await ctx.db
       .query('venueLayoutSections')
@@ -324,6 +418,13 @@ export const addSection = mutation({
     });
 
     await ctx.db.patch(args.layoutId, {updatedAt: Date.now()});
+    await writeAuditLog(ctx, {
+      actorId: userId,
+      action: 'venueLayoutSection:create',
+      targetType: 'venueLayoutSections',
+      targetId: id,
+      metadata: {layoutId: args.layoutId, name: args.name, kind: args.kind},
+    });
     return id;
   },
 });
@@ -342,7 +443,26 @@ export const updateSection = mutation({
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
     const section = await ctx.db.get(args.sectionId);
     if (!section) throw new Error('Section not found');
-    await requireOwnedEditableTemplate(ctx, section.layoutId, userId);
+    await requireOwnedTemplate(ctx, section.layoutId, userId);
+
+    const isMoving =
+      (args.x !== undefined && args.x !== section.x) || (args.y !== undefined && args.y !== section.y);
+
+    // Seated sections carry real, individually-locked seats — dragging the
+    // section moves them all together, so a sold/reserved seat blocks the
+    // whole move. GA zones have no discrete seat rows, so they're never
+    // blocked here.
+    let seatsToShift: Doc<'venueLayoutSeats'>[] = [];
+    if (isMoving && section.kind === 'seated') {
+      seatsToShift = await ctx.db
+        .query('venueLayoutSeats')
+        .withIndex('by_sectionId', q => q.eq('sectionId', args.sectionId))
+        .collect();
+      await assertSeatsUnlocked(ctx, seatsToShift.map(s => s._id));
+    }
+
+    const deltaX = args.x !== undefined ? args.x - section.x : 0;
+    const deltaY = args.y !== undefined ? args.y - section.y : 0;
 
     await ctx.db.patch(args.sectionId, {
       ...(args.name !== undefined ? {name: args.name} : {}),
@@ -351,6 +471,24 @@ export const updateSection = mutation({
       ...(args.rotation !== undefined ? {rotation: args.rotation} : {}),
       ...(args.gaCapacity !== undefined ? {gaCapacity: args.gaCapacity} : {}),
       ...(args.tierId !== undefined ? {tierId: args.tierId} : {}),
+    });
+
+    if (isMoving && seatsToShift.length > 0) {
+      for (const seat of seatsToShift) {
+        await ctx.db.patch(seat._id, {x: seat.x + deltaX, y: seat.y + deltaY});
+      }
+    }
+
+    await writeAuditLog(ctx, {
+      actorId: userId,
+      action: 'venueLayoutSection:update',
+      targetType: 'venueLayoutSections',
+      targetId: args.sectionId,
+      metadata: {
+        ...(args.x !== undefined ? {x: args.x} : {}),
+        ...(args.y !== undefined ? {y: args.y} : {}),
+        seatsShifted: seatsToShift.length,
+      },
     });
   },
 });
@@ -361,10 +499,24 @@ export const deleteSection = mutation({
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
     const section = await ctx.db.get(args.sectionId);
     if (!section) throw new Error('Section not found');
-    await requireOwnedEditableTemplate(ctx, section.layoutId, userId);
+    await requireOwnedTemplate(ctx, section.layoutId, userId);
+
+    const seats = await ctx.db
+      .query('venueLayoutSeats')
+      .withIndex('by_sectionId', q => q.eq('sectionId', args.sectionId))
+      .collect();
+    await assertSeatsUnlocked(ctx, seats.map(s => s._id));
 
     await deleteSeatsForSection(ctx, args.sectionId);
     await ctx.db.delete(args.sectionId);
+
+    await writeAuditLog(ctx, {
+      actorId: userId,
+      action: 'venueLayoutSection:delete',
+      targetType: 'venueLayoutSections',
+      targetId: args.sectionId,
+      metadata: {name: section.name, seatsDeleted: seats.length},
+    });
   },
 });
 
@@ -380,7 +532,7 @@ export const addTier = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
-    await requireOwnedEditableTemplate(ctx, args.layoutId, userId);
+    await requireOwnedTemplate(ctx, args.layoutId, userId);
 
     const existing = await ctx.db
       .query('venueLayoutTiers')
@@ -388,12 +540,21 @@ export const addTier = mutation({
       .collect();
     const maxOrder = existing.reduce((m, t) => Math.max(m, t.displayOrder), -1);
 
-    return await ctx.db.insert('venueLayoutTiers', {
+    const id = await ctx.db.insert('venueLayoutTiers', {
       layoutId: args.layoutId,
       name: args.name,
       color: args.color,
       displayOrder: maxOrder + 1,
     });
+
+    await writeAuditLog(ctx, {
+      actorId: userId,
+      action: 'venueLayoutTier:create',
+      targetType: 'venueLayoutTiers',
+      targetId: id,
+      metadata: {layoutId: args.layoutId, name: args.name},
+    });
+    return id;
   },
 });
 
@@ -407,11 +568,22 @@ export const updateTier = mutation({
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
     const tier = await ctx.db.get(args.tierId);
     if (!tier) throw new Error('Tier not found');
-    await requireOwnedEditableTemplate(ctx, tier.layoutId, userId);
+    await requireOwnedTemplate(ctx, tier.layoutId, userId);
 
     await ctx.db.patch(args.tierId, {
       ...(args.name !== undefined ? {name: args.name} : {}),
       ...(args.color !== undefined ? {color: args.color} : {}),
+    });
+
+    await writeAuditLog(ctx, {
+      actorId: userId,
+      action: 'venueLayoutTier:update',
+      targetType: 'venueLayoutTiers',
+      targetId: args.tierId,
+      metadata: {
+        ...(args.name !== undefined ? {name: args.name} : {}),
+        ...(args.color !== undefined ? {color: args.color} : {}),
+      },
     });
   },
 });
@@ -422,19 +594,19 @@ export const deleteTier = mutation({
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
     const tier = await ctx.db.get(args.tierId);
     if (!tier) throw new Error('Tier not found');
-    await requireOwnedEditableTemplate(ctx, tier.layoutId, userId);
+    await requireOwnedTemplate(ctx, tier.layoutId, userId);
 
-    // Unassign any seats/GA sections that referenced this tier rather than
-    // blocking deletion.
-    for (;;) {
-      const seats = await ctx.db
-        .query('venueLayoutSeats')
-        .withIndex('by_layoutId', q => q.eq('layoutId', tier.layoutId))
-        .take(200);
-      const affected = seats.filter(s => s.tierId === args.tierId);
-      for (const seat of affected) await ctx.db.patch(seat._id, {tierId: undefined});
-      if (seats.length < 200) break;
-    }
+    // A sold/reserved seat's pricing tier must stay locked, so deleting a
+    // tier that's still assigned to one of those seats is blocked entirely
+    // rather than silently stripping its price bridge.
+    const allSeats = await ctx.db
+      .query('venueLayoutSeats')
+      .withIndex('by_layoutId', q => q.eq('layoutId', tier.layoutId))
+      .take(5000);
+    const affectedSeats = allSeats.filter(s => s.tierId === args.tierId);
+    await assertSeatsUnlocked(ctx, affectedSeats.map(s => s._id));
+
+    for (const seat of affectedSeats) await ctx.db.patch(seat._id, {tierId: undefined});
 
     const sections = await ctx.db
       .query('venueLayoutSections')
@@ -447,6 +619,14 @@ export const deleteTier = mutation({
     }
 
     await ctx.db.delete(args.tierId);
+
+    await writeAuditLog(ctx, {
+      actorId: userId,
+      action: 'venueLayoutTier:delete',
+      targetType: 'venueLayoutTiers',
+      targetId: args.tierId,
+      metadata: {name: tier.name, seatsUnassigned: affectedSeats.length},
+    });
   },
 });
 
@@ -565,7 +745,7 @@ export const bulkInsertSeats = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
-    await requireOwnedEditableTemplate(ctx, args.layoutId, userId);
+    await requireOwnedTemplate(ctx, args.layoutId, userId);
 
     if (args.seats.length > MAX_SEATS_PER_CALL) {
       throw new Error(
@@ -595,6 +775,13 @@ export const bulkInsertSeats = mutation({
     }
 
     await ctx.db.patch(args.layoutId, {updatedAt: Date.now()});
+    await writeAuditLog(ctx, {
+      actorId: userId,
+      action: 'venueLayoutSeat:create',
+      targetType: 'venueLayoutSeats',
+      targetId: args.sectionId,
+      metadata: {layoutId: args.layoutId, count: ids.length},
+    });
     return ids;
   },
 });
@@ -605,9 +792,17 @@ export const updateSeatPosition = mutation({
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
     const seat = await ctx.db.get(args.seatId);
     if (!seat) throw new Error('Seat not found');
-    await requireOwnedEditableTemplate(ctx, seat.layoutId, userId);
+    await requireOwnedTemplate(ctx, seat.layoutId, userId);
+    await assertSeatsUnlocked(ctx, [args.seatId]);
 
     await ctx.db.patch(args.seatId, {x: args.x, y: args.y});
+    await writeAuditLog(ctx, {
+      actorId: userId,
+      action: 'venueLayoutSeat:update',
+      targetType: 'venueLayoutSeats',
+      targetId: args.seatId,
+      metadata: {x: args.x, y: args.y},
+    });
   },
 });
 
@@ -621,11 +816,19 @@ export const updateSeatLabel = mutation({
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
     const seat = await ctx.db.get(args.seatId);
     if (!seat) throw new Error('Seat not found');
-    await requireOwnedEditableTemplate(ctx, seat.layoutId, userId);
+    await requireOwnedTemplate(ctx, seat.layoutId, userId);
+    await assertSeatsUnlocked(ctx, [args.seatId]);
 
     await ctx.db.patch(args.seatId, {
       seatLabel: args.seatLabel,
       ...(args.rowLabel !== undefined ? {rowLabel: args.rowLabel} : {}),
+    });
+    await writeAuditLog(ctx, {
+      actorId: userId,
+      action: 'venueLayoutSeat:update',
+      targetType: 'venueLayoutSeats',
+      targetId: args.seatId,
+      metadata: {seatLabel: args.seatLabel},
     });
   },
 });
@@ -644,9 +847,21 @@ export const assignSeatsToTier = mutation({
     for (const seatId of args.seatIds) {
       const seat = await ctx.db.get(seatId);
       if (!seat) continue;
-      await requireOwnedEditableTemplate(ctx, seat.layoutId, userId);
+      await requireOwnedTemplate(ctx, seat.layoutId, userId);
+    }
+    await assertSeatsUnlocked(ctx, args.seatIds);
+
+    for (const seatId of args.seatIds) {
       await ctx.db.patch(seatId, {tierId: args.tierId});
     }
+
+    await writeAuditLog(ctx, {
+      actorId: userId,
+      action: 'venueLayoutSeat:retier',
+      targetType: 'venueLayoutSeats',
+      targetId: args.seatIds[0] ?? 'batch',
+      metadata: {count: args.seatIds.length, tierId: args.tierId ?? null},
+    });
   },
 });
 
@@ -661,9 +876,21 @@ export const deleteSeats = mutation({
     for (const seatId of args.seatIds) {
       const seat = await ctx.db.get(seatId);
       if (!seat) continue;
-      await requireOwnedEditableTemplate(ctx, seat.layoutId, userId);
+      await requireOwnedTemplate(ctx, seat.layoutId, userId);
+    }
+    await assertSeatsUnlocked(ctx, args.seatIds);
+
+    for (const seatId of args.seatIds) {
       await ctx.db.delete(seatId);
     }
+
+    await writeAuditLog(ctx, {
+      actorId: userId,
+      action: 'venueLayoutSeat:delete',
+      targetType: 'venueLayoutSeats',
+      targetId: args.seatIds[0] ?? 'batch',
+      metadata: {count: args.seatIds.length},
+    });
   },
 });
 
@@ -683,7 +910,7 @@ export const getTemplate = query({
     if (!template) return null;
     if (template.ownerId !== userId) return null;
 
-    const [sections, tiers, seats] = await Promise.all([
+    const [sections, tiers, seats, elements] = await Promise.all([
       ctx.db
         .query('venueLayoutSections')
         .withIndex('by_layoutId', q => q.eq('layoutId', args.layoutId))
@@ -696,6 +923,10 @@ export const getTemplate = query({
         .query('venueLayoutSeats')
         .withIndex('by_layoutId', q => q.eq('layoutId', args.layoutId))
         .take(5000),
+      ctx.db
+        .query('venueLayoutElements')
+        .withIndex('by_layoutId', q => q.eq('layoutId', args.layoutId))
+        .collect(),
     ]);
 
     return {
@@ -703,6 +934,7 @@ export const getTemplate = query({
       sections: sections.sort((a, b) => a.displayOrder - b.displayOrder),
       tiers: tiers.sort((a, b) => a.displayOrder - b.displayOrder),
       seats,
+      elements: elements.sort((a, b) => a.displayOrder - b.displayOrder),
     };
   },
 });
@@ -741,7 +973,7 @@ export const getSnapshotForEvent = query({
     }
 
     const layoutId = event.venueLayoutSnapshotId;
-    const [template, sections, tiers, seats] = await Promise.all([
+    const [template, sections, tiers, seats, elements] = await Promise.all([
       ctx.db.get(layoutId),
       ctx.db
         .query('venueLayoutSections')
@@ -755,6 +987,10 @@ export const getSnapshotForEvent = query({
         .query('venueLayoutSeats')
         .withIndex('by_layoutId', q => q.eq('layoutId', layoutId))
         .take(5000),
+      ctx.db
+        .query('venueLayoutElements')
+        .withIndex('by_layoutId', q => q.eq('layoutId', layoutId))
+        .collect(),
     ]);
     if (!template) return null;
 
@@ -763,6 +999,7 @@ export const getSnapshotForEvent = query({
       sections: sections.sort((a, b) => a.displayOrder - b.displayOrder),
       tiers: tiers.sort((a, b) => a.displayOrder - b.displayOrder),
       seats,
+      elements: elements.sort((a, b) => a.displayOrder - b.displayOrder),
     };
   },
 });
