@@ -7,13 +7,36 @@ import {useTranslations} from 'next-intl';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 import Button from '@/components/ui/Button';
-import ToolsSidebar from './sidebar/ToolsSidebar';
+import ToolsSidebar, {AddElementParams} from './sidebar/ToolsSidebar';
 import TierLegend from './sidebar/TierLegend';
-import PropertiesPanel from './sidebar/PropertiesPanel';
+import PropertiesPanel, {ElementPatch} from './sidebar/PropertiesPanel';
 import {MAX_SEATS_PER_CALL} from '@/lib/venueGenerators';
 
 // Konva touches HTMLCanvasElement at import time — must never run during SSR.
 const LayoutCanvas = dynamic(() => import('./canvas/LayoutCanvas'), {ssr: false});
+
+const DEFAULT_RECT_SIZE: Record<string, {width: number; height: number}> = {
+  door: {width: 40, height: 12},
+  window: {width: 40, height: 6},
+  parking: {width: 160, height: 100},
+  zone: {width: 200, height: 140},
+};
+
+const STAGE_DEFAULT_SIZE: Record<'rectangle' | 'circle', {width: number; height: number}> = {
+  rectangle: {width: 240, height: 160},
+  circle: {width: 200, height: 200},
+};
+
+// A default thrust-stage outline (wide back edge, tapered front) — organizers
+// drag these 6 vertices into a plain rectangle, hexagon, or any other shape.
+const STAGE_POLYGON_OFFSETS: {x: number; y: number}[] = [
+  {x: 0, y: 0},
+  {x: 240, y: 0},
+  {x: 240, y: 110},
+  {x: 180, y: 160},
+  {x: 60, y: 160},
+  {x: 0, y: 110},
+];
 
 type VenueLayoutBuilderProps = {
   layoutId: Id<'venueLayoutTemplates'>;
@@ -41,9 +64,13 @@ export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBu
   const deleteSeats = useMutation(api.venueLayout.deleteSeats);
   const updateTemplateMeta = useMutation(api.venueLayout.updateTemplateMeta);
   const ensureShadowTiersForEvent = useMutation(api.venueLayout.ensureShadowTiersForEvent);
+  const addElement = useMutation(api.venueLayoutElements.addElement);
+  const updateElement = useMutation(api.venueLayoutElements.updateElement);
+  const deleteElement = useMutation(api.venueLayoutElements.deleteElement);
 
   const [selectedSectionId, setSelectedSectionId] = useState<Id<'venueLayoutSections'> | null>(null);
   const [selectedSeatId, setSelectedSeatId] = useState<Id<'venueLayoutSeats'> | null>(null);
+  const [selectedElementId, setSelectedElementId] = useState<Id<'venueLayoutElements'> | null>(null);
 
   const syncedRef = useRef(false);
   useEffect(() => {
@@ -64,6 +91,7 @@ export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBu
 
   const selectedSection = template.sections.find(s => s._id === selectedSectionId) ?? null;
   const selectedSeat = template.seats.find(s => s._id === selectedSeatId) ?? null;
+  const selectedElement = template.elements.find(el => el._id === selectedElementId) ?? null;
 
   async function handleAddSection(params: {
     name: string;
@@ -83,6 +111,54 @@ export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBu
     });
     setSelectedSectionId(id);
     setSelectedSeatId(null);
+    setSelectedElementId(null);
+  }
+
+  async function handleAddElement(params: AddElementParams) {
+    const x = 40 + Math.random() * 100;
+    const y = 40 + Math.random() * 100;
+    const defaultSize = DEFAULT_RECT_SIZE[params.kind];
+
+    let width = params.width ?? defaultSize?.width;
+    let height = params.height ?? defaultSize?.height;
+    let points: {x: number; y: number}[] | undefined;
+
+    if (params.kind === 'stage') {
+      if (params.shape === 'rectangle' || params.shape === 'circle') {
+        width = width ?? STAGE_DEFAULT_SIZE[params.shape].width;
+        height = height ?? STAGE_DEFAULT_SIZE[params.shape].height;
+      } else if (params.shape === 'polygon') {
+        points = STAGE_POLYGON_OFFSETS.map(p => ({x: x + p.x, y: y + p.y}));
+      }
+    }
+
+    const id = await addElement({
+      layoutId,
+      kind: params.kind,
+      x,
+      y,
+      ...(params.kind === 'wall' ? {x2: x + 240, y2: y} : {}),
+      width,
+      height,
+      shape: params.shape,
+      points,
+      doorType: params.doorType,
+      amenityType: params.amenityType,
+      capacity: params.capacity,
+      label: params.label,
+      color: params.color,
+    });
+    setSelectedElementId(id);
+    setSelectedSectionId(null);
+    setSelectedSeatId(null);
+  }
+
+  function handleStagePointDragEnd(elementId: Id<'venueLayoutElements'>, pointIndex: number, x: number, y: number) {
+    if (!template) return;
+    const element = template.elements.find(el => el._id === elementId);
+    if (!element?.points) return;
+    const points = element.points.map((p, i) => (i === pointIndex ? {x, y} : p));
+    updateElement({elementId, points});
   }
 
   async function handleGenerateSeats(
@@ -114,6 +190,7 @@ export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBu
           selectedSection={selectedSection}
           onAddSection={handleAddSection}
           onGenerateSeats={handleGenerateSeats}
+          onAddElement={handleAddElement}
         />
 
         <div className="flex-1 space-y-4">
@@ -123,19 +200,31 @@ export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBu
             sections={template.sections}
             tiers={template.tiers}
             seats={template.seats}
+            elements={template.elements}
             mode="edit"
             selectedSectionId={selectedSectionId}
             selectedSeatId={selectedSeatId}
+            selectedElementId={selectedElementId}
             onSectionClick={id => {
               setSelectedSectionId(id);
               setSelectedSeatId(null);
+              setSelectedElementId(null);
             }}
             onSectionDragEnd={(id, x, y) => updateSection({sectionId: id, x, y})}
             onSeatClick={id => {
               setSelectedSeatId(id);
               setSelectedSectionId(null);
+              setSelectedElementId(null);
             }}
             onSeatDragEnd={(id, x, y) => updateSeatPosition({seatId: id, x, y})}
+            onElementClick={id => {
+              setSelectedElementId(id);
+              setSelectedSectionId(null);
+              setSelectedSeatId(null);
+            }}
+            onElementDragEnd={(id, patch) => updateElement({elementId: id, ...patch})}
+            onElementTransformEnd={(id, rotation) => updateElement({elementId: id, rotation})}
+            onStagePointDragEnd={handleStagePointDragEnd}
           />
           <TierLegend
             tiers={template.tiers}
@@ -152,6 +241,7 @@ export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBu
           tiers={template.tiers}
           selectedSection={selectedSection}
           selectedSeat={selectedSeat}
+          selectedElement={selectedElement}
           onUpdateSection={(sectionId, patch) => updateSection({sectionId, ...patch})}
           onDeleteSection={sectionId => {
             deleteSection({sectionId});
@@ -172,6 +262,11 @@ export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBu
           onDeleteSeat={seatId => {
             deleteSeats({seatIds: [seatId]});
             setSelectedSeatId(null);
+          }}
+          onUpdateElement={(elementId, patch: ElementPatch) => updateElement({elementId, ...patch})}
+          onDeleteElement={elementId => {
+            deleteElement({elementId});
+            setSelectedElementId(null);
           }}
         />
       </div>
