@@ -214,6 +214,7 @@ export default function SeatMapCheckout({event}: Props) {
             sections={snapshot.sections}
             tiers={snapshot.tiers}
             seats={snapshot.seats}
+            elements={snapshot.elements}
             mode="select"
             selectedSeatIds={selectedSeatIds}
             seatAvailability={seatAvailability}

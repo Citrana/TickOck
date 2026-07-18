@@ -28,6 +28,7 @@ import type * as seatHolds from "../seatHolds.js";
 import type * as tickets from "../tickets.js";
 import type * as users from "../users.js";
 import type * as venueLayout from "../venueLayout.js";
+import type * as venueLayoutElements from "../venueLayoutElements.js";
 
 import type {
   ApiFromModules,
@@ -56,6 +57,7 @@ declare const fullApi: ApiFromModules<{
   tickets: typeof tickets;
   users: typeof users;
   venueLayout: typeof venueLayout;
+  venueLayoutElements: typeof venueLayoutElements;
 }>;
 
 /**

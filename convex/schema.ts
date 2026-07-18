@@ -308,6 +308,64 @@ export default defineSchema({
     .index('by_layoutId', ['layoutId'])
     .index('by_sectionId', ['sectionId']),
 
+  // Structural floor-plan elements (walls, doors, windows, parking, amenity
+  // markers, colored zones) — kept in their own table, separate from seats/
+  // sections, since they never carry inventory/pricing and must stay
+  // editable on a live event's layout regardless of seat sales.
+  venueLayoutElements: defineTable({
+    layoutId: v.id('venueLayoutTemplates'),
+    kind: v.union(
+      v.literal('wall'),
+      v.literal('door'),
+      v.literal('window'),
+      v.literal('parking'),
+      v.literal('amenity'),
+      v.literal('zone'),
+      v.literal('stage'),
+    ),
+    // Wall: a line segment (x,y)-(x2,y2) — represents straight *and* angled
+    // walls without needing a rotation transform.
+    x: v.number(),
+    y: v.number(),
+    x2: v.optional(v.number()),
+    y2: v.optional(v.number()),
+    // Rect-based kinds (door, window, parking, zone, rectangle/circle stage):
+    // box + rotation, set via the canvas's rotate handle.
+    width: v.optional(v.number()),
+    height: v.optional(v.number()),
+    rotation: v.optional(v.number()),
+    // Stage only: which geometry variant it uses. Chosen once at creation —
+    // never changed afterward, since switching would mean synthesizing or
+    // discarding incompatible geometry (organizers delete and re-add instead).
+    shape: v.optional(v.union(v.literal('rectangle'), v.literal('circle'), v.literal('polygon'))),
+    // Polygon stage only: absolute canvas coordinates for each vertex,
+    // individually draggable to reshape the outline.
+    points: v.optional(v.array(v.object({x: v.number(), y: v.number()}))),
+    doorType: v.optional(
+      v.union(v.literal('main'), v.literal('emergency'), v.literal('staff')),
+    ),
+    amenityType: v.optional(
+      v.union(
+        v.literal('toilet'),
+        v.literal('bar'),
+        v.literal('first_aid'),
+        v.literal('info'),
+        v.literal('coat_check'),
+        v.literal('smoking_area'),
+        v.literal('atm'),
+        v.literal('charging_station'),
+        v.literal('wheelchair_access'),
+        v.literal('lost_found'),
+      ),
+    ),
+    capacity: v.optional(v.number()), // parking only
+    label: v.optional(v.string()),
+    color: v.optional(v.string()),
+    displayOrder: v.number(),
+  })
+    .index('by_layoutId', ['layoutId'])
+    .index('by_layoutId_and_kind', ['layoutId', 'kind']),
+
   // Temporary per-seat reservations during checkout. Kept separate from
   // venueLayoutSeats because holds are high-churn and would otherwise
   // contend with canvas-rendering reads of seat positions.

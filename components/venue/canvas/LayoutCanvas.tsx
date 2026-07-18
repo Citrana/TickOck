@@ -1,12 +1,28 @@
 'use client';
 
 import {useEffect, useMemo, useRef, useState} from 'react';
-import {Stage, Layer, Group} from 'react-konva';
+import {Stage, Layer, Group, Transformer} from 'react-konva';
+import Konva from 'konva';
 import {Id} from '@/convex/_generated/dataModel';
-import {VenueSection, VenueTier, VenueSeat, SeatStatus, CanvasMode, SEAT_RADIUS} from '../types';
+import {
+  VenueSection,
+  VenueTier,
+  VenueSeat,
+  VenueElement,
+  SeatStatus,
+  CanvasMode,
+  SEAT_RADIUS,
+} from '../types';
 import SectionShape from './SectionShape';
 import SeatShape from './SeatShape';
 import GAZoneShape from './GAZoneShape';
+import WallShape from './WallShape';
+import DoorShape from './DoorShape';
+import WindowShape from './WindowShape';
+import ParkingZoneShape from './ParkingZoneShape';
+import AmenityMarkerShape from './AmenityMarkerShape';
+import ZoneShape from './ZoneShape';
+import StageShape from './StageShape';
 
 const DEFAULT_TIER_COLOR = '#9CA3AF';
 const GA_ZONE_WIDTH = 220;
@@ -19,22 +35,42 @@ const CONTENT_PADDING = 24;
 const MIN_SELECT_SCALE = 0.5;
 const MAX_SELECT_SCALE = 2;
 
+// Element kinds rendered as a rotatable rect — the only ones the edit-mode
+// rotate handle attaches to. Walls (line segments) and amenities (point
+// markers) have no rotation field. A stage is rotatable only when it's a
+// rectangle/circle — a polygon stage reshapes via vertex handles instead.
+const ROTATABLE_KINDS = new Set(['door', 'window', 'parking', 'zone']);
+
+function isRotatable(element: VenueElement): boolean {
+  if (element.kind === 'stage') return element.shape !== 'polygon';
+  return ROTATABLE_KINDS.has(element.kind);
+}
+
 type LayoutCanvasProps = {
   canvasWidth: number;
   canvasHeight: number;
   sections: VenueSection[];
   tiers: VenueTier[];
   seats: VenueSeat[];
+  elements?: VenueElement[];
   mode: CanvasMode;
   selectedSectionId?: Id<'venueLayoutSections'> | null;
   selectedSeatId?: Id<'venueLayoutSeats'> | null;
   selectedSeatIds?: Set<Id<'venueLayoutSeats'>>;
+  selectedElementId?: Id<'venueLayoutElements'> | null;
   seatAvailability?: Record<string, SeatStatus>;
   gaSold?: Record<string, number>;
   onSectionClick?: (sectionId: Id<'venueLayoutSections'>) => void;
   onSectionDragEnd?: (sectionId: Id<'venueLayoutSections'>, x: number, y: number) => void;
   onSeatClick?: (seatId: Id<'venueLayoutSeats'>) => void;
   onSeatDragEnd?: (seatId: Id<'venueLayoutSeats'>, x: number, y: number) => void;
+  onElementClick?: (elementId: Id<'venueLayoutElements'>) => void;
+  onElementDragEnd?: (
+    elementId: Id<'venueLayoutElements'>,
+    patch: {x: number; y: number; x2?: number; y2?: number; points?: {x: number; y: number}[]},
+  ) => void;
+  onElementTransformEnd?: (elementId: Id<'venueLayoutElements'>, rotation: number) => void;
+  onStagePointDragEnd?: (elementId: Id<'venueLayoutElements'>, pointIndex: number, x: number, y: number) => void;
 };
 
 export default function LayoutCanvas({
@@ -43,21 +79,30 @@ export default function LayoutCanvas({
   sections,
   tiers,
   seats,
+  elements = [],
   mode,
   selectedSectionId,
   selectedSeatId,
   selectedSeatIds,
+  selectedElementId,
   seatAvailability,
   gaSold,
   onSectionClick,
   onSectionDragEnd,
   onSeatClick,
   onSeatDragEnd,
+  onElementClick,
+  onElementDragEnd,
+  onElementTransformEnd,
+  onStagePointDragEnd,
 }: LayoutCanvasProps) {
   const tierById = new Map(tiers.map(t => [t._id, t]));
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState<number | null>(null);
+
+  const transformerRef = useRef<Konva.Transformer>(null);
+  const elementNodeRefs = useRef<Map<string, Konva.Group>>(new Map());
 
   // Only the read-only "select" view needs to be responsive to its
   // container — the edit-mode builder must stay pinned at a fixed 1:1
@@ -74,6 +119,24 @@ export default function LayoutCanvas({
     observer.observe(node);
     return () => observer.disconnect();
   }, [mode]);
+
+  // Attach/detach the rotate handle to whichever rect-based structure
+  // element is currently selected in edit mode.
+  useEffect(() => {
+    const transformer = transformerRef.current;
+    if (!transformer) return;
+
+    const selectedElement = selectedElementId
+      ? elements.find(el => el._id === selectedElementId)
+      : undefined;
+    const node =
+      mode === 'edit' && selectedElement && isRotatable(selectedElement)
+        ? elementNodeRefs.current.get(selectedElement._id)
+        : undefined;
+
+    transformer.nodes(node ? [node] : []);
+    transformer.getLayer()?.batchDraw();
+  }, [mode, selectedElementId, elements]);
 
   // Sections/seats keep their stored absolute x,y (edit mode relies on
   // that — onDragEnd persists coordinates relative to the Stage). In
@@ -135,9 +198,153 @@ export default function LayoutCanvas({
     };
   }, [mode, sections, seats, canvasWidth, canvasHeight, containerWidth]);
 
+  function renderElement(element: VenueElement) {
+    const selected = selectedElementId === element._id;
+    const draggable = mode === 'edit';
+    const setRef = (node: Konva.Group | null) => {
+      if (node) elementNodeRefs.current.set(element._id, node);
+      else elementNodeRefs.current.delete(element._id);
+    };
+
+    switch (element.kind) {
+      case 'wall':
+        return (
+          <WallShape
+            key={element._id}
+            element={element}
+            selected={selected}
+            draggable={draggable}
+            onClick={() => onElementClick?.(element._id)}
+            onDragEnd={(dx, dy) => {
+              // WallShape reports how far the group moved; translate both
+              // endpoints by that same delta so the wall keeps its shape.
+              onElementDragEnd?.(element._id, {
+                x: element.x + dx,
+                y: element.y + dy,
+                x2: (element.x2 ?? element.x) + dx,
+                y2: (element.y2 ?? element.y) + dy,
+              });
+            }}
+          />
+        );
+      case 'door':
+        return (
+          <DoorShape
+            key={element._id}
+            ref={setRef}
+            element={element}
+            selected={selected}
+            draggable={draggable}
+            onClick={() => onElementClick?.(element._id)}
+            onDragEnd={(x, y) => onElementDragEnd?.(element._id, {x, y})}
+          />
+        );
+      case 'window':
+        return (
+          <WindowShape
+            key={element._id}
+            ref={setRef}
+            element={element}
+            selected={selected}
+            draggable={draggable}
+            onClick={() => onElementClick?.(element._id)}
+            onDragEnd={(x, y) => onElementDragEnd?.(element._id, {x, y})}
+          />
+        );
+      case 'parking':
+        return (
+          <ParkingZoneShape
+            key={element._id}
+            ref={setRef}
+            element={element}
+            selected={selected}
+            draggable={draggable}
+            onClick={() => onElementClick?.(element._id)}
+            onDragEnd={(x, y) => onElementDragEnd?.(element._id, {x, y})}
+          />
+        );
+      case 'amenity':
+        return (
+          <AmenityMarkerShape
+            key={element._id}
+            element={element}
+            selected={selected}
+            draggable={draggable}
+            onClick={() => onElementClick?.(element._id)}
+            onDragEnd={(x, y) => onElementDragEnd?.(element._id, {x, y})}
+          />
+        );
+      case 'zone':
+        return (
+          <ZoneShape
+            key={element._id}
+            ref={setRef}
+            element={element}
+            selected={selected}
+            draggable={draggable}
+            onClick={() => onElementClick?.(element._id)}
+            onDragEnd={(x, y) => onElementDragEnd?.(element._id, {x, y})}
+          />
+        );
+      case 'stage':
+        return (
+          <StageShape
+            key={element._id}
+            ref={setRef}
+            element={element}
+            selected={selected}
+            draggable={draggable}
+            onClick={() => onElementClick?.(element._id)}
+            onDragEnd={(x, y) => {
+              if (element.shape === 'polygon') {
+                // StageShape reports how far the group moved for a polygon;
+                // translate the anchor and every vertex by that same delta,
+                // in one consolidated patch (mirrors the wall case above).
+                onElementDragEnd?.(element._id, {
+                  x: element.x + x,
+                  y: element.y + y,
+                  points: (element.points ?? []).map(p => ({x: p.x + x, y: p.y + y})),
+                });
+              } else {
+                onElementDragEnd?.(element._id, {x, y});
+              }
+            }}
+            onPointDragEnd={(pointIndex, x, y) => onStagePointDragEnd?.(element._id, pointIndex, x, y)}
+          />
+        );
+      default:
+        return null;
+    }
+  }
+
   return (
     <div ref={containerRef} className="w-full overflow-auto rounded-xl border border-gray-200 bg-gray-50">
       <Stage width={layoutMetrics.stageWidth} height={layoutMetrics.stageHeight}>
+        <Layer listening={mode === 'edit'}>
+          <Group
+            x={layoutMetrics.groupX}
+            y={layoutMetrics.groupY}
+            scaleX={layoutMetrics.scale}
+            scaleY={layoutMetrics.scale}
+          >
+            {elements.map(renderElement)}
+            {mode === 'edit' && (
+              <Transformer
+                ref={transformerRef}
+                rotateEnabled
+                enabledAnchors={[]}
+                rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
+                onTransformEnd={() => {
+                  if (!selectedElementId) return;
+                  const node = elementNodeRefs.current.get(selectedElementId);
+                  if (!node) return;
+                  onElementTransformEnd?.(selectedElementId, node.rotation());
+                }}
+              />
+            )}
+          </Group>
+        </Layer>
+
         <Layer>
           <Group
             x={layoutMetrics.groupX}
