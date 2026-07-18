@@ -104,6 +104,11 @@ export default function LayoutCanvas({
   const transformerRef = useRef<Konva.Transformer>(null);
   const elementNodeRefs = useRef<Map<string, Konva.Group>>(new Map());
 
+  // Ids present before this component's first render should never "drop in"
+  // — only markers placed during this session (added to the set below as
+  // they're first seen) get the placement animation.
+  const seenElementIds = useRef<Set<string>>(new Set(elements.map(el => el._id)));
+
   // Only the read-only "select" view needs to be responsive to its
   // container — the edit-mode builder must stay pinned at a fixed 1:1
   // pixel scale so onDragEnd's persisted coordinates match what's drawn.
@@ -137,6 +142,13 @@ export default function LayoutCanvas({
     transformer.nodes(node ? [node] : []);
     transformer.getLayer()?.batchDraw();
   }, [mode, selectedElementId, elements]);
+
+  // Runs after render, once the current elements have actually been drawn —
+  // marks them "seen" so a later re-render (e.g. an unrelated selection
+  // change) never replays the drop-in animation for markers already on screen.
+  useEffect(() => {
+    for (const element of elements) seenElementIds.current.add(element._id);
+  }, [elements]);
 
   // Sections/seats keep their stored absolute x,y (edit mode relies on
   // that — onDragEnd persists coordinates relative to the Stage). In
@@ -267,9 +279,11 @@ export default function LayoutCanvas({
         return (
           <AmenityMarkerShape
             key={element._id}
+            ref={setRef}
             element={element}
             selected={selected}
             draggable={draggable}
+            animateIn={!seenElementIds.current.has(element._id)}
             onClick={() => onElementClick?.(element._id)}
             onDragEnd={(x, y) => onElementDragEnd?.(element._id, {x, y})}
           />

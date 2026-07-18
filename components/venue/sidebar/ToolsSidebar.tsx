@@ -240,6 +240,7 @@ export default function ToolsSidebar({tiers, selectedSection, onAddSection, onGe
               <option value="charging_station">{t('structure.amenityChargingStation')}</option>
               <option value="wheelchair_access">{t('structure.amenityWheelchairAccess')}</option>
               <option value="lost_found">{t('structure.amenityLostFound')}</option>
+              <option value="parking">{t('structure.amenityParking')}</option>
             </Select>
           </FormField>
           <Input

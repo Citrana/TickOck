@@ -193,6 +193,7 @@ export default function PropertiesPanel({
               <option value="charging_station">{t('amenityChargingStation')}</option>
               <option value="wheelchair_access">{t('amenityWheelchairAccess')}</option>
               <option value="lost_found">{t('amenityLostFound')}</option>
+              <option value="parking">{t('amenityParking')}</option>
             </Select>
           </FormField>
         )}

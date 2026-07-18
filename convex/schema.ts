@@ -356,6 +356,7 @@ export default defineSchema({
         v.literal('charging_station'),
         v.literal('wheelchair_access'),
         v.literal('lost_found'),
+        v.literal('parking'),
       ),
     ),
     capacity: v.optional(v.number()), // parking only
