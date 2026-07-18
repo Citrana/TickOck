@@ -30,6 +30,7 @@ const amenityTypeValidator = v.union(
   v.literal('charging_station'),
   v.literal('wheelchair_access'),
   v.literal('lost_found'),
+  v.literal('parking'),
 );
 
 // Structural elements never reference seats, so — unlike sections/tiers/
