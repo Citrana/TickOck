@@ -26,6 +26,7 @@ const SYSTEM_ROLES = [
       'events:edit',
       'events:delete',
       'events:manage_seating',
+      'venues:edit',
       'tickets:read',
       'payments:view',
       'payments:confirm',
