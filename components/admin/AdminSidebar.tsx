@@ -45,6 +45,16 @@ const NAV = [
     ),
   },
   {
+    key: 'venueLayouts',
+    href: '/admin/venue-layouts',
+    requiredSlug: 'venues:edit',
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 1v10h10V5H5zm2 2h2v2H7V7zm4 0h2v2h-2V7zM7 11h2v2H7v-2zm4 0h2v2h-2v-2z" clipRule="evenodd" />
+      </svg>
+    ),
+  },
+  {
     key: 'auditLog',
     href: '/admin/audit',
     superAdminOnly: true,
@@ -81,6 +91,11 @@ export default function AdminSidebar() {
         <nav className="flex flex-row flex-wrap gap-1 md:flex-col md:flex-nowrap md:space-y-0.5 md:gap-0">
           {NAV.map(item => {
             if (item.superAdminOnly && !isSuperAdmin) return null;
+            if (item.requiredSlug) {
+              const permissionSlugs = user?.role?.permissionSlugs ?? [];
+              const hasSlug = permissionSlugs.includes('*') || permissionSlugs.includes(item.requiredSlug);
+              if (!hasSlug) return null;
+            }
             const isActive =
               item.href === '/admin'
                 ? pathname === '/admin' || pathname === '/en/admin' || pathname === '/fr/admin'
