@@ -65,6 +65,18 @@ export async function seedSpeaker(
   });
 }
 
+export async function seedRole(
+  ctx: MutationCtx,
+  overrides?: Partial<Omit<Doc<'roles'>, '_id' | '_creationTime'>>,
+): Promise<Id<'roles'>> {
+  return ctx.db.insert('roles', {
+    name: 'test-role',
+    permissionSlugs: [],
+    isSystem: false,
+    ...overrides,
+  });
+}
+
 export async function seedTicket(
   ctx: MutationCtx,
   eventId: Id<'events'>,
