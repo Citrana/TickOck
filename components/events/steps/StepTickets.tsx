@@ -15,6 +15,9 @@ type Props = {
   onChange: (patch: Partial<EventFormData>) => void;
   errors: Partial<Record<keyof EventFormData, string>>;
   savedEventId?: Id<'events'>;
+  // Set when a platform admin is assisting an organizer who isn't the
+  // caller — passed through to the venue-layout picker.
+  venueOwnerId?: Id<'users'>;
 };
 
 const DEFAULT_TIER_COLOR = '#2563EB';
@@ -131,7 +134,7 @@ const TIER_ERROR_KEYS: Record<string, string> = {
   venueLayoutTemplateRequired: 'tickets.errorVenueLayoutTemplateRequired',
 };
 
-export default function StepTickets({data, onChange, errors, savedEventId}: Props) {
+export default function StepTickets({data, onChange, errors, savedEventId, venueOwnerId}: Props) {
   const t = useTranslations('eventCreate');
 
   const totalTickets = data.tiers.reduce((sum, tier) => {
@@ -210,7 +213,7 @@ export default function StepTickets({data, onChange, errors, savedEventId}: Prop
         </div>
       )}
 
-      <VenueLayoutAttachPanel data={data} onChange={onChange} savedEventId={savedEventId} />
+      <VenueLayoutAttachPanel data={data} onChange={onChange} savedEventId={savedEventId} ownerId={venueOwnerId} />
     </div>
   );
 }
