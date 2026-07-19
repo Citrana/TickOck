@@ -16,7 +16,7 @@ import FormField from '@/components/ui/FormField';
 
 export default function VenueLayoutList() {
   const t = useTranslations('venueLayout.list');
-  const templates = useQuery(api.venueLayout.listMineForAttach);
+  const templates = useQuery(api.venueLayout.listMineForAttach, {});
   const createTemplate = useMutation(api.venueLayout.createTemplate);
   const duplicateTemplate = useMutation(api.venueLayout.duplicateTemplate);
   const deleteTemplate = useMutation(api.venueLayout.deleteTemplate);
