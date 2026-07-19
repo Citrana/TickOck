@@ -38,3 +38,6 @@ next-env.d.ts
 
 # local Claude Code overrides (personal, not project)
 .claude/settings.local.json
+
+# foglamp scan (edit token is a secret)
+.foglamp/

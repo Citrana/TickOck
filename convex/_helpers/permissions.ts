@@ -29,7 +29,8 @@ export type PermissionSlug =
   | 'staff:manage'
   | 'platform:configure'
   | 'auditlogs:view'
-  | 'events:manage_seating';
+  | 'events:manage_seating'
+  | 'venues:edit';
 
 function slugMatches(granted: string[], required: PermissionSlug): boolean {
   return granted.includes('*') || granted.includes(required);
@@ -138,4 +139,20 @@ export async function assertPermission(
 export async function getCallerUserId(ctx: QueryCtx): Promise<Id<'users'>> {
   const user = await resolveCallerUser(ctx);
   return user._id;
+}
+
+/**
+ * Non-throwing check of a user's *platform* role only (no ownership/staff
+ * fallback) — for read paths that want to fall back to "not found" rather
+ * than a thrown error when an assisting admin lacks the slug.
+ */
+export async function hasPlatformPermission(
+  ctx: QueryCtx,
+  userId: Id<'users'>,
+  permission: PermissionSlug,
+): Promise<boolean> {
+  const user = await ctx.db.get(userId);
+  if (!user?.platformRoleId) return false;
+  const role = await ctx.db.get(user.platformRoleId);
+  return role != null && slugMatches(role.permissionSlugs, permission);
 }
