@@ -260,6 +260,7 @@
       "pendingEvents": "Pending Events",
       "pricing": "Platform Pricing",
       "users": "Users",
+      "venueLayouts": "Venues",
       "auditLog": "Audit Log",
       "reports": "Event Reports"
     },
@@ -389,6 +390,31 @@
         "processing": "Processing…"
       }
     },
+    "venueLayoutsReport": {
+      "pageTitle": "Venue Layouts",
+      "pageSubtitle": "Browse every venue layout being built across the platform to help organizers who are stuck.",
+      "loading": "Loading venue layouts…",
+      "empty": "No venue layouts match your filters.",
+      "unknownOwner": "Unknown",
+      "searchPlaceholder": "Search by name or owner…",
+      "manage": "Open builder",
+      "cols": {
+        "name": "Name",
+        "owner": "Owner",
+        "status": "Status",
+        "sectionCount": "Sections",
+        "updatedAt": "Last updated"
+      },
+      "status": {
+        "draft": "Draft",
+        "published": "Published"
+      },
+      "statusFilter": {
+        "all": "All",
+        "draft": "Draft",
+        "published": "Published"
+      }
+    },
     "reports": {
       "navLabel": "Event Reports",
       "pageTitle": "Event Reports",
@@ -400,6 +426,7 @@
       "columnsButton": "Columns",
       "clearFilters": "Clear filters",
       "resultsCount": "{count} events",
+      "manage": "Manage",
       "filterPanel": {
         "title": "Filters",
         "name": "Event name",
@@ -484,6 +511,7 @@
     "title": "Manage Event",
     "backToEvent": "← Back to event",
     "accessDenied": "You don't have permission to manage this event.",
+    "assistBanner": "You're managing this event as a platform admin, on behalf of its organizer.",
     "tabs": {
       "overview": "Overview",
       "payments": "Payments",
@@ -1068,6 +1096,7 @@
       "notFound": "Venue layout not found.",
       "autosaved": "Changes save automatically",
       "publish": "Publish layout",
+      "assistBanner": "You're editing this venue layout as a platform admin, on behalf of its owner.",
       "sections": {
         "heading": "Sections",
         "customNamePlaceholder": "Section name",
