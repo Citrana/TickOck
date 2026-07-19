@@ -15,12 +15,15 @@ type Props = {
   data: EventFormData;
   onChange: (patch: Partial<EventFormData>) => void;
   savedEventId?: Id<'events'>;
+  // Set when a platform admin is assisting an organizer who isn't the
+  // caller — templates and new layouts are then listed/owned for this user.
+  ownerId?: Id<'users'>;
 };
 
-export default function VenueLayoutAttachPanel({data, onChange, savedEventId}: Props) {
+export default function VenueLayoutAttachPanel({data, onChange, savedEventId, ownerId}: Props) {
   const t = useTranslations('eventCreate.tickets.venueLayout');
   const locale = useLocale();
-  const templates = useQuery(api.venueLayout.listMineForAttach);
+  const templates = useQuery(api.venueLayout.listMineForAttach, {ownerId});
   const venueLayoutRules = useQuery(api.platformPricing.listActive, {category: 'venue_layout'});
   const chosenTemplate = useQuery(
     api.venueLayout.getTemplate,
@@ -55,6 +58,7 @@ export default function VenueLayoutAttachPanel({data, onChange, savedEventId}: P
       name: `${data.title || 'Event'} layout`,
       canvasWidth: 1000,
       canvasHeight: 700,
+      onBehalfOfUserId: ownerId,
     });
     onChange({venueLayoutTemplateId: newId});
     window.open(`/${locale}/events/venue-layouts/${newId}?forEventId=${savedEventId}`, '_blank');
