@@ -1,7 +1,7 @@
 import {v} from 'convex/values';
 import {mutation, query, MutationCtx, QueryCtx} from './_generated/server';
 import {Id} from './_generated/dataModel';
-import {getCallerUserId, requirePermission} from './_helpers/permissions';
+import {getCallerUserId, hasPlatformPermission, requirePermission} from './_helpers/permissions';
 import {writeAuditLog} from './_helpers/audit';
 import {getAuthUserId} from '@convex-dev/auth/server';
 import {copyLayout, deleteLayoutCascade} from './venueLayout';
@@ -341,11 +341,9 @@ export const update = mutation({
     ...eventWriteArgs,
   },
   handler: async (ctx, args) => {
-    const callerId = await getCallerUserId(ctx as unknown as QueryCtx);
-
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error('Event not found');
-    if (event.ownerId !== callerId) throw new Error('Forbidden: not the event owner');
+    const actorId = await requirePermission(ctx, 'events:edit', args.eventId);
 
     await ctx.db.patch(args.eventId, {
       title: args.title,
@@ -371,11 +369,13 @@ export const update = mutation({
     await reconcileSpeakers(ctx, args.eventId, args.speakers);
 
     await writeAuditLog(ctx, {
-      actorId: callerId,
+      actorId,
       action: 'events:edit',
       targetType: 'events',
       targetId: args.eventId,
-      metadata: {title: args.title},
+      metadata: actorId === event.ownerId
+        ? {title: args.title}
+        : {title: args.title, onBehalfOf: event.ownerId},
     });
   },
 });
@@ -388,11 +388,9 @@ export const submitForApproval = mutation({
     platformFeeEvidenceStorageId: v.id('_storage'),
   },
   handler: async (ctx, args) => {
-    const callerId = await getCallerUserId(ctx as unknown as QueryCtx);
-
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error('Event not found');
-    if (event.ownerId !== callerId) throw new Error('Forbidden: not the event owner');
+    const actorId = await requirePermission(ctx, 'events:edit', args.eventId);
 
     if (event.status !== 'draft' && event.status !== 'rejected') {
       throw new Error(
@@ -415,11 +413,13 @@ export const submitForApproval = mutation({
     });
 
     await writeAuditLog(ctx, {
-      actorId: callerId,
+      actorId,
       action: 'events:submit',
       targetType: 'events',
       targetId: args.eventId,
-      metadata: {previousStatus: event.status},
+      metadata: actorId === event.ownerId
+        ? {previousStatus: event.status}
+        : {previousStatus: event.status, onBehalfOf: event.ownerId},
     });
   },
 });
@@ -536,7 +536,9 @@ export const get = query({
     const isPublicLive = event.status === 'live' && event.visibility !== 'private';
     if (!isPublicLive) {
       const userId = await getAuthUserId(ctx);
-      if (userId !== event.ownerId) return null;
+      if (userId !== event.ownerId && (!userId || !(await hasPlatformPermission(ctx, userId, 'events:edit')))) {
+        return null;
+      }
     }
 
     const [tiers, speakers] = await Promise.all([
@@ -688,7 +690,11 @@ export const getStats = query({
           q.eq('eventId', args.eventId).eq('userId', userId),
         )
         .unique();
-      if (!staff || staff.isActive === false) return null;
+      const hasStaffAccess = !!staff && staff.isActive !== false;
+
+      if (!hasStaffAccess && !(await hasPlatformPermission(ctx, userId, 'events:edit'))) {
+        return null;
+      }
     }
 
     const [tiers, tickets, payments] = await Promise.all([
