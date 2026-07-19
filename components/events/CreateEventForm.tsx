@@ -13,6 +13,7 @@ import {
   FormSpeaker,
 } from '@/types/eventForm';
 import {calculatePlatformFee} from '@/lib/platformFee';
+import {useCurrentUser} from '@/hooks/useCurrentUser';
 import FormStepNav from './FormStepNav';
 import StepBasicInfo from './steps/StepBasicInfo';
 import StepVenue from './steps/StepVenue';
@@ -136,6 +137,14 @@ export default function CreateEventForm({existingEventId, locale: _locale}: Prop
     api.events.get,
     existingEventId ? {eventId: existingEventId} : 'skip',
   );
+
+  // Set when a platform admin is assisting an organizer who isn't the
+  // caller — the venue-layout picker then lists/creates for that organizer.
+  const {user: currentUser} = useCurrentUser();
+  const assistOwnerId =
+    existingEvent && currentUser && existingEvent.ownerId !== currentUser._id
+      ? existingEvent.ownerId
+      : undefined;
 
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -454,7 +463,9 @@ export default function CreateEventForm({existingEventId, locale: _locale}: Prop
         {step === 1 && <StepVenue {...stepProps} />}
         {step === 2 && <StepSettings {...stepProps} />}
         {step === 3 && <StepSpeakers data={data} onChange={patch} />}
-        {step === 4 && <StepTickets {...stepProps} savedEventId={savedEventId ?? undefined} />}
+        {step === 4 && (
+          <StepTickets {...stepProps} savedEventId={savedEventId ?? undefined} venueOwnerId={assistOwnerId} />
+        )}
         {step === 5 && (
           <StepReview {...stepProps} existingEventId={savedEventId ?? undefined} />
         )}
