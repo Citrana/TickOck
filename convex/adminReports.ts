@@ -138,6 +138,58 @@ export const listAuditLogs = query({
   },
 });
 
+// ---------------------------------------------------------------------------
+// Venue layouts report
+// ---------------------------------------------------------------------------
+
+// Admin/super-admin: all non-snapshot venue layout templates (up to 500)
+// across every owner, enriched with owner name/email + section count, so an
+// admin can find organizers who are struggling to build their seat map and
+// jump in via the venues:edit bypass in venueLayout.ts.
+// Filtering is client-side.
+export const listAllVenueLayouts = query({
+  args: {},
+  handler: async ctx => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    const user = await ctx.db.get(userId);
+    if (!user?.platformRoleId) return [];
+
+    const role = await ctx.db.get(user.platformRoleId);
+    const canView =
+      role?.permissionSlugs.includes('*') || role?.permissionSlugs.includes('venues:edit');
+    if (!canView) return [];
+
+    const templates = await ctx.db.query('venueLayoutTemplates').order('desc').take(500);
+
+    return await Promise.all(
+      templates
+        .filter(t => !t.isSnapshot)
+        .map(async t => {
+          const owner = await ctx.db.get(t.ownerId);
+          const sections = await ctx.db
+            .query('venueLayoutSections')
+            .withIndex('by_layoutId', q => q.eq('layoutId', t._id))
+            .collect();
+
+          return {
+            _id: t._id,
+            name: t.name,
+            status: t.status,
+            canvasWidth: t.canvasWidth,
+            canvasHeight: t.canvasHeight,
+            ownerName: owner?.name ?? owner?.email ?? null,
+            ownerEmail: owner?.email ?? null,
+            sectionCount: sections.length,
+            createdAt: t.createdAt,
+            updatedAt: t.updatedAt,
+          };
+        }),
+    );
+  },
+});
+
 // Suspend or reactivate a user. Never deletes. Requires users:suspend permission.
 export const setUserStatus = mutation({
   args: {
