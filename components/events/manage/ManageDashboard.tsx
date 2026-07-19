@@ -8,6 +8,7 @@ import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 import {useCurrentUser} from '@/hooks/useCurrentUser';
 import EventStatusBadge from '@/components/events/EventStatusBadge';
+import Banner from '@/components/ui/Banner';
 import SalesOverview from './SalesOverview';
 import PaymentsPanel from './PaymentsPanel';
 import AttendeesPanel from './AttendeesPanel';
@@ -52,7 +53,10 @@ export default function ManageDashboard({eventId}: Props) {
 
   const isOwner = user._id === event.ownerId;
   const perms = myAccess?.permissionSlugs ?? [];
-  const hasAnyAccess = isOwner || myAccess !== null;
+  const platformSlugs = user.role?.permissionSlugs ?? [];
+  const isPlatformAdmin = platformSlugs.includes('*') || platformSlugs.includes('events:edit');
+  const isAssisting = isPlatformAdmin && !isOwner && myAccess === null;
+  const hasAnyAccess = isOwner || myAccess !== null || isPlatformAdmin;
 
   if (!hasAnyAccess) {
     return (
@@ -66,19 +70,23 @@ export default function ManageDashboard({eventId}: Props) {
   }
 
   // Build tab list based on permissions
-  const hasAll = isOwner || perms.includes('*');
+  const hasAll = isOwner || isPlatformAdmin || perms.includes('*');
   const visibleTabs = OWNER_TABS.filter(tab => {
+    if (tab === 'staff') return isOwner; // owner-only, even for an assisting admin
     if (tab === 'seating') return event.seatMapEnabled === true && (hasAll || isOwner);
+    // Scanning requires its own slug even for an assisting admin — most
+    // admin/support roles can view everything but aren't check-in staff.
+    if (tab === 'checkin') {
+      return isOwner || perms.includes('tickets:scan') || platformSlugs.includes('*') || platformSlugs.includes('tickets:scan');
+    }
     if (hasAll) return true;
     if (tab === 'overview') return true;
     if (tab === 'payments') return perms.some(p => p.startsWith('payments:'));
     if (tab === 'attendees') return perms.includes('tickets:read') || perms.includes('tickets:scan');
-    if (tab === 'checkin') return perms.includes('tickets:scan');
-    if (tab === 'staff') return false; // owner-only
     return false;
   });
 
-  const canEdit = isOwner && (event.status === 'draft' || event.status === 'rejected');
+  const canEdit = (isOwner || isPlatformAdmin) && (event.status === 'draft' || event.status === 'rejected');
   const formattedDate = new Date(event.date).toLocaleDateString(undefined, {
     weekday: 'short',
     month: 'short',
@@ -88,6 +96,8 @@ export default function ManageDashboard({eventId}: Props) {
 
   return (
     <div className="space-y-6">
+      {isAssisting && <Banner>{t('assistBanner')}</Banner>}
+
       {/* Header */}
       <div>
         <Link
