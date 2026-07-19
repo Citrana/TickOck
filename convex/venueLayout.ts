@@ -2,7 +2,7 @@ import {v} from 'convex/values';
 import {mutation, query, MutationCtx, QueryCtx} from './_generated/server';
 import {Doc, Id} from './_generated/dataModel';
 import {getAuthUserId} from '@convex-dev/auth/server';
-import {getCallerUserId} from './_helpers/permissions';
+import {getCallerUserId, hasPlatformPermission, requirePermission} from './_helpers/permissions';
 import {writeAuditLog} from './_helpers/audit';
 import {MAX_SEATS_PER_CALL} from '../lib/venueGenerators';
 
@@ -16,10 +16,18 @@ const seatDraftValidator = v.object({
   tierId: v.optional(v.id('venueLayoutTiers')),
 });
 
-// Ownership check only — no snapshot lock. Used by every mutation that only
-// touches structure (sections, tiers, elements) or seats that are verified
-// unlocked (see assertSeatsUnlocked below), so organizers can keep editing a
-// live event's plan at any time.
+// Whether userId holds a platform role that can assist any organizer with
+// venue-layout building ('*' or the 'venues:edit' slug).
+function hasVenuesEditPermission(ctx: MutationCtx | QueryCtx, userId: Id<'users'>) {
+  return hasPlatformPermission(ctx as unknown as QueryCtx, userId, 'venues:edit');
+}
+
+// Ownership check, with a platform-role bypass — no snapshot lock. Used by
+// every mutation that only touches structure (sections, tiers, elements) or
+// seats that are verified unlocked (see assertSeatsUnlocked below), so
+// organizers can keep editing a live event's plan at any time. A platform
+// admin with the 'venues:edit' slug (or '*') may also edit any template, to
+// assist organizers who don't know how to build one themselves.
 export async function requireOwnedTemplate(
   ctx: MutationCtx,
   layoutId: Id<'venueLayoutTemplates'>,
@@ -27,8 +35,10 @@ export async function requireOwnedTemplate(
 ) {
   const template = await ctx.db.get(layoutId);
   if (!template) throw new Error('Venue layout not found');
-  if (template.ownerId !== userId) throw new Error('Forbidden: not the layout owner');
-  return template;
+  if (template.ownerId === userId) return template;
+  if (await hasVenuesEditPermission(ctx, userId)) return template;
+
+  throw new Error('Forbidden: not the layout owner');
 }
 
 // Stricter guard, kept only for operations that destroy or rename the whole
@@ -247,9 +257,21 @@ export const createTemplate = mutation({
     description: v.optional(v.string()),
     canvasWidth: v.number(),
     canvasHeight: v.number(),
+    onBehalfOfUserId: v.optional(v.id('users')),
   },
   handler: async (ctx, args) => {
-    const ownerId = await getCallerUserId(ctx as unknown as QueryCtx);
+    const callerId = await getCallerUserId(ctx as unknown as QueryCtx);
+
+    let ownerId = callerId;
+    if (args.onBehalfOfUserId && args.onBehalfOfUserId !== callerId) {
+      if (!(await hasVenuesEditPermission(ctx, callerId))) {
+        throw new Error('Forbidden: missing permission "venues:edit"');
+      }
+      const targetUser = await ctx.db.get(args.onBehalfOfUserId);
+      if (!targetUser) throw new Error('User not found');
+      ownerId = args.onBehalfOfUserId;
+    }
+
     const now = Date.now();
     const id = await ctx.db.insert('venueLayoutTemplates', {
       ownerId,
@@ -264,11 +286,11 @@ export const createTemplate = mutation({
     });
 
     await writeAuditLog(ctx, {
-      actorId: ownerId,
+      actorId: callerId,
       action: 'venueLayout:create',
       targetType: 'venueLayoutTemplates',
       targetId: id,
-      metadata: {name: args.name},
+      metadata: ownerId === callerId ? {name: args.name} : {name: args.name, onBehalfOf: ownerId},
     });
 
     return id;
@@ -645,10 +667,9 @@ export const mapVenueLayoutTierToTicketTier = mutation({
     ticketTierId: v.optional(v.id('ticketTiers')),
   },
   handler: async (ctx, args) => {
-    const userId = await getCallerUserId(ctx as unknown as QueryCtx);
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error('Event not found');
-    if (event.ownerId !== userId) throw new Error('Forbidden: not the event owner');
+    await requirePermission(ctx, 'events:edit', args.eventId);
     if (!event.venueLayoutSnapshotId) {
       throw new Error('This event has no attached seating layout yet');
     }
@@ -695,7 +716,8 @@ export const ensureShadowTiersForEvent = mutation({
     await requireOwnedEditableTemplate(ctx, args.layoutId, userId);
 
     const event = await ctx.db.get(args.eventId);
-    if (!event || event.ownerId !== userId) throw new Error('Forbidden: not the event owner');
+    if (!event) throw new Error('Event not found');
+    await requirePermission(ctx, 'events:edit', args.eventId);
 
     const [ticketTiers, shadowTiers] = await Promise.all([
       ctx.db
@@ -908,7 +930,7 @@ export const getTemplate = query({
 
     const template = await ctx.db.get(args.layoutId);
     if (!template) return null;
-    if (template.ownerId !== userId) return null;
+    if (template.ownerId !== userId && !(await hasVenuesEditPermission(ctx, userId))) return null;
 
     const [sections, tiers, seats, elements] = await Promise.all([
       ctx.db
@@ -940,16 +962,24 @@ export const getTemplate = query({
 });
 
 // Reusable templates the caller owns (excludes locked event snapshots) —
-// used by the "attach a layout" picker in event creation.
+// used by the "attach a layout" picker in event creation. A platform admin
+// assisting an organizer may pass `ownerId` to list that organizer's
+// templates instead of their own.
 export const listMineForAttach = query({
-  args: {},
-  handler: async ctx => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
+  args: {ownerId: v.optional(v.id('users'))},
+  handler: async (ctx, args) => {
+    const callerId = await getAuthUserId(ctx);
+    if (!callerId) return [];
+
+    let ownerId = callerId;
+    if (args.ownerId && args.ownerId !== callerId) {
+      if (!(await hasVenuesEditPermission(ctx, callerId))) return [];
+      ownerId = args.ownerId;
+    }
 
     const templates = await ctx.db
       .query('venueLayoutTemplates')
-      .withIndex('by_ownerId', q => q.eq('ownerId', userId))
+      .withIndex('by_ownerId', q => q.eq('ownerId', ownerId))
       .order('desc')
       .take(50);
 
@@ -969,7 +999,9 @@ export const getSnapshotForEvent = query({
     const isPublicLive = event.status === 'live' && event.visibility !== 'private';
     if (!isPublicLive) {
       const userId = await getAuthUserId(ctx);
-      if (userId !== event.ownerId) return null;
+      if (userId !== event.ownerId && (!userId || !(await hasPlatformPermission(ctx, userId, 'events:edit')))) {
+        return null;
+      }
     }
 
     const layoutId = event.venueLayoutSnapshotId;
