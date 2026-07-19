@@ -260,6 +260,7 @@
       "pendingEvents": "Événements en attente",
       "pricing": "Tarification",
       "users": "Utilisateurs",
+      "venueLayouts": "Plans de salle",
       "auditLog": "Journal d'audit",
       "reports": "Rapports d'événements"
     },
@@ -389,6 +390,31 @@
         "processing": "Traitement…"
       }
     },
+    "venueLayoutsReport": {
+      "pageTitle": "Plans de salle",
+      "pageSubtitle": "Parcourez tous les plans de salle en cours de création sur la plateforme pour aider les organisateurs en difficulté.",
+      "loading": "Chargement des plans de salle…",
+      "empty": "Aucun plan de salle ne correspond à vos filtres.",
+      "unknownOwner": "Inconnu",
+      "searchPlaceholder": "Rechercher par nom ou propriétaire…",
+      "manage": "Ouvrir l'éditeur",
+      "cols": {
+        "name": "Nom",
+        "owner": "Propriétaire",
+        "status": "Statut",
+        "sectionCount": "Sections",
+        "updatedAt": "Dernière modification"
+      },
+      "status": {
+        "draft": "Brouillon",
+        "published": "Publié"
+      },
+      "statusFilter": {
+        "all": "Tous",
+        "draft": "Brouillon",
+        "published": "Publié"
+      }
+    },
     "reports": {
       "navLabel": "Rapports d'événements",
       "pageTitle": "Rapports d'événements",
@@ -400,6 +426,7 @@
       "columnsButton": "Colonnes",
       "clearFilters": "Effacer les filtres",
       "resultsCount": "{count} événements",
+      "manage": "Gérer",
       "filterPanel": {
         "title": "Filtres",
         "name": "Nom de l'événement",
@@ -484,6 +511,7 @@
     "title": "Gérer l'événement",
     "backToEvent": "← Retour à l'événement",
     "accessDenied": "Vous n'avez pas la permission de gérer cet événement.",
+    "assistBanner": "Vous gérez cet événement en tant qu'administrateur de la plateforme, pour le compte de son organisateur.",
     "tabs": {
       "overview": "Vue d'ensemble",
       "payments": "Paiements",
@@ -1068,6 +1096,7 @@
       "notFound": "Plan de salle introuvable.",
       "autosaved": "Les modifications sont enregistrées automatiquement",
       "publish": "Publier le plan",
+      "assistBanner": "Vous modifiez ce plan de salle en tant qu'administrateur de la plateforme, pour le compte de son propriétaire.",
       "sections": {
         "heading": "Sections",
         "customNamePlaceholder": "Nom de la section",

@@ -2,7 +2,7 @@ import {v} from 'convex/values';
 import {mutation, query, MutationCtx, QueryCtx} from './_generated/server';
 import {Id, Doc} from './_generated/dataModel';
 import {getAuthUserId} from '@convex-dev/auth/server';
-import {getCallerUserId, requirePermission} from './_helpers/permissions';
+import {assertPermission, getCallerUserId, requirePermission} from './_helpers/permissions';
 import {writeAuditLog} from './_helpers/audit';
 import {signTicketQr, buildQrData} from './_helpers/qr';
 import {internal} from './_generated/api';
@@ -562,25 +562,10 @@ export const listMine = query({
 export const listByEvent = query({
   args: {eventId: v.id('events')},
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
-
-    const event = await ctx.db.get(args.eventId);
-    if (!event) return [];
-
-    const isOwner = event.ownerId === userId;
-    if (!isOwner) {
-      const staff = await ctx.db
-        .query('eventStaff')
-        .withIndex('by_eventId_and_userId', q =>
-          q.eq('eventId', args.eventId).eq('userId', userId),
-        )
-        .unique();
-      const hasAccess =
-        staff?.isActive !== false &&
-        (staff?.permissionSlugs.includes('*') ||
-          staff?.permissionSlugs.includes('tickets:read'));
-      if (!hasAccess) return [];
+    try {
+      await assertPermission(ctx, 'tickets:read', args.eventId);
+    } catch {
+      return [];
     }
 
     const tickets = await ctx.db
@@ -748,25 +733,10 @@ export const findTicket = query({
 export const recentCheckIns = query({
   args: {eventId: v.id('events')},
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
-
-    const event = await ctx.db.get(args.eventId);
-    if (!event) return [];
-
-    const isOwner = event.ownerId === userId;
-    if (!isOwner) {
-      const staff = await ctx.db
-        .query('eventStaff')
-        .withIndex('by_eventId_and_userId', q =>
-          q.eq('eventId', args.eventId).eq('userId', userId),
-        )
-        .unique();
-      const hasAccess =
-        staff?.isActive !== false &&
-        (staff?.permissionSlugs.includes('*') ||
-          staff?.permissionSlugs.includes('tickets:scan'));
-      if (!hasAccess) return [];
+    try {
+      await assertPermission(ctx, 'tickets:scan', args.eventId);
+    } catch {
+      return [];
     }
 
     const tickets = await ctx.db

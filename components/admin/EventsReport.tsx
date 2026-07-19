@@ -4,6 +4,7 @@ import {useQuery} from 'convex/react';
 import {api} from '@/convex/_generated/api';
 import {useTranslations} from 'next-intl';
 import {useState, useRef, useEffect} from 'react';
+import {Link} from '@/lib/navigation';
 import EventStatusBadge from '@/components/events/EventStatusBadge';
 import FilterPanel from '@/components/admin/FilterPanel';
 
@@ -309,6 +310,7 @@ export default function EventsReport() {
                     {t(`cols.${col}`)}
                   </th>
                 ))}
+                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -319,6 +321,14 @@ export default function EventsReport() {
                       {renderCell(col, row)}
                     </td>
                   ))}
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/events/${row._id}/manage`}
+                      className="text-xs font-medium text-gray-600 underline underline-offset-2 hover:text-gray-900"
+                    >
+                      {t('manage')}
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>

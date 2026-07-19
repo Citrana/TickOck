@@ -4,7 +4,7 @@ import {expect, test} from 'vitest';
 import {api} from '../_generated/api';
 import schema from '../schema';
 import {Id} from '../_generated/dataModel';
-import {seedUser, seedEvent, seedTier, seedTicket, seedSpeaker} from './helpers';
+import {seedUser, seedEvent, seedTier, seedTicket, seedSpeaker, seedRole} from './helpers';
 
 const modules = import.meta.glob('../**/*.ts');
 
@@ -126,13 +126,15 @@ test('update patches event fields as the owner, leaving status untouched', async
 });
 
 /**
- * Covers: events.update rejects a caller who isn't the event owner.
+ * Covers: events.update rejects a caller who isn't the event owner and
+ * holds no events:edit access.
  * Business logic:
- * - No `requirePermission` fallback exists here at all — unlike
- *   payments.confirmPayment/rejectPayment, `events:edit` (a declared
- *   PermissionSlug) is never checked. Only `event.ownerId ===
- *   callerId` passes; not even a platform admin or a staff:manage
- *   staff member can call this.
+ * - `update` goes through `requirePermission(ctx, 'events:edit',
+ *   eventId)`, which allows the owner, a platform role with `events:edit`
+ *   (or `*`) — used by admins assisting an organizer — or event staff
+ *   granted `events:edit`. A caller with none of those is rejected with
+ *   requirePermission's generic "missing permission" error, not an
+ *   ownership-specific message.
  */
 test('update rejects a caller who is not the event owner', async () => {
   const t = convexTest(schema, modules);
@@ -147,7 +149,41 @@ test('update rejects a caller who is not the event owner', async () => {
   const asStranger = t.withIdentity({subject: strangerId});
   await expect(
     asStranger.mutation(api.events.update, baseUpdateArgs(eventId)),
-  ).rejects.toThrow('Forbidden: not the event owner');
+  ).rejects.toThrow('Forbidden: missing permission "events:edit"');
+});
+
+/**
+ * Covers: events.update allows a platform admin who isn't the event owner.
+ * Business logic:
+ * - A caller with a platform role granting `events:edit` (or `*`) may
+ *   update any event, not just their own — this is how a platform admin
+ *   assists an organizer who is stuck, mirroring the same bypass already
+ *   in place for venue layouts (`venues:edit`).
+ */
+test('update allows a platform admin who is not the event owner', async () => {
+  const t = convexTest(schema, modules);
+
+  const {adminId, eventId} = await t.run(async ctx => {
+    const ownerId = await seedUser(ctx, {email: 'admin-bypass-owner@example.com'});
+    const roleId = await seedRole(ctx, {name: 'admin', permissionSlugs: ['events:edit']});
+    const adminId = await seedUser(ctx, {
+      email: 'admin-bypass-admin@example.com',
+      platformRoleId: roleId,
+    });
+    const eventId = await seedEvent(ctx, ownerId);
+    return {adminId, eventId};
+  });
+
+  const asAdmin = t.withIdentity({subject: adminId});
+  await asAdmin.mutation(api.events.update, {
+    ...baseUpdateArgs(eventId),
+    title: 'Admin-Edited Title',
+  });
+
+  await t.run(async ctx => {
+    const event = await ctx.db.get(eventId);
+    expect(event?.title).toBe('Admin-Edited Title');
+  });
 });
 
 /**

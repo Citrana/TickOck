@@ -7,6 +7,8 @@ import {useTranslations} from 'next-intl';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 import Button from '@/components/ui/Button';
+import Banner from '@/components/ui/Banner';
+import {useCurrentUser} from '@/hooks/useCurrentUser';
 import ToolsSidebar, {AddElementParams} from './sidebar/ToolsSidebar';
 import TierLegend from './sidebar/TierLegend';
 import PropertiesPanel, {ElementPatch} from './sidebar/PropertiesPanel';
@@ -48,6 +50,7 @@ type VenueLayoutBuilderProps = {
 
 export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBuilderProps) {
   const t = useTranslations('venueLayout.builder');
+  const {user} = useCurrentUser();
   const template = useQuery(api.venueLayout.getTemplate, {layoutId});
   const forEvent = useQuery(api.events.get, forEventId ? {eventId: forEventId} : 'skip');
 
@@ -88,6 +91,8 @@ export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBu
   if (forEventId && (!forEvent || forEvent.tiers.length === 0)) {
     return <p className="py-20 text-center text-gray-500">{t('noEventTiers')}</p>;
   }
+
+  const isAssisting = user != null && user._id !== template.ownerId;
 
   const selectedSection = template.sections.find(s => s._id === selectedSectionId) ?? null;
   const selectedSeat = template.seats.find(s => s._id === selectedSeatId) ?? null;
@@ -175,6 +180,8 @@ export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBu
 
   return (
     <div className="space-y-4">
+      {isAssisting && <Banner>{t('assistBanner')}</Banner>}
+
       <div className="flex items-center justify-between">
         <input
           value={template.name}
@@ -193,7 +200,7 @@ export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBu
           onAddElement={handleAddElement}
         />
 
-        <div className="flex-1 space-y-4">
+        <div className="min-w-0 flex-1 space-y-4">
           <LayoutCanvas
             canvasWidth={template.canvasWidth}
             canvasHeight={template.canvasHeight}
