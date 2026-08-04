@@ -7,6 +7,7 @@ import {Id} from '@/convex/_generated/dataModel';
 import {Link} from '@/lib/navigation';
 import {EventFormData} from '@/types/eventForm';
 import Select from '@/components/ui/Select';
+import Banner from '@/components/ui/Banner';
 import {calculatePlatformFee} from '@/lib/platformFee';
 import {summarizeVenueLayoutTiers} from '@/lib/venueLayoutTierSummary';
 import VenueLayoutTierMappingPanel from './VenueLayoutTierMappingPanel';
@@ -25,6 +26,11 @@ export default function VenueLayoutAttachPanel({data, onChange, savedEventId, ow
   const locale = useLocale();
   const templates = useQuery(api.venueLayout.listMineForAttach, {ownerId});
   const venueLayoutRules = useQuery(api.platformPricing.listActive, {category: 'venue_layout'});
+  const featureFlags = useQuery(api.featureFlags.list);
+  const featureDisabled = featureFlags?.find(f => f.key === 'venue_layout_design')?.enabled === false;
+  // Events that already opted in keep working even while the flag is off —
+  // only new attachment is blocked.
+  const canUseFeature = !featureDisabled || data.seatMapEnabled;
   const chosenTemplate = useQuery(
     api.venueLayout.getTemplate,
     data.venueLayoutTemplateId ? {layoutId: data.venueLayoutTemplateId} : 'skip',
@@ -62,6 +68,14 @@ export default function VenueLayoutAttachPanel({data, onChange, savedEventId, ow
     });
     onChange({venueLayoutTemplateId: newId});
     window.open(`/${locale}/events/venue-layouts/${newId}?forEventId=${savedEventId}`, '_blank');
+  }
+
+  if (!canUseFeature) {
+    return (
+      <div className="rounded-xl border border-gray-200 p-4">
+        <Banner>{t('disabledNotice')}</Banner>
+      </div>
+    );
   }
 
   return (

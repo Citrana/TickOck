@@ -261,6 +261,7 @@
       "pricing": "Tarification",
       "users": "Utilisateurs",
       "venueLayouts": "Plans de salle",
+      "featureFlags": "Fonctionnalités",
       "auditLog": "Journal d'audit",
       "reports": "Rapports d'événements"
     },
@@ -321,6 +322,19 @@
       "noRulesVenueLayout": "Aucune règle de frais de plan de salle. Ajoutez une règle pour commencer à facturer l'option places assises.",
       "platformSectionTitle": "Règles de frais de plateforme",
       "venueLayoutSectionTitle": "Règles de frais de plan de salle"
+    },
+    "featureFlags": {
+      "pageTitle": "Fonctionnalités",
+      "pageSubtitle": "Activez ou désactivez des fonctionnalités sur toute la plateforme. Désactiver une fonctionnalité bloque toute nouvelle utilisation partout, mais n'affecte pas les événements qui l'utilisent déjà.",
+      "rulesTitle": "Fonctionnalités",
+      "rulesSubtitle": "Les changements s'appliquent immédiatement sur toute la plateforme.",
+      "loading": "Chargement…",
+      "items": {
+        "venue_layout_design": {
+          "label": "Plan de salle",
+          "description": "Permet aux organisateurs d'associer un plan de salle à un événement et d'utiliser l'éditeur de plans. Une fois désactivée, aucun nouvel événement ne peut ajouter de plan de salle et l'éditeur est indisponible — les événements qui en ont déjà un continuent de fonctionner."
+        }
+      }
     },
     "events": {
       "pageTitle": "Événements en attente",
@@ -843,6 +857,7 @@
         "previewQuantity": "{count} disponibles",
         "saveDraftFirstHint": "Enregistrez d'abord cet événement en brouillon avec au moins une catégorie de billets, puis revenez ici pour créer un plan de salle.",
         "browseExistingLink": "Parcourir vos plans de salle enregistrés →",
+        "disabledNotice": "Le plan de salle est actuellement indisponible sur toute la plateforme, cet événement ne peut donc pas en ajouter un pour le moment.",
         "mapping": {
           "heading": "Associer les catégories à vos billets",
           "prompt": "Ce plan a été créé indépendamment — associez chaque catégorie à une de vos catégories de billets pour que les sièges aient le bon prix.",
@@ -1090,13 +1105,15 @@
       "nameLabel": "Nom du plan",
       "namePlaceholder": "ex. Salle principale — 800 places",
       "cancel": "Annuler",
-      "create": "Créer"
+      "create": "Créer",
+      "disabledNotice": "Le plan de salle est actuellement désactivé sur toute la plateforme. Les plans existants ne sont pas affectés, mais aucun nouveau plan ne peut être créé."
     },
     "builder": {
       "notFound": "Plan de salle introuvable.",
       "autosaved": "Les modifications sont enregistrées automatiquement",
       "publish": "Publier le plan",
       "assistBanner": "Vous modifiez ce plan de salle en tant qu'administrateur de la plateforme, pour le compte de son propriétaire.",
+      "disabledNotice": "Le plan de salle est actuellement désactivé sur toute la plateforme. Vous pouvez consulter ce plan, mais la modification est indisponible.",
       "sections": {
         "heading": "Sections",
         "customNamePlaceholder": "Nom de la section",

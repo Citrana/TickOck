@@ -12,6 +12,16 @@ export default defineSchema({
     isSystem: v.boolean(),
   }).index('by_name', ['name']),
 
+  // Platform-wide on/off switches for functionality (e.g. venue layout
+  // design). A key with no row here defaults to enabled — see
+  // _helpers/featureFlags.ts::isFeatureEnabled.
+  featureFlags: defineTable({
+    key: v.string(),
+    enabled: v.boolean(),
+    updatedBy: v.id('users'),
+    updatedAt: v.number(),
+  }).index('by_key', ['key']),
+
   // Override authTables.users with our app-level fields.
   // Convex Auth manages credentials in authAccounts; this table holds
   // business-level user state only.

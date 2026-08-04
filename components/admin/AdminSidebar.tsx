@@ -55,6 +55,16 @@ const NAV = [
     ),
   },
   {
+    key: 'featureFlags',
+    href: '/admin/feature-flags',
+    superAdminOnly: true,
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M6 3a1 1 0 011 1v1h9a1 1 0 110 2h-9v1a1 1 0 11-2 0V4a1 1 0 011-1zm7 4a1 1 0 00-1 1v1H3a1 1 0 100 2h9v1a1 1 0 102 0V8a1 1 0 00-1-1zm-7 6a1 1 0 011 1v1h9a1 1 0 110 2H7v1a1 1 0 11-2 0v-4a1 1 0 011-1z" clipRule="evenodd" />
+      </svg>
+    ),
+  },
+  {
     key: 'auditLog',
     href: '/admin/audit',
     superAdminOnly: true,

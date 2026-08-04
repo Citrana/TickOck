@@ -261,6 +261,7 @@
       "pricing": "Platform Pricing",
       "users": "Users",
       "venueLayouts": "Venues",
+      "featureFlags": "Feature Flags",
       "auditLog": "Audit Log",
       "reports": "Event Reports"
     },
@@ -321,6 +322,19 @@
       "noRulesVenueLayout": "No venue layout fee rules yet. Add a rule to start charging for the seating add-on.",
       "platformSectionTitle": "Platform fee rules",
       "venueLayoutSectionTitle": "Venue layout fee rules"
+    },
+    "featureFlags": {
+      "pageTitle": "Feature Flags",
+      "pageSubtitle": "Turn platform-wide functionality on or off. Disabling a feature blocks new use of it everywhere, but doesn't affect events already using it.",
+      "rulesTitle": "Flags",
+      "rulesSubtitle": "Changes apply immediately across the platform.",
+      "loading": "Loading…",
+      "items": {
+        "venue_layout_design": {
+          "label": "Venue layout design",
+          "description": "Lets organizers attach seating layouts to events and use the layout builder. When off, no new event can add a venue layout and the builder is unavailable — events that already have a layout keep working."
+        }
+      }
     },
     "events": {
       "pageTitle": "Pending Events",
@@ -843,6 +857,7 @@
         "previewQuantity": "{count} available",
         "saveDraftFirstHint": "Save this event as a draft with at least one ticket tier first, then come back here to build a seat map for it.",
         "browseExistingLink": "Browse your saved venue layouts →",
+        "disabledNotice": "Venue layout design is currently unavailable platform-wide, so this event can't add one right now.",
         "mapping": {
           "heading": "Map categories to your ticket tiers",
           "prompt": "This layout was built independently — match each category to one of your ticket tiers so seats get the right price.",
@@ -1090,13 +1105,15 @@
       "nameLabel": "Layout name",
       "namePlaceholder": "e.g. Main Hall — 800 cap",
       "cancel": "Cancel",
-      "create": "Create"
+      "create": "Create",
+      "disabledNotice": "Venue layout design is currently disabled platform-wide. Existing layouts are unaffected, but new ones can't be created."
     },
     "builder": {
       "notFound": "Venue layout not found.",
       "autosaved": "Changes save automatically",
       "publish": "Publish layout",
       "assistBanner": "You're editing this venue layout as a platform admin, on behalf of its owner.",
+      "disabledNotice": "Venue layout design is currently disabled platform-wide. You can view this layout, but editing is unavailable.",
       "sections": {
         "heading": "Sections",
         "customNamePlaceholder": "Section name",
