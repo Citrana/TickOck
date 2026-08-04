@@ -17,6 +17,7 @@ import type * as adminReports from "../adminReports.js";
 import type * as auth from "../auth.js";
 import type * as crons from "../crons.js";
 import type * as emailVerification from "../emailVerification.js";
+import type * as eventReports from "../eventReports.js";
 import type * as eventStaff from "../eventStaff.js";
 import type * as events from "../events.js";
 import type * as featureFlags from "../featureFlags.js";
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   crons: typeof crons;
   emailVerification: typeof emailVerification;
+  eventReports: typeof eventReports;
   eventStaff: typeof eventStaff;
   events: typeof events;
   featureFlags: typeof featureFlags;

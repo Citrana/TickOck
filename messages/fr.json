@@ -534,7 +534,8 @@
       "attendees": "Participants",
       "staff": "Équipe",
       "checkin": "Contrôle",
-      "seating": "Places assises"
+      "seating": "Places assises",
+      "reports": "Rapports"
     },
     "overview": {
       "confirmedRevenue": "Revenus confirmés",
@@ -713,6 +714,21 @@
     "seating": {
       "noLayout": "Aucun plan de salle n'est associé à cet événement.",
       "lockedNotice": "Ce plan est verrouillé à la version utilisée lors de la soumission de l'événement."
+    },
+    "reports": {
+      "heading": "Rapports",
+      "subheading": "Créez un rapport personnalisé et téléchargez-le en PDF ou Excel.",
+      "sectionsLabel": "Sections incluses",
+      "sectionsPickerButton": "Personnaliser les sections",
+      "downloadPdf": "Télécharger le PDF",
+      "downloadExcel": "Télécharger Excel",
+      "sections": {
+        "sales": "Ventes par catégorie",
+        "attendees": "Participants",
+        "finance": "Résumé financier",
+        "payments": "Approbations de paiement",
+        "checkins": "Contrôles d'entrée"
+      }
     }
   },
   "ui": {
