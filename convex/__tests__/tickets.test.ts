@@ -190,10 +190,12 @@ test('checkIn rejects a ticket scanned against a different event', async () => {
 /**
  * Covers: tickets.purchase rejects buying after the event has ended.
  * Business logic:
- * - Event end = event.date (UTC midnight of the event's day) + endTime
- *   ("HH:mm", treated as UTC) — or +24h if endTime isn't set. Naive,
- *   ignores event.timezone, consistent with the existing
- *   cancellation-cutoff check elsewhere in this file.
+ * - Event end = event.date (the calendar day) + endTime ("HH:mm"), read as
+ *   wall-clock local time in event.timezone and converted to a UTC
+ *   instant — or +24h from UTC midnight if endTime isn't set.
+ * - Seeded event uses the default timezone 'America/Toronto'; on
+ *   2024-06-01 that's EDT (UTC-4), so endTime '12:00' local is 16:00 UTC —
+ *   4 hours later than the UTC clock time would naively suggest.
  * - The check runs alongside the existing `status === 'live'` check,
  *   before any inventory reservation or ticket/payment rows are
  *   written — a purchase attempt after the cutoff leaves everything
@@ -214,7 +216,8 @@ test('purchase rejects buying after the event has ended', async () => {
 
   vi.useFakeTimers();
   try {
-    vi.setSystemTime(eventDate + 12 * 3_600_000 + 60_000); // 12:01, one minute after end
+    // 16:01 UTC = 12:01 EDT — one minute after the real (timezone-aware) end
+    vi.setSystemTime(eventDate + 16 * 3_600_000 + 60_000);
 
     const asBuyer = t.withIdentity({subject: userId});
     await expect(
@@ -227,6 +230,49 @@ test('purchase rejects buying after the event has ended', async () => {
   await t.run(async ctx => {
     const tier = await ctx.db.get(tierId);
     expect(tier?.quantitySold).toBe(0);
+  });
+});
+
+/**
+ * Covers: tickets.purchase correctly reads endTime in the event's own
+ * timezone rather than treating it as UTC.
+ * Business logic:
+ * - Seeded event uses timezone 'America/Toronto' (EDT, UTC-4 on
+ *   2024-06-01) with endTime '12:00' local, i.e. 16:00 UTC.
+ * - At 15:59 UTC (11:59am Toronto) the event has NOT ended yet, even
+ *   though naive UTC math (event.date + 12h = 12:00 UTC) would have
+ *   incorrectly treated it as already over 4 hours earlier — this is the
+ *   regression guarded against.
+ */
+test('purchase succeeds before the event has ended in its own timezone', async () => {
+  const t = convexTest(schema, modules);
+
+  const eventDate = new Date('2024-06-01T00:00:00.000Z').getTime();
+
+  const {userId, eventId, tierId} = await t.run(async ctx => {
+    const ownerId = await seedUser(ctx, {email: 'tz-owner@example.com'});
+    const userId = await seedUser(ctx, {email: 'tz-buyer@example.com'});
+    const eventId = await seedEvent(ctx, ownerId, {date: eventDate, endTime: '12:00'});
+    const tierId = await seedTier(ctx, eventId);
+    return {userId, eventId, tierId};
+  });
+
+  vi.useFakeTimers();
+  try {
+    // 15:59 UTC = 11:59am EDT — one minute before the real (timezone-aware) end
+    vi.setSystemTime(eventDate + 15 * 3_600_000 + 59 * 60_000);
+
+    const asBuyer = t.withIdentity({subject: userId});
+    await expect(
+      asBuyer.mutation(api.tickets.purchase, {eventId, tierId, quantity: 1}),
+    ).resolves.toBeDefined();
+  } finally {
+    vi.useRealTimers();
+  }
+
+  await t.run(async ctx => {
+    const tier = await ctx.db.get(tierId);
+    expect(tier?.quantitySold).toBe(1);
   });
 });
 
@@ -395,8 +441,14 @@ test('cancel rejects when the event does not allow cancellations', async () => {
  * Covers: tickets.cancel rejects once the cancellation cutoff has passed.
  * Business logic:
  * - When cutoffHours is set, cancellation closes at
- *   `event.date - cutoffHours * 3_600_000` — naive UTC math, same
- *   convention as the event-end-time check on purchase.
+ *   `eventStart - cutoffHours * 3_600_000`, where eventStart is
+ *   event.date + startTime read as wall-clock local time in
+ *   event.timezone and converted to a UTC instant — same convention as
+ *   the event-end-time check on purchase.
+ * - Seeded event uses the defaults startTime '18:00' and timezone
+ *   'America/Toronto'; on 2024-06-01 that's EDT (UTC-4), so the real
+ *   start is event.date + 22h UTC, and the 24h cutoff boundary is
+ *   event.date - 2h.
  */
 test('cancel rejects once the cancellation cutoff has passed', async () => {
   const t = convexTest(schema, modules);
@@ -417,8 +469,8 @@ test('cancel rejects once the cancellation cutoff has passed', async () => {
 
   vi.useFakeTimers();
   try {
-    // 12h before the event — inside the 24h cutoff window, so cancellation is closed
-    vi.setSystemTime(eventDate - 12 * 3_600_000);
+    // 1h after the cutoff boundary (event.date - 2h) — inside the 24h cutoff window
+    vi.setSystemTime(eventDate - 1 * 3_600_000);
 
     const asBuyer = t.withIdentity({subject: buyerId});
     await expect(asBuyer.mutation(api.tickets.cancel, {ticketId})).rejects.toThrow(

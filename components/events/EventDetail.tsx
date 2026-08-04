@@ -7,6 +7,7 @@ import {Link} from '@/lib/navigation';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 import {useCurrentUser} from '@/hooks/useCurrentUser';
+import {useHasEventEnded} from '@/hooks/useHasEventEnded';
 import EventStatusBadge from './EventStatusBadge';
 
 type Props = {eventId: Id<'events'>};
@@ -15,6 +16,7 @@ export default function EventDetail({eventId}: Props) {
   const t = useTranslations('eventDetail');
   const event = useQuery(api.events.get, {eventId});
   const {user} = useCurrentUser();
+  const hasEventEnded = useHasEventEnded(event);
 
   if (event === undefined) {
     return (
@@ -210,7 +212,7 @@ export default function EventDetail({eventId}: Props) {
                 <p className="font-bold text-gray-900">
                   {tier.price === 0 ? t('free') : `${tier.price} ${tier.currency}`}
                 </p>
-                {!isOwner && event.status === 'live' && (
+                {!isOwner && event.status === 'live' && !hasEventEnded && (
                   <p className="mt-0.5 text-xs text-gray-500">
                     {tier.quantity - tier.quantitySold} {t('remaining')}
                   </p>
@@ -221,7 +223,7 @@ export default function EventDetail({eventId}: Props) {
         </div>
 
         {/* Buy button for attendees */}
-        {!isOwner && event.status === 'live' && (
+        {!isOwner && event.status === 'live' && !hasEventEnded && (
           <Link
             href={`/checkout?event=${event._id}`}
             className="btn-ticket mt-4 block rounded-xl bg-gray-900 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-gray-700"

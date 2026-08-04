@@ -185,6 +185,7 @@
     "viewTickets": "View my tickets",
     "eventNotFound": "Event not found.",
     "eventNotLive": "This event is not currently accepting orders.",
+    "eventEnded": "This event has already ended.",
     "noTiersAvailable": "No ticket tiers available.",
     "paymentMethodLabel": "How would you like to pay?",
     "methodBankTransfer": "Bank transfer",
@@ -201,7 +202,8 @@
       "proofRequired": "Please upload your payment proof.",
       "proofFailed": "Failed to upload proof. Please try again.",
       "referenceRequired": "Please enter your payment reference number.",
-      "referenceDuplicate": "This reference number has already been used for another payment on this event."
+      "referenceDuplicate": "This reference number has already been used for another payment on this event.",
+      "eventEnded": "This event ended while you were checking out."
     }
   },
   "dashboard": {

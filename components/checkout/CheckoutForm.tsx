@@ -8,6 +8,9 @@ import {Link} from '@/lib/navigation';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 import Button from '@/components/ui/Button';
+import {parseConvexError} from '@/lib/errors';
+import {EVENT_ENDED_ERROR} from '@/lib/eventTiming';
+import {useHasEventEnded} from '@/hooks/useHasEventEnded';
 import PaymentProofSection, {OrderResult} from './PaymentProofSection';
 import SeatMapCheckout from './SeatMapCheckout';
 
@@ -19,6 +22,7 @@ export default function CheckoutForm({eventId}: Props) {
     api.events.get,
     eventId ? {eventId: eventId as Id<'events'>} : 'skip',
   );
+  const hasEventEnded = useHasEventEnded(event);
 
   const purchase = useMutation(api.tickets.purchase);
 
@@ -69,6 +73,17 @@ export default function CheckoutForm({eventId}: Props) {
     );
   }
 
+  if (hasEventEnded) {
+    return (
+      <div className="py-20 text-center">
+        <p className="text-lg font-semibold text-gray-900">{t('eventEnded')}</p>
+        <Link href="/events" className="mt-6 inline-block text-sm font-medium text-gray-600 underline underline-offset-2">
+          ← Browse events
+        </Link>
+      </div>
+    );
+  }
+
   if (event.seatMapEnabled && event.venueLayoutSnapshotId) {
     return <SeatMapCheckout event={event} />;
   }
@@ -109,7 +124,8 @@ export default function CheckoutForm({eventId}: Props) {
       });
       setOrder(result);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('errors.generic'));
+      const parsed = parseConvexError(err, t('errors.generic'));
+      setError(parsed === EVENT_ENDED_ERROR ? t('errors.eventEnded') : parsed);
     } finally {
       setSubmitting(false);
     }
@@ -310,7 +326,7 @@ export default function CheckoutForm({eventId}: Props) {
 
       <Button
         onClick={handlePlaceOrder}
-        disabled={!selectedTierId || submitting}
+        disabled={!selectedTierId || submitting || hasEventEnded}
         className="w-full py-3 text-base"
       >
         {submitting ? t('submitting') : t('confirmOrder')}
