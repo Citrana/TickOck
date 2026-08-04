@@ -2,6 +2,7 @@ import {v} from 'convex/values';
 import {mutation} from './_generated/server';
 import {QueryCtx} from './_generated/server';
 import {getCallerUserId} from './_helpers/permissions';
+import {requireFeatureEnabled} from './_helpers/featureFlags';
 import {writeAuditLog} from './_helpers/audit';
 import {requireOwnedTemplate} from './venueLayout';
 
@@ -93,6 +94,7 @@ export const addElement = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     await requireOwnedTemplate(ctx, args.layoutId, userId);
     assertRequiredFieldsForKind(args);
 
@@ -153,6 +155,7 @@ export const updateElement = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     const element = await ctx.db.get(args.elementId);
     if (!element) throw new Error('Element not found');
     await requireOwnedTemplate(ctx, element.layoutId, userId);
@@ -188,6 +191,7 @@ export const deleteElement = mutation({
   args: {elementId: v.id('venueLayoutElements')},
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     const element = await ctx.db.get(args.elementId);
     if (!element) throw new Error('Element not found');
     await requireOwnedTemplate(ctx, element.layoutId, userId);

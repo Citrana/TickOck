@@ -53,6 +53,8 @@ export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBu
   const {user} = useCurrentUser();
   const template = useQuery(api.venueLayout.getTemplate, {layoutId});
   const forEvent = useQuery(api.events.get, forEventId ? {eventId: forEventId} : 'skip');
+  const featureFlags = useQuery(api.featureFlags.list);
+  const featureDisabled = featureFlags?.find(f => f.key === 'venue_layout_design')?.enabled === false;
 
   const addSection = useMutation(api.venueLayout.addSection);
   const updateSection = useMutation(api.venueLayout.updateSection);
@@ -181,6 +183,7 @@ export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBu
   return (
     <div className="space-y-4">
       {isAssisting && <Banner>{t('assistBanner')}</Banner>}
+      {featureDisabled && <Banner>{t('disabledNotice')}</Banner>}
 
       <div className="flex items-center justify-between">
         <input
@@ -192,13 +195,15 @@ export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBu
       </div>
 
       <div className="flex gap-4">
-        <ToolsSidebar
-          tiers={template.tiers}
-          selectedSection={selectedSection}
-          onAddSection={handleAddSection}
-          onGenerateSeats={handleGenerateSeats}
-          onAddElement={handleAddElement}
-        />
+        {!featureDisabled && (
+          <ToolsSidebar
+            tiers={template.tiers}
+            selectedSection={selectedSection}
+            onAddSection={handleAddSection}
+            onGenerateSeats={handleGenerateSeats}
+            onAddElement={handleAddElement}
+          />
+        )}
 
         <div className="min-w-0 flex-1 space-y-4">
           <LayoutCanvas
@@ -235,7 +240,7 @@ export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBu
           />
           <TierLegend
             tiers={template.tiers}
-            readOnly={!!forEventId}
+            readOnly={!!forEventId || featureDisabled}
             eventId={forEventId}
             ticketTiers={forEvent?.tiers}
             onAdd={tier => addTier({layoutId, ...tier})}
@@ -282,6 +287,7 @@ export default function VenueLayoutBuilder({layoutId, forEventId}: VenueLayoutBu
         <Button
           type="button"
           variant="secondary"
+          disabled={featureDisabled}
           onClick={() => updateTemplateMeta({layoutId, status: 'published'})}
         >
           {t('publish')}

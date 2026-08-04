@@ -10,6 +10,7 @@
 
 import type * as __tests___helpers from "../__tests__/helpers.js";
 import type * as _helpers_audit from "../_helpers/audit.js";
+import type * as _helpers_featureFlags from "../_helpers/featureFlags.js";
 import type * as _helpers_permissions from "../_helpers/permissions.js";
 import type * as _helpers_qr from "../_helpers/qr.js";
 import type * as adminReports from "../adminReports.js";
@@ -18,6 +19,7 @@ import type * as crons from "../crons.js";
 import type * as emailVerification from "../emailVerification.js";
 import type * as eventStaff from "../eventStaff.js";
 import type * as events from "../events.js";
+import type * as featureFlags from "../featureFlags.js";
 import type * as http from "../http.js";
 import type * as migrations from "../migrations.js";
 import type * as payments from "../payments.js";
@@ -39,6 +41,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   "__tests__/helpers": typeof __tests___helpers;
   "_helpers/audit": typeof _helpers_audit;
+  "_helpers/featureFlags": typeof _helpers_featureFlags;
   "_helpers/permissions": typeof _helpers_permissions;
   "_helpers/qr": typeof _helpers_qr;
   adminReports: typeof adminReports;
@@ -47,6 +50,7 @@ declare const fullApi: ApiFromModules<{
   emailVerification: typeof emailVerification;
   eventStaff: typeof eventStaff;
   events: typeof events;
+  featureFlags: typeof featureFlags;
   http: typeof http;
   migrations: typeof migrations;
   payments: typeof payments;

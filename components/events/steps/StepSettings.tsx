@@ -6,6 +6,7 @@ import Image from 'next/image';
 import {EventFormData} from '@/types/eventForm';
 import FormField from '@/components/ui/FormField';
 import Input from '@/components/ui/Input';
+import Switch from '@/components/ui/Switch';
 
 type Props = {
   data: EventFormData;
@@ -128,23 +129,10 @@ export default function StepSettings({data, onChange, errors}: Props) {
           {t('settings.cancellationLabel')}
         </legend>
         <div className="mt-2 flex items-center gap-3">
-          <button
-            type="button"
-            role="switch"
-            aria-checked={data.cancellationAllowed}
-            onClick={() => onChange({cancellationAllowed: !data.cancellationAllowed})}
-            className={[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200',
-              data.cancellationAllowed ? 'bg-gray-900' : 'bg-gray-200',
-            ].join(' ')}
-          >
-            <span
-              className={[
-                'inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200',
-                data.cancellationAllowed ? 'translate-x-5' : 'translate-x-0',
-              ].join(' ')}
-            />
-          </button>
+          <Switch
+            checked={data.cancellationAllowed}
+            onChange={checked => onChange({cancellationAllowed: checked})}
+          />
           <span className="text-sm text-gray-700">
             {data.cancellationAllowed
               ? t('settings.cancellationOn')

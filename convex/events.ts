@@ -2,6 +2,7 @@ import {v} from 'convex/values';
 import {mutation, query, MutationCtx, QueryCtx} from './_generated/server';
 import {Id} from './_generated/dataModel';
 import {getCallerUserId, hasPlatformPermission, requirePermission} from './_helpers/permissions';
+import {requireFeatureEnabled} from './_helpers/featureFlags';
 import {writeAuditLog} from './_helpers/audit';
 import {getAuthUserId} from '@convex-dev/auth/server';
 import {copyLayout, deleteLayoutCascade} from './venueLayout';
@@ -165,6 +166,8 @@ async function attachVenueLayoutIfNeeded(
 
   const event = await ctx.db.get(eventId);
   if (!event || event.venueLayoutSnapshotId) return;
+
+  await requireFeatureEnabled(ctx, 'venue_layout_design');
 
   const {layoutId: snapshotId, tierIdMap} = await copyLayout(ctx, venueLayoutTemplateId, {
     ownerId,

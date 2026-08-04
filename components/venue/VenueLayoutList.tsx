@@ -13,6 +13,7 @@ import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import FormField from '@/components/ui/FormField';
+import Banner from '@/components/ui/Banner';
 
 export default function VenueLayoutList() {
   const t = useTranslations('venueLayout.list');
@@ -21,6 +22,9 @@ export default function VenueLayoutList() {
   const duplicateTemplate = useMutation(api.venueLayout.duplicateTemplate);
   const deleteTemplate = useMutation(api.venueLayout.deleteTemplate);
   const router = useRouter();
+
+  const featureFlags = useQuery(api.featureFlags.list);
+  const featureDisabled = featureFlags?.find(f => f.key === 'venue_layout_design')?.enabled === false;
 
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
@@ -64,8 +68,12 @@ export default function VenueLayoutList() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">{t('heading')}</h1>
-        <Button type="button" onClick={() => setShowCreate(true)}>{t('createButton')}</Button>
+        <Button type="button" onClick={() => setShowCreate(true)} disabled={featureDisabled}>
+          {t('createButton')}
+        </Button>
       </div>
+
+      {featureDisabled && <Banner>{t('disabledNotice')}</Banner>}
 
       {templates === undefined ? (
         <div className="h-32 animate-pulse rounded-xl bg-gray-100" />
@@ -90,15 +98,17 @@ export default function VenueLayoutList() {
                 </Link>
                 <button
                   type="button"
+                  disabled={featureDisabled}
                   onClick={() => duplicateTemplate({layoutId: template._id, newName: `${template.name} (copy)`})}
-                  className="rounded-md px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100"
+                  className="rounded-md px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {t('duplicate')}
                 </button>
                 <button
                   type="button"
+                  disabled={featureDisabled}
                   onClick={() => setPendingDelete({id: template._id, name: template.name})}
-                  className="rounded-md px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50"
+                  className="rounded-md px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {t('delete')}
                 </button>

@@ -3,6 +3,7 @@ import {mutation, query, MutationCtx, QueryCtx} from './_generated/server';
 import {Doc, Id} from './_generated/dataModel';
 import {getAuthUserId} from '@convex-dev/auth/server';
 import {getCallerUserId, hasPlatformPermission, requirePermission} from './_helpers/permissions';
+import {requireFeatureEnabled} from './_helpers/featureFlags';
 import {writeAuditLog} from './_helpers/audit';
 import {MAX_SEATS_PER_CALL} from '../lib/venueGenerators';
 
@@ -261,6 +262,7 @@ export const createTemplate = mutation({
   },
   handler: async (ctx, args) => {
     const callerId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
 
     let ownerId = callerId;
     if (args.onBehalfOfUserId && args.onBehalfOfUserId !== callerId) {
@@ -307,6 +309,7 @@ export const updateTemplateMeta = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     await requireOwnedEditableTemplate(ctx, args.layoutId, userId);
 
     await ctx.db.patch(args.layoutId, {
@@ -328,6 +331,7 @@ export const duplicateTemplate = mutation({
   },
   handler: async (ctx, args) => {
     const ownerId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     const source = await ctx.db.get(args.layoutId);
     if (!source) throw new Error('Venue layout not found');
     if (source.ownerId !== ownerId) throw new Error('Forbidden: not the layout owner');
@@ -386,6 +390,7 @@ export const deleteTemplate = mutation({
   args: {layoutId: v.id('venueLayoutTemplates')},
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     const template = await requireOwnedEditableTemplate(ctx, args.layoutId, userId);
 
     await deleteLayoutCascade(ctx, args.layoutId);
@@ -418,6 +423,7 @@ export const addSection = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     await requireOwnedTemplate(ctx, args.layoutId, userId);
 
     const existing = await ctx.db
@@ -463,6 +469,7 @@ export const updateSection = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     const section = await ctx.db.get(args.sectionId);
     if (!section) throw new Error('Section not found');
     await requireOwnedTemplate(ctx, section.layoutId, userId);
@@ -519,6 +526,7 @@ export const deleteSection = mutation({
   args: {sectionId: v.id('venueLayoutSections')},
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     const section = await ctx.db.get(args.sectionId);
     if (!section) throw new Error('Section not found');
     await requireOwnedTemplate(ctx, section.layoutId, userId);
@@ -554,6 +562,7 @@ export const addTier = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     await requireOwnedTemplate(ctx, args.layoutId, userId);
 
     const existing = await ctx.db
@@ -588,6 +597,7 @@ export const updateTier = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     const tier = await ctx.db.get(args.tierId);
     if (!tier) throw new Error('Tier not found');
     await requireOwnedTemplate(ctx, tier.layoutId, userId);
@@ -614,6 +624,7 @@ export const deleteTier = mutation({
   args: {tierId: v.id('venueLayoutTiers')},
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     const tier = await ctx.db.get(args.tierId);
     if (!tier) throw new Error('Tier not found');
     await requireOwnedTemplate(ctx, tier.layoutId, userId);
@@ -670,6 +681,7 @@ export const mapVenueLayoutTierToTicketTier = mutation({
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error('Event not found');
     await requirePermission(ctx, 'events:edit', args.eventId);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     if (!event.venueLayoutSnapshotId) {
       throw new Error('This event has no attached seating layout yet');
     }
@@ -713,6 +725,7 @@ export const ensureShadowTiersForEvent = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     await requireOwnedEditableTemplate(ctx, args.layoutId, userId);
 
     const event = await ctx.db.get(args.eventId);
@@ -767,6 +780,7 @@ export const bulkInsertSeats = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     await requireOwnedTemplate(ctx, args.layoutId, userId);
 
     if (args.seats.length > MAX_SEATS_PER_CALL) {
@@ -812,6 +826,7 @@ export const updateSeatPosition = mutation({
   args: {seatId: v.id('venueLayoutSeats'), x: v.number(), y: v.number()},
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     const seat = await ctx.db.get(args.seatId);
     if (!seat) throw new Error('Seat not found');
     await requireOwnedTemplate(ctx, seat.layoutId, userId);
@@ -836,6 +851,7 @@ export const updateSeatLabel = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     const seat = await ctx.db.get(args.seatId);
     if (!seat) throw new Error('Seat not found');
     await requireOwnedTemplate(ctx, seat.layoutId, userId);
@@ -862,6 +878,7 @@ export const assignSeatsToTier = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     if (args.seatIds.length > MAX_SEATS_PER_CALL) {
       throw new Error(`Cannot update more than ${MAX_SEATS_PER_CALL} seats at once`);
     }
@@ -891,6 +908,7 @@ export const deleteSeats = mutation({
   args: {seatIds: v.array(v.id('venueLayoutSeats'))},
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
+    await requireFeatureEnabled(ctx, 'venue_layout_design');
     if (args.seatIds.length > MAX_SEATS_PER_CALL) {
       throw new Error(`Cannot delete more than ${MAX_SEATS_PER_CALL} seats at once`);
     }
