@@ -4,6 +4,7 @@ import {useState} from 'react';
 import {useAuthActions} from '@convex-dev/auth/react';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/lib/navigation';
+import Input from '@/components/ui/Input';
 
 /**
  * After successful registration the user lands in a pending_verification
@@ -70,37 +71,37 @@ export function RegisterForm() {
           <label className="block text-sm font-medium text-gray-700">
             {t('nameLabel')}
           </label>
-          <input
+          <Input
             type="text"
             name="name"
             required
             autoComplete="name"
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mt-1"
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
             {t('emailLabel')}
           </label>
-          <input
+          <Input
             type="email"
             name="email"
             required
             autoComplete="email"
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mt-1"
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
             {t('passwordLabel')}
           </label>
-          <input
+          <Input
             type="password"
             name="password"
             required
             minLength={8}
             autoComplete="new-password"
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mt-1"
           />
           <p className="mt-1 text-xs text-gray-500">{t('passwordHint')}</p>
         </div>
