@@ -534,7 +534,8 @@
       "attendees": "Attendees",
       "staff": "Staff",
       "checkin": "Check-In",
-      "seating": "Seating"
+      "seating": "Seating",
+      "reports": "Reports"
     },
     "overview": {
       "confirmedRevenue": "Confirmed revenue",
@@ -713,6 +714,21 @@
     "seating": {
       "noLayout": "No venue layout is attached to this event.",
       "lockedNotice": "This layout is locked to the version used when the event was submitted."
+    },
+    "reports": {
+      "heading": "Reports",
+      "subheading": "Build a custom report and download it as PDF or Excel.",
+      "sectionsLabel": "Included sections",
+      "sectionsPickerButton": "Customize sections",
+      "downloadPdf": "Download PDF",
+      "downloadExcel": "Download Excel",
+      "sections": {
+        "sales": "Sales by tier",
+        "attendees": "Attendees",
+        "finance": "Finance summary",
+        "payments": "Payment approvals",
+        "checkins": "Check-ins"
+      }
     }
   },
   "ui": {

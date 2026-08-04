@@ -15,11 +15,12 @@ import AttendeesPanel from './AttendeesPanel';
 import StaffPanel from './StaffPanel';
 import CheckInPanel from './CheckInPanel';
 import SeatingPanel from './SeatingPanel';
+import ReportsPanel from './ReportsPanel';
 
 type Props = {eventId: Id<'events'>};
 
-type Tab = 'overview' | 'payments' | 'attendees' | 'staff' | 'checkin' | 'seating';
-const OWNER_TABS: Tab[] = ['overview', 'payments', 'attendees', 'staff', 'checkin', 'seating'];
+type Tab = 'overview' | 'payments' | 'attendees' | 'staff' | 'checkin' | 'seating' | 'reports';
+const OWNER_TABS: Tab[] = ['overview', 'payments', 'attendees', 'staff', 'checkin', 'seating', 'reports'];
 
 export default function ManageDashboard({eventId}: Props) {
   const t = useTranslations('manage');
@@ -73,6 +74,9 @@ export default function ManageDashboard({eventId}: Props) {
   const hasAll = isOwner || isPlatformAdmin || perms.includes('*');
   const visibleTabs = OWNER_TABS.filter(tab => {
     if (tab === 'staff') return isOwner; // owner-only, even for an assisting admin
+    // Reports bundle buyer PII, payment references, and who-approved-what —
+    // owner-only, same as Staff, even for an assisting admin.
+    if (tab === 'reports') return isOwner || isPlatformAdmin;
     if (tab === 'seating') return event.seatMapEnabled === true && (hasAll || isOwner);
     // Scanning requires its own slug even for an assisting admin — most
     // admin/support roles can view everything but aren't check-in staff.
@@ -164,6 +168,7 @@ export default function ManageDashboard({eventId}: Props) {
         {activeTab === 'staff' && <StaffPanel eventId={eventId} />}
         {activeTab === 'checkin' && <CheckInPanel eventId={eventId} />}
         {activeTab === 'seating' && <SeatingPanel eventId={eventId} />}
+        {activeTab === 'reports' && <ReportsPanel eventId={eventId} />}
       </div>
     </div>
   );
