@@ -4,6 +4,7 @@ import {useState} from 'react';
 import {useAuthActions} from '@convex-dev/auth/react';
 import {useTranslations} from 'next-intl';
 import {Link, useRouter} from '@/lib/navigation';
+import Input from '@/components/ui/Input';
 
 interface Props {
   /** Set by the verify-email redirect to show a one-time success banner. */
@@ -76,24 +77,24 @@ export function LoginForm({verified}: Props) {
           <label className="block text-sm font-medium text-gray-700">
             {t('emailLabel')}
           </label>
-          <input
+          <Input
             type="email"
             name="email"
             required
             autoComplete="email"
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mt-1"
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
             {t('passwordLabel')}
           </label>
-          <input
+          <Input
             type="password"
             name="password"
             required
             autoComplete="current-password"
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mt-1"
           />
         </div>
         <button
