@@ -185,6 +185,7 @@
     "viewTickets": "Voir mes billets",
     "eventNotFound": "Événement introuvable.",
     "eventNotLive": "Cet événement n'accepte pas de commandes pour le moment.",
+    "eventEnded": "Cet événement est déjà terminé.",
     "noTiersAvailable": "Aucun niveau de billet disponible.",
     "paymentMethodLabel": "Comment souhaitez-vous payer ?",
     "methodBankTransfer": "Virement bancaire",
@@ -201,7 +202,8 @@
       "proofRequired": "Veuillez télécharger votre preuve de paiement.",
       "proofFailed": "Échec du téléchargement. Veuillez réessayer.",
       "referenceRequired": "Veuillez saisir votre numéro de référence de paiement.",
-      "referenceDuplicate": "Ce numéro de référence est déjà associé à un autre paiement pour cet événement."
+      "referenceDuplicate": "Ce numéro de référence est déjà associé à un autre paiement pour cet événement.",
+      "eventEnded": "Cet événement s'est terminé pendant votre commande."
     }
   },
   "dashboard": {

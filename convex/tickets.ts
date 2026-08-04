@@ -1,11 +1,12 @@
 import {v} from 'convex/values';
 import {mutation, query, MutationCtx, QueryCtx} from './_generated/server';
-import {Id, Doc} from './_generated/dataModel';
+import {Id} from './_generated/dataModel';
 import {getAuthUserId} from '@convex-dev/auth/server';
 import {assertPermission, getCallerUserId, requirePermission} from './_helpers/permissions';
 import {writeAuditLog} from './_helpers/audit';
 import {signTicketQr, buildQrData} from './_helpers/qr';
 import {internal} from './_generated/api';
+import {EVENT_ENDED_ERROR, getEventEndMs, getEventStartMs} from '../lib/eventTiming';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -31,15 +32,6 @@ export async function generateUniqueTicketNumber(ctx: MutationCtx, prefix: strin
     if (!existing) return num;
   }
   throw new Error('Could not generate unique ticket number');
-}
-
-// Event end = date (UTC midnight of the event's day) + endTime ("HH:mm",
-// treated as UTC), or +24h if endTime isn't set. Naive, ignores
-// event.timezone — consistent with the cancellation-cutoff check below.
-function getEventEndMs(event: Doc<'events'>): number {
-  if (!event.endTime) return event.date + 24 * 3_600_000;
-  const [hours, minutes] = event.endTime.split(':').map(Number);
-  return event.date + hours * 3_600_000 + minutes * 60_000;
 }
 
 // ---------------------------------------------------------------------------
@@ -71,7 +63,7 @@ export const purchase = mutation({
       throw new Error('Event is not available for purchase');
     }
     if (Date.now() > getEventEndMs(event)) {
-      throw new Error('This event has ended');
+      throw new Error(EVENT_ENDED_ERROR);
     }
 
     const tier = await ctx.db.get(args.tierId);
@@ -191,7 +183,7 @@ export const purchaseSeats = mutation({
       throw new Error('Event is not available for purchase');
     }
     if (Date.now() > getEventEndMs(event)) {
-      throw new Error('This event has ended');
+      throw new Error(EVENT_ENDED_ERROR);
     }
     if (!event.venueLayoutSnapshotId) {
       throw new Error('This event has no seating layout');
@@ -417,7 +409,7 @@ export const cancel = mutation({
 
     if (event.cancellationPolicy.cutoffHours) {
       const cutoffMs = event.cancellationPolicy.cutoffHours * 3_600_000;
-      if (Date.now() > event.date - cutoffMs) {
+      if (Date.now() > getEventStartMs(event) - cutoffMs) {
         throw new Error(
           `Cancellations close ${event.cancellationPolicy.cutoffHours} hours before the event`,
         );

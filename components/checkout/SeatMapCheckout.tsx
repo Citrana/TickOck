@@ -8,6 +8,9 @@ import {useTranslations} from 'next-intl';
 import {api} from '@/convex/_generated/api';
 import {Doc, Id} from '@/convex/_generated/dataModel';
 import Button from '@/components/ui/Button';
+import {parseConvexError} from '@/lib/errors';
+import {EVENT_ENDED_ERROR} from '@/lib/eventTiming';
+import {useHasEventEnded} from '@/hooks/useHasEventEnded';
 import PaymentProofSection, {OrderResult} from './PaymentProofSection';
 import {SeatStatus} from '@/components/venue/types';
 
@@ -23,6 +26,8 @@ type Props = {event: EventWithTiers};
 export default function SeatMapCheckout({event}: Props) {
   const t = useTranslations('checkout');
   const tSeat = useTranslations('venueLayout.checkout');
+
+  const hasEventEnded = useHasEventEnded(event);
 
   const snapshot = useQuery(api.venueLayout.getSnapshotForEvent, {eventId: event._id});
   const availability = useQuery(api.seatHolds.getAvailability, {eventId: event._id});
@@ -90,6 +95,10 @@ export default function SeatMapCheckout({event}: Props) {
     );
   }
 
+  if (hasEventEnded) {
+    return <p className="py-20 text-center text-gray-500">{t('eventEnded')}</p>;
+  }
+
   const seatAvailability: Record<string, SeatStatus> = {...(availability as Record<string, SeatStatus>)};
 
   function toggleSeat(seatId: Id<'venueLayoutSeats'>) {
@@ -132,7 +141,8 @@ export default function SeatMapCheckout({event}: Props) {
       setHoldIds(result.holdIds);
       setExpiresAt(result.expiresAt);
     } catch (err) {
-      setError(err instanceof Error ? err.message : tSeat('genericError'));
+      const parsed = parseConvexError(err, tSeat('genericError'));
+      setError(parsed === EVENT_ENDED_ERROR ? t('errors.eventEnded') : parsed);
     } finally {
       setSubmitting(false);
     }
@@ -158,7 +168,8 @@ export default function SeatMapCheckout({event}: Props) {
       setOrderTotal({price: selectedTotal, currency: selectedCurrency, isFree: selectedTotal === 0});
       setOrder(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : tSeat('genericError'));
+      const parsed = parseConvexError(err, tSeat('genericError'));
+      setError(parsed === EVENT_ENDED_ERROR ? t('errors.eventEnded') : parsed);
     } finally {
       setSubmitting(false);
     }
@@ -182,7 +193,8 @@ export default function SeatMapCheckout({event}: Props) {
       setOrderTotal({price: tier.price * quantity, currency: tier.currency, isFree: tier.price === 0});
       setOrder(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : tSeat('genericError'));
+      const parsed = parseConvexError(err, tSeat('genericError'));
+      setError(parsed === EVENT_ENDED_ERROR ? t('errors.eventEnded') : parsed);
     } finally {
       setSubmitting(false);
     }
