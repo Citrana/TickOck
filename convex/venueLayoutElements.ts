@@ -3,6 +3,7 @@ import {mutation} from './_generated/server';
 import {QueryCtx} from './_generated/server';
 import {getCallerUserId} from './_helpers/permissions';
 import {requireFeatureEnabled} from './_helpers/featureFlags';
+import {requireLayoutEventNotEnded} from './_helpers/eventTiming';
 import {writeAuditLog} from './_helpers/audit';
 import {requireOwnedTemplate} from './venueLayout';
 
@@ -96,6 +97,7 @@ export const addElement = mutation({
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
     await requireFeatureEnabled(ctx, 'venue_layout_design');
     await requireOwnedTemplate(ctx, args.layoutId, userId);
+    await requireLayoutEventNotEnded(ctx, args.layoutId);
     assertRequiredFieldsForKind(args);
 
     const existing = await ctx.db
@@ -159,6 +161,7 @@ export const updateElement = mutation({
     const element = await ctx.db.get(args.elementId);
     if (!element) throw new Error('Element not found');
     await requireOwnedTemplate(ctx, element.layoutId, userId);
+    await requireLayoutEventNotEnded(ctx, element.layoutId);
 
     const {elementId, ...patch} = args;
     await ctx.db.patch(elementId, {
@@ -195,6 +198,7 @@ export const deleteElement = mutation({
     const element = await ctx.db.get(args.elementId);
     if (!element) throw new Error('Element not found');
     await requireOwnedTemplate(ctx, element.layoutId, userId);
+    await requireLayoutEventNotEnded(ctx, element.layoutId);
 
     await ctx.db.delete(args.elementId);
     await writeAuditLog(ctx, {
