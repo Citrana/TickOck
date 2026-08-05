@@ -332,6 +332,7 @@ export const submitPaymentProof = mutation({
     paymentId: v.id('payments'),
     storageId: v.id('_storage'),
     referenceNumber: v.optional(v.string()),
+    paymentAccountId: v.optional(v.id('eventPaymentDestinations')),
   },
   handler: async (ctx, args) => {
     const userId = await getCallerUserId(ctx as unknown as QueryCtx);
@@ -355,12 +356,20 @@ export const submitPaymentProof = mutation({
       }
     }
 
+    if (args.paymentAccountId) {
+      const destination = await ctx.db.get(args.paymentAccountId);
+      if (!destination || destination.eventId !== payment.eventId) {
+        throw new Error('Invalid payment destination');
+      }
+    }
+
     const evidenceUrl = await ctx.storage.getUrl(args.storageId);
     if (!evidenceUrl) throw new Error('Failed to retrieve uploaded file');
 
     await ctx.db.patch(args.paymentId, {
       evidenceUrl,
       ...(args.referenceNumber ? {referenceNumber: args.referenceNumber} : {}),
+      ...(args.paymentAccountId ? {paymentAccountId: args.paymentAccountId} : {}),
     });
 
     await writeAuditLog(ctx, {

@@ -282,6 +282,84 @@ test('submitPaymentProof attaches evidence to a pending payment', async () => {
 });
 
 /**
+ * Covers: tickets.submitPaymentProof records which manual payment
+ * destination the buyer says they paid.
+ * Business logic:
+ * - `paymentAccountId` is optional but, when given, must belong to the
+ *   same event as the payment — a destination from a different event is
+ *   rejected as "Invalid payment destination" before the DB patch.
+ */
+test('submitPaymentProof stores the chosen payment destination', async () => {
+  const t = convexTest(schema, modules);
+
+  const {ownerId, buyerId, eventId, tierId} = await t.run(async ctx => {
+    const ownerId = await seedUser(ctx, {email: 'proof-dest-owner@example.com'});
+    const buyerId = await seedUser(ctx, {email: 'proof-dest-buyer@example.com'});
+    const eventId = await seedEvent(ctx, ownerId, {paymentMode: 'manual'});
+    const tierId = await seedTier(ctx, eventId);
+    return {ownerId, buyerId, eventId, tierId};
+  });
+
+  const asOwner = t.withIdentity({subject: ownerId});
+  const destinationId = await asOwner.mutation(api.eventPaymentDestinations.addDestination, {
+    eventId,
+    name: "John's M-Pesa",
+    phone: '0712345678',
+  });
+
+  const asBuyer = t.withIdentity({subject: buyerId});
+  const {paymentId} = await asBuyer.mutation(api.tickets.purchase, {eventId, tierId, quantity: 1});
+  const storageId = await t.run(async ctx => ctx.storage.store(new Blob(['fake-screenshot'])));
+
+  await asBuyer.mutation(api.tickets.submitPaymentProof, {
+    paymentId: paymentId!,
+    storageId,
+    paymentAccountId: destinationId,
+  });
+
+  await t.run(async ctx => {
+    const payment = await ctx.db.get(paymentId!);
+    expect(payment?.paymentAccountId).toBe(destinationId);
+  });
+});
+
+/**
+ * Covers: tickets.submitPaymentProof rejects a payment destination that
+ * belongs to a different event than the payment.
+ */
+test('submitPaymentProof rejects a payment destination from another event', async () => {
+  const t = convexTest(schema, modules);
+
+  const {ownerId, buyerId, eventId, tierId, otherEventId} = await t.run(async ctx => {
+    const ownerId = await seedUser(ctx, {email: 'proof-dest-cross-owner@example.com'});
+    const buyerId = await seedUser(ctx, {email: 'proof-dest-cross-buyer@example.com'});
+    const eventId = await seedEvent(ctx, ownerId, {paymentMode: 'manual'});
+    const otherEventId = await seedEvent(ctx, ownerId, {paymentMode: 'manual'});
+    const tierId = await seedTier(ctx, eventId);
+    return {ownerId, buyerId, eventId, tierId, otherEventId};
+  });
+
+  const asOwner = t.withIdentity({subject: ownerId});
+  const otherDestinationId = await asOwner.mutation(api.eventPaymentDestinations.addDestination, {
+    eventId: otherEventId,
+    name: 'Wrong Event Destination',
+    phone: '0700000000',
+  });
+
+  const asBuyer = t.withIdentity({subject: buyerId});
+  const {paymentId} = await asBuyer.mutation(api.tickets.purchase, {eventId, tierId, quantity: 1});
+  const storageId = await t.run(async ctx => ctx.storage.store(new Blob(['fake-screenshot'])));
+
+  await expect(
+    asBuyer.mutation(api.tickets.submitPaymentProof, {
+      paymentId: paymentId!,
+      storageId,
+      paymentAccountId: otherDestinationId,
+    }),
+  ).rejects.toThrow('Invalid payment destination');
+});
+
+/**
  * Covers: tickets.submitPaymentProof rejects a caller who isn't the
  * payment owner.
  * Business logic:
@@ -521,4 +599,48 @@ test('submitPaymentProof rejects when the uploaded file cannot be retrieved', as
   await expect(
     asBuyer.mutation(api.tickets.submitPaymentProof, {paymentId: paymentId!, storageId}),
   ).rejects.toThrow('Failed to retrieve uploaded file');
+});
+
+/**
+ * Covers: payments.resubmitPaymentProof stores the chosen payment
+ * destination when resubmitting after a rejection.
+ * Business logic:
+ * - Same optional `paymentAccountId` handling as submitPaymentProof —
+ *   lets a buyer correct/re-pick which destination they paid when they
+ *   resubmit proof.
+ */
+test('resubmitPaymentProof stores the chosen payment destination', async () => {
+  const t = convexTest(schema, modules);
+
+  const {ownerId, buyerId, eventId, tierId} = await t.run(async ctx => {
+    const ownerId = await seedUser(ctx, {email: 'resubmit-dest-owner@example.com'});
+    const buyerId = await seedUser(ctx, {email: 'resubmit-dest-buyer@example.com'});
+    const eventId = await seedEvent(ctx, ownerId, {paymentMode: 'manual'});
+    const tierId = await seedTier(ctx, eventId);
+    return {ownerId, buyerId, eventId, tierId};
+  });
+
+  const asOwner = t.withIdentity({subject: ownerId});
+  const destinationId = await asOwner.mutation(api.eventPaymentDestinations.addDestination, {
+    eventId,
+    name: 'Backup Till',
+    phone: '0722222222',
+  });
+
+  const asBuyer = t.withIdentity({subject: buyerId});
+  const {paymentId} = await asBuyer.mutation(api.tickets.purchase, {eventId, tierId, quantity: 1});
+  await asOwner.mutation(api.payments.rejectPayment, {paymentId: paymentId!});
+
+  const storageId = await t.run(async ctx => ctx.storage.store(new Blob(['fake-screenshot'])));
+  await asBuyer.mutation(api.payments.resubmitPaymentProof, {
+    paymentId: paymentId!,
+    storageId,
+    paymentAccountId: destinationId,
+  });
+
+  await t.run(async ctx => {
+    const payment = await ctx.db.get(paymentId!);
+    expect(payment?.status).toBe('pending');
+    expect(payment?.paymentAccountId).toBe(destinationId);
+  });
 });

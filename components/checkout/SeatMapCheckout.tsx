@@ -91,7 +91,7 @@ export default function SeatMapCheckout({event}: Props) {
         paymentMethodChoice={paymentMethodChoice}
         totalPrice={orderTotal.price}
         currency={orderTotal.currency}
-        manualPaymentInstructions={event.manualPaymentInstructions}
+        eventId={event._id}
       />
     );
   }

@@ -11,6 +11,9 @@ import {matchesDateFilter, isDateFilterActive} from '@/lib/dateFilter';
 import DataTable, {ColumnDef} from '@/components/ui/DataTable';
 import ColumnsPicker from '@/components/ui/ColumnsPicker';
 import FilterPanel from '@/components/ui/FilterPanel';
+import Modal from '@/components/ui/Modal';
+import FormField from '@/components/ui/FormField';
+import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import Button from '@/components/ui/Button';
 
@@ -30,7 +33,11 @@ type Payment = NonNullable<
   ReturnType<typeof useQuery<typeof api.payments.listByEvent>>
 >[number];
 
-const ALL_COL_KEYS = ['buyer', 'amount', 'method', 'status', 'reference', 'proof', 'actionedBy'] as const;
+type Destination = NonNullable<
+  ReturnType<typeof useQuery<typeof api.eventPaymentDestinations.listByEvent>>
+>[number];
+
+const ALL_COL_KEYS = ['buyer', 'amount', 'method', 'paidTo', 'status', 'reference', 'proof', 'actionedBy'] as const;
 
 export default function PaymentsPanel({eventId, canEditPaymentInfo}: Props) {
   const t = useTranslations('manage.payments');
@@ -42,9 +49,13 @@ export default function PaymentsPanel({eventId, canEditPaymentInfo}: Props) {
 
   const payments = useQuery(api.payments.listByEvent, {eventId});
   const event = useQuery(api.events.get, {eventId});
+  const destinations = useQuery(api.eventPaymentDestinations.listByEvent, {eventId});
   const confirmPayment = useMutation(api.payments.confirmPayment);
   const rejectPayment = useMutation(api.payments.rejectPayment);
-  const updatePaymentInstructions = useMutation(api.events.updatePaymentInstructions);
+  const addDestination = useMutation(api.eventPaymentDestinations.addDestination);
+  const updateDestination = useMutation(api.eventPaymentDestinations.updateDestination);
+  const deactivateDestination = useMutation(api.eventPaymentDestinations.deactivateDestination);
+  const reactivateDestination = useMutation(api.eventPaymentDestinations.reactivateDestination);
 
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [methodFilter, setMethodFilter] = useState<MethodFilter>('all');
@@ -57,11 +68,15 @@ export default function PaymentsPanel({eventId, canEditPaymentInfo}: Props) {
   const [rejectReason, setRejectReason] = useState('');
   const [processing, setProcessing] = useState<Id<'payments'> | null>(null);
 
-  const [editingInstructions, setEditingInstructions] = useState(false);
-  const [instructionsDraft, setInstructionsDraft] = useState('');
-  const [savingInstructions, setSavingInstructions] = useState(false);
+  const [destinationModalOpen, setDestinationModalOpen] = useState(false);
+  const [editingDestinationId, setEditingDestinationId] = useState<Id<'eventPaymentDestinations'> | null>(null);
+  const [formName, setFormName] = useState('');
+  const [formPhone, setFormPhone] = useState('');
+  const [formNote, setFormNote] = useState('');
+  const [savingDestination, setSavingDestination] = useState(false);
+  const [togglingId, setTogglingId] = useState<Id<'eventPaymentDestinations'> | null>(null);
 
-  if (payments === undefined || event === undefined) {
+  if (payments === undefined || event === undefined || destinations === undefined) {
     return (
       <div className="space-y-3">
         {Array.from({length: 3}).map((_, i) => (
@@ -73,24 +88,61 @@ export default function PaymentsPanel({eventId, canEditPaymentInfo}: Props) {
 
   if (!event) return null;
 
-  function startEditingInstructions() {
-    setInstructionsDraft(event?.manualPaymentInstructions ?? '');
-    setEditingInstructions(true);
+  function openAddDestinationModal() {
+    setEditingDestinationId(null);
+    setFormName('');
+    setFormPhone('');
+    setFormNote('');
+    setDestinationModalOpen(true);
   }
 
-  async function handleSaveInstructions() {
-    setSavingInstructions(true);
+  function openEditDestinationModal(destination: Destination) {
+    setEditingDestinationId(destination._id);
+    setFormName(destination.name);
+    setFormPhone(destination.phone);
+    setFormNote(destination.note ?? '');
+    setDestinationModalOpen(true);
+  }
+
+  async function handleSaveDestination() {
+    setSavingDestination(true);
     try {
-      await updatePaymentInstructions({
-        eventId,
-        manualPaymentInstructions: instructionsDraft.trim() || undefined,
-      });
-      toast.success(t('instructionsSaved'));
-      setEditingInstructions(false);
+      if (editingDestinationId) {
+        await updateDestination({
+          destinationId: editingDestinationId,
+          name: formName.trim(),
+          phone: formPhone.trim(),
+          note: formNote.trim() || undefined,
+        });
+      } else {
+        await addDestination({
+          eventId,
+          name: formName.trim(),
+          phone: formPhone.trim(),
+          note: formNote.trim() || undefined,
+        });
+      }
+      toast.success(t('destinationSaved'));
+      setDestinationModalOpen(false);
     } catch (err: unknown) {
-      toast.error(parseConvexError(err, t('instructionsError')));
+      toast.error(parseConvexError(err, t('destinationError')));
     } finally {
-      setSavingInstructions(false);
+      setSavingDestination(false);
+    }
+  }
+
+  async function handleToggleActive(destination: Destination) {
+    setTogglingId(destination._id);
+    try {
+      if (destination.isActive) {
+        await deactivateDestination({destinationId: destination._id});
+      } else {
+        await reactivateDestination({destinationId: destination._id});
+      }
+    } catch (err: unknown) {
+      toast.error(parseConvexError(err, t('destinationError')));
+    } finally {
+      setTogglingId(null);
     }
   }
 
@@ -183,6 +235,19 @@ export default function PaymentsPanel({eventId, canEditPaymentInfo}: Props) {
       ),
     },
     {
+      key: 'paidTo',
+      header: t('paidTo'),
+      render: payment =>
+        payment.paidToName ? (
+          <div>
+            <p className="text-sm text-gray-700">{payment.paidToName}</p>
+            <p className="text-xs text-gray-400">{payment.paidToPhone}</p>
+          </div>
+        ) : (
+          <span className="text-xs text-gray-400">—</span>
+        ),
+    },
+    {
       key: 'status',
       header: t('status'),
       render: payment => (
@@ -245,7 +310,7 @@ export default function PaymentsPanel({eventId, canEditPaymentInfo}: Props) {
 
   return (
     <div className="space-y-5">
-      {/* Payment method */}
+      {/* Payment method + destinations */}
       <div className="rounded-2xl border border-gray-200 bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -254,49 +319,65 @@ export default function PaymentsPanel({eventId, canEditPaymentInfo}: Props) {
               {event.paymentMode === 'manual' ? t('methodManual') : t('methodOnline')}
             </span>
           </div>
-          {canEditPaymentInfo && event.paymentMode === 'manual' && !editingInstructions && (
+          {canEditPaymentInfo && event.paymentMode === 'manual' && (
             <button
-              onClick={startEditingInstructions}
+              onClick={openAddDestinationModal}
               className="text-xs font-medium text-gray-500 underline underline-offset-2 hover:text-gray-900"
             >
-              {t('editInstructions')}
+              {t('addDestination')}
             </button>
           )}
         </div>
 
         {event.paymentMode === 'manual' && (
-          <div className="mt-3">
-            {editingInstructions ? (
-              <div className="space-y-2">
-                <Textarea
-                  value={instructionsDraft}
-                  onChange={e => setInstructionsDraft(e.target.value)}
-                  placeholder={t('instructionsPlaceholder')}
-                  rows={4}
-                />
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={handleSaveInstructions}
-                    disabled={savingInstructions}
-                    className="px-3 py-1.5 text-xs"
-                  >
-                    {savingInstructions ? t('processing') : t('saveInstructions')}
-                  </Button>
-                  <button
-                    onClick={() => setEditingInstructions(false)}
-                    disabled={savingInstructions}
-                    className="text-xs text-gray-500 hover:text-gray-700"
-                  >
-                    {t('cancel')}
-                  </button>
-                </div>
-              </div>
-            ) : event.manualPaymentInstructions ? (
-              <p className="whitespace-pre-line text-sm text-gray-700">
-                {event.manualPaymentInstructions}
-              </p>
+          <div className="mt-3 space-y-2">
+            {destinations.length === 0 ? (
+              <p className="text-sm text-gray-400">{t('destinationsEmpty')}</p>
             ) : (
-              <p className="text-sm text-gray-400">{t('instructionsEmpty')}</p>
+              destinations.map(destination => (
+                <div
+                  key={destination._id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {destination.name}{' '}
+                      <span className="font-normal text-gray-400">— {destination.phone}</span>
+                    </p>
+                    {destination.note && (
+                      <p className="text-xs text-gray-500">{destination.note}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        destination.isActive
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      {destination.isActive ? t('destinationActive') : t('destinationInactive')}
+                    </span>
+                    {canEditPaymentInfo && (
+                      <>
+                        <button
+                          onClick={() => openEditDestinationModal(destination)}
+                          className="text-xs font-medium text-gray-500 underline underline-offset-2 hover:text-gray-900"
+                        >
+                          {t('editDestination')}
+                        </button>
+                        <button
+                          onClick={() => handleToggleActive(destination)}
+                          disabled={togglingId === destination._id}
+                          className="text-xs font-medium text-gray-500 underline underline-offset-2 hover:text-gray-900 disabled:opacity-50"
+                        >
+                          {destination.isActive ? t('deactivateDestination') : t('reactivateDestination')}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))
             )}
           </div>
         )}
@@ -490,6 +571,53 @@ export default function PaymentsPanel({eventId, canEditPaymentInfo}: Props) {
           </div>
         </div>
       </FilterPanel>
+
+      <Modal
+        open={destinationModalOpen}
+        onClose={() => setDestinationModalOpen(false)}
+        title={editingDestinationId ? t('editDestinationTitle') : t('addDestinationTitle')}
+      >
+        <div className="space-y-4">
+          <FormField label={t('destinationNameLabel')} required>
+            <Input
+              value={formName}
+              onChange={e => setFormName(e.target.value)}
+              placeholder={t('destinationNamePlaceholder')}
+            />
+          </FormField>
+          <FormField label={t('destinationPhoneLabel')} required>
+            <Input
+              value={formPhone}
+              onChange={e => setFormPhone(e.target.value)}
+              placeholder={t('destinationPhonePlaceholder')}
+            />
+          </FormField>
+          <FormField label={t('destinationNoteLabel')} hint={t('destinationNoteHint')}>
+            <Textarea
+              value={formNote}
+              onChange={e => setFormNote(e.target.value)}
+              placeholder={t('destinationNotePlaceholder')}
+              rows={2}
+            />
+          </FormField>
+          <div className="flex items-center justify-end gap-2">
+            <button
+              onClick={() => setDestinationModalOpen(false)}
+              disabled={savingDestination}
+              className="text-xs text-gray-500 hover:text-gray-700"
+            >
+              {t('cancel')}
+            </button>
+            <Button
+              onClick={handleSaveDestination}
+              disabled={savingDestination || !formName.trim() || !formPhone.trim()}
+              className="px-3 py-1.5 text-xs"
+            >
+              {savingDestination ? t('processing') : t('saveDestination')}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
