@@ -3,6 +3,7 @@ import {mutation, query, MutationCtx, QueryCtx} from './_generated/server';
 import {Id} from './_generated/dataModel';
 import {getCallerUserId, hasPlatformPermission, requirePermission} from './_helpers/permissions';
 import {requireFeatureEnabled} from './_helpers/featureFlags';
+import {requireEventNotEnded} from './_helpers/eventTiming';
 import {writeAuditLog} from './_helpers/audit';
 import {getAuthUserId} from '@convex-dev/auth/server';
 import {copyLayout, deleteLayoutCascade} from './venueLayout';
@@ -347,6 +348,7 @@ export const update = mutation({
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error('Event not found');
     const actorId = await requirePermission(ctx, 'events:edit', args.eventId);
+    requireEventNotEnded(event);
 
     await ctx.db.patch(args.eventId, {
       title: args.title,

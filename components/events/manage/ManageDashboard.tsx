@@ -7,6 +7,7 @@ import {Link} from '@/lib/navigation';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 import {useCurrentUser} from '@/hooks/useCurrentUser';
+import {useHasEventEnded} from '@/hooks/useHasEventEnded';
 import EventStatusBadge from '@/components/events/EventStatusBadge';
 import Banner from '@/components/ui/Banner';
 import SalesOverview from './SalesOverview';
@@ -30,6 +31,7 @@ export default function ManageDashboard({eventId}: Props) {
   const event = useQuery(api.events.get, {eventId});
   const myAccess = useQuery(api.eventStaff.getMyAccess, {eventId});
   const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const hasEnded = useHasEventEnded(event);
 
   // Loading skeleton
   if (event === undefined || user === null || myAccess === undefined) {
@@ -91,6 +93,8 @@ export default function ManageDashboard({eventId}: Props) {
   });
 
   const canEdit = (isOwner || isPlatformAdmin) && (event.status === 'draft' || event.status === 'rejected');
+  const ended = event.status === 'live' && hasEnded;
+  const displayStatus = ended ? 'ended' : event.status;
   const formattedDate = new Date(event.date).toLocaleDateString(undefined, {
     weekday: 'short',
     month: 'short',
@@ -101,6 +105,7 @@ export default function ManageDashboard({eventId}: Props) {
   return (
     <div className="space-y-6">
       {isAssisting && <Banner>{t('assistBanner')}</Banner>}
+      {ended && <Banner>{t('endedBanner')}</Banner>}
 
       {/* Header */}
       <div>
@@ -115,7 +120,7 @@ export default function ManageDashboard({eventId}: Props) {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-extrabold text-gray-900">{event.title}</h1>
-              <EventStatusBadge status={event.status} />
+              <EventStatusBadge status={displayStatus} />
             </div>
             <p className="mt-1 text-sm text-gray-500">
               {formattedDate} · {event.venue.name}, {event.venue.city}
@@ -165,7 +170,7 @@ export default function ManageDashboard({eventId}: Props) {
         {activeTab === 'overview' && <SalesOverview eventId={eventId} isOwner={isOwner} />}
         {activeTab === 'payments' && <PaymentsPanel eventId={eventId} />}
         {activeTab === 'attendees' && <AttendeesPanel eventId={eventId} />}
-        {activeTab === 'staff' && <StaffPanel eventId={eventId} />}
+        {activeTab === 'staff' && <StaffPanel eventId={eventId} ended={ended} />}
         {activeTab === 'checkin' && <CheckInPanel eventId={eventId} />}
         {activeTab === 'seating' && <SeatingPanel eventId={eventId} />}
         {activeTab === 'reports' && <ReportsPanel eventId={eventId} />}

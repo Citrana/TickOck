@@ -19,6 +19,13 @@
     "staffEvents": "Événements (équipe)",
     "myVenues": "Mes plans de salle"
   },
+  "eventStatus": {
+    "draft": "Brouillon",
+    "pendingApproval": "En attente d'approbation",
+    "live": "En ligne",
+    "rejected": "Rejeté",
+    "ended": "Terminé"
+  },
   "auth": {
     "login": {
       "title": "Se connecter",
@@ -528,6 +535,7 @@
     "backToEvent": "← Retour à l'événement",
     "accessDenied": "Vous n'avez pas la permission de gérer cet événement.",
     "assistBanner": "Vous gérez cet événement en tant qu'administrateur de la plateforme, pour le compte de son organisateur.",
+    "endedBanner": "Cet événement est terminé et ne peut plus être modifié.",
     "tabs": {
       "overview": "Vue d'ensemble",
       "payments": "Paiements",

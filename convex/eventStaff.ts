@@ -2,6 +2,7 @@ import {v} from 'convex/values';
 import {mutation, query, QueryCtx} from './_generated/server';
 import {getAuthUserId} from '@convex-dev/auth/server';
 import {getCallerUserId, requirePermission} from './_helpers/permissions';
+import {requireEventNotEnded} from './_helpers/eventTiming';
 import {writeAuditLog} from './_helpers/audit';
 
 // ---------------------------------------------------------------------------
@@ -129,6 +130,8 @@ export const getMyStaffEvents = query({
           eventId: event._id,
           title: event.title,
           date: event.date,
+          endTime: event.endTime,
+          timezone: event.timezone,
           status: event.status,
           venue: event.venue,
           coverImageUrl: event.coverImageStorageId
@@ -166,6 +169,7 @@ export const addStaff = mutation({
     if (event.ownerId !== callerId) {
       await requirePermission(ctx, 'staff:manage');
     }
+    requireEventNotEnded(event);
 
     // Look up the target user by email
     const normEmail = args.email.toLowerCase().trim();
@@ -243,6 +247,7 @@ export const deactivateStaff = mutation({
     if (event.ownerId !== callerId) {
       await requirePermission(ctx, 'staff:manage');
     }
+    requireEventNotEnded(event);
 
     if (member.isActive === false) throw new Error('Staff member is already deactivated');
 
@@ -275,6 +280,7 @@ export const reactivateStaff = mutation({
     if (event.ownerId !== callerId) {
       await requirePermission(ctx, 'staff:manage');
     }
+    requireEventNotEnded(event);
 
     if (member.isActive !== false) throw new Error('Staff member is already active');
 
@@ -309,6 +315,7 @@ export const updatePermissions = mutation({
     if (event.ownerId !== callerId) {
       await requirePermission(ctx, 'staff:manage');
     }
+    requireEventNotEnded(event);
 
     const allowed = new Set([
       'tickets:read',

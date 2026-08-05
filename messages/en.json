@@ -19,6 +19,13 @@
     "staffEvents": "Staff Events",
     "myVenues": "My Venues"
   },
+  "eventStatus": {
+    "draft": "Draft",
+    "pendingApproval": "Pending approval",
+    "live": "Live",
+    "rejected": "Rejected",
+    "ended": "Ended"
+  },
   "auth": {
     "login": {
       "title": "Log in",
@@ -528,6 +535,7 @@
     "backToEvent": "← Back to event",
     "accessDenied": "You don't have permission to manage this event.",
     "assistBanner": "You're managing this event as a platform admin, on behalf of its organizer.",
+    "endedBanner": "This event has ended and can no longer be edited.",
     "tabs": {
       "overview": "Overview",
       "payments": "Payments",

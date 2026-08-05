@@ -1,6 +1,7 @@
 import {type Doc} from '@/convex/_generated/dataModel';
 
 export const EVENT_ENDED_ERROR = 'This event has ended';
+export const EVENT_ENDED_EDIT_ERROR = 'This event has ended and can no longer be edited';
 
 /**
  * Converts a wall-clock local date + time to the equivalent UTC timestamp (ms).
@@ -38,4 +39,8 @@ export function getEventEndMs(event: Pick<Doc<'events'>, 'date' | 'endTime' | 't
 
 export function getEventStartMs(event: Pick<Doc<'events'>, 'date' | 'startTime' | 'timezone'>): number {
   return zonedDateTimeToUtcMs(event.date, event.startTime, event.timezone);
+}
+
+export function hasEventEnded(event: Pick<Doc<'events'>, 'date' | 'endTime' | 'timezone'>): boolean {
+  return Date.now() > getEventEndMs(event);
 }

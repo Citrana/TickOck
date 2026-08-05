@@ -9,6 +9,7 @@ import {Link} from '@/lib/navigation';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 import {parseConvexError} from '@/lib/errors';
+import {hasEventEnded} from '@/lib/eventTiming';
 import EventStatusBadge from './EventStatusBadge';
 
 type Props = {
@@ -73,6 +74,8 @@ export default function MyEventsList({limit}: Props) {
         const canEdit = event.status === 'draft' || event.status === 'rejected';
         const canDelete = canEdit;
         const isDeleting = deletingId === event._id;
+        const ended = event.status === 'live' && hasEventEnded(event);
+        const displayStatus = ended ? 'ended' : event.status;
 
         return (
           <div
@@ -105,7 +108,7 @@ export default function MyEventsList({limit}: Props) {
                     {date} · {event.venue.city}
                   </p>
                 </div>
-                <EventStatusBadge status={event.status} />
+                <EventStatusBadge status={displayStatus} />
               </div>
 
               {/* Rejection reason */}
