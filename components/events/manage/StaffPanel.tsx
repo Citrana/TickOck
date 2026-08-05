@@ -11,8 +11,9 @@ import {parseConvexError} from '@/lib/errors';
 import DataTable, {ColumnDef} from '@/components/ui/DataTable';
 import ColumnsPicker from '@/components/ui/ColumnsPicker';
 import FilterPanel from '@/components/ui/FilterPanel';
+import Banner from '@/components/ui/Banner';
 
-type Props = {eventId: Id<'events'>};
+type Props = {eventId: Id<'events'>; ended: boolean};
 
 const PRESET_KEYS: StaffPreset[] = ['co_organizer', 'scanner', 'finance'];
 
@@ -30,8 +31,9 @@ type StaffMember = NonNullable<
   ReturnType<typeof useQuery<typeof api.eventStaff.listByEvent>>
 >[number];
 
-export default function StaffPanel({eventId}: Props) {
+export default function StaffPanel({eventId, ended}: Props) {
   const t = useTranslations('manage.staff');
+  const tManage = useTranslations('manage');
   const tToolbar = useTranslations('ui.toolbar');
   const tUiPanel = useTranslations('ui.filterPanel');
   const tFP = useTranslations('manage.staff.filterPanel');
@@ -167,6 +169,8 @@ export default function StaffPanel({eventId}: Props) {
 
   return (
     <div className="space-y-8">
+      {ended && <Banner>{tManage('endedBanner')}</Banner>}
+
       {/* Add staff form */}
       <div className="rounded-xl border border-gray-200 bg-white p-5">
         <h3 className="font-semibold text-gray-900">{t('addTitle')}</h3>
@@ -179,11 +183,12 @@ export default function StaffPanel({eventId}: Props) {
               type="email"
               placeholder={t('emailPlaceholder')}
               value={email}
+              disabled={ended}
               onChange={e => setEmail(e.target.value)}
               onKeyDown={e => {
                 if (e.key === 'Enter') handleAdd();
               }}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
             />
           </div>
 
@@ -196,8 +201,9 @@ export default function StaffPanel({eventId}: Props) {
                 <button
                   key={key}
                   type="button"
+                  disabled={ended}
                   onClick={() => setPreset(key)}
-                  className={`rounded-xl border p-3 text-left transition-colors ${
+                  className={`rounded-xl border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                     preset === key
                       ? 'border-gray-900 bg-gray-900 text-white'
                       : 'border-gray-200 bg-white text-gray-900 hover:border-gray-400'
@@ -218,7 +224,7 @@ export default function StaffPanel({eventId}: Props) {
 
           <button
             onClick={handleAdd}
-            disabled={adding}
+            disabled={adding || ended}
             className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-50"
           >
             {adding ? t('adding') : t('addButton')}
@@ -285,7 +291,7 @@ export default function StaffPanel({eventId}: Props) {
             member.isActive ? (
               <button
                 onClick={() => handleDeactivate(member._id)}
-                disabled={togglingId === member._id}
+                disabled={togglingId === member._id || ended}
                 className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-amber-300 hover:text-amber-700 disabled:opacity-40"
               >
                 {togglingId === member._id ? t('deactivatingButton') : t('deactivateButton')}
@@ -293,7 +299,7 @@ export default function StaffPanel({eventId}: Props) {
             ) : (
               <button
                 onClick={() => handleReactivate(member._id)}
-                disabled={togglingId === member._id}
+                disabled={togglingId === member._id || ended}
                 className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-green-300 hover:text-green-700 disabled:opacity-40"
               >
                 {togglingId === member._id ? t('reactivatingButton') : t('reactivateButton')}
