@@ -141,6 +141,7 @@ export default function CheckoutForm({eventId}: Props) {
         paymentMethodChoice={paymentMethodChoice}
         totalPrice={totalPrice}
         currency={selectedTier?.currency ?? ''}
+        manualPaymentInstructions={event.manualPaymentInstructions}
       />
     );
   }

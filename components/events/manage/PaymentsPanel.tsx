@@ -11,8 +11,10 @@ import {matchesDateFilter, isDateFilterActive} from '@/lib/dateFilter';
 import DataTable, {ColumnDef} from '@/components/ui/DataTable';
 import ColumnsPicker from '@/components/ui/ColumnsPicker';
 import FilterPanel from '@/components/ui/FilterPanel';
+import Textarea from '@/components/ui/Textarea';
+import Button from '@/components/ui/Button';
 
-type Props = {eventId: Id<'events'>};
+type Props = {eventId: Id<'events'>; canEditPaymentInfo: boolean};
 
 type FilterStatus = 'all' | 'pending' | 'confirmed' | 'rejected';
 type MethodFilter = 'all' | 'manual' | 'online' | 'cash';
@@ -30,7 +32,7 @@ type Payment = NonNullable<
 
 const ALL_COL_KEYS = ['buyer', 'amount', 'method', 'status', 'reference', 'proof', 'actionedBy'] as const;
 
-export default function PaymentsPanel({eventId}: Props) {
+export default function PaymentsPanel({eventId, canEditPaymentInfo}: Props) {
   const t = useTranslations('manage.payments');
   const tToolbar = useTranslations('ui.toolbar');
   const tUiPanel = useTranslations('ui.filterPanel');
@@ -39,8 +41,10 @@ export default function PaymentsPanel({eventId}: Props) {
   const tPagination = useTranslations('ui.pagination');
 
   const payments = useQuery(api.payments.listByEvent, {eventId});
+  const event = useQuery(api.events.get, {eventId});
   const confirmPayment = useMutation(api.payments.confirmPayment);
   const rejectPayment = useMutation(api.payments.rejectPayment);
+  const updatePaymentInstructions = useMutation(api.events.updatePaymentInstructions);
 
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [methodFilter, setMethodFilter] = useState<MethodFilter>('all');
@@ -53,7 +57,11 @@ export default function PaymentsPanel({eventId}: Props) {
   const [rejectReason, setRejectReason] = useState('');
   const [processing, setProcessing] = useState<Id<'payments'> | null>(null);
 
-  if (payments === undefined) {
+  const [editingInstructions, setEditingInstructions] = useState(false);
+  const [instructionsDraft, setInstructionsDraft] = useState('');
+  const [savingInstructions, setSavingInstructions] = useState(false);
+
+  if (payments === undefined || event === undefined) {
     return (
       <div className="space-y-3">
         {Array.from({length: 3}).map((_, i) => (
@@ -61,6 +69,29 @@ export default function PaymentsPanel({eventId}: Props) {
         ))}
       </div>
     );
+  }
+
+  if (!event) return null;
+
+  function startEditingInstructions() {
+    setInstructionsDraft(event?.manualPaymentInstructions ?? '');
+    setEditingInstructions(true);
+  }
+
+  async function handleSaveInstructions() {
+    setSavingInstructions(true);
+    try {
+      await updatePaymentInstructions({
+        eventId,
+        manualPaymentInstructions: instructionsDraft.trim() || undefined,
+      });
+      toast.success(t('instructionsSaved'));
+      setEditingInstructions(false);
+    } catch (err: unknown) {
+      toast.error(parseConvexError(err, t('instructionsError')));
+    } finally {
+      setSavingInstructions(false);
+    }
   }
 
   const activeFilterCount =
@@ -214,6 +245,63 @@ export default function PaymentsPanel({eventId}: Props) {
 
   return (
     <div className="space-y-5">
+      {/* Payment method */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900">{t('paymentMethodTitle')}</h3>
+            <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600">
+              {event.paymentMode === 'manual' ? t('methodManual') : t('methodOnline')}
+            </span>
+          </div>
+          {canEditPaymentInfo && event.paymentMode === 'manual' && !editingInstructions && (
+            <button
+              onClick={startEditingInstructions}
+              className="text-xs font-medium text-gray-500 underline underline-offset-2 hover:text-gray-900"
+            >
+              {t('editInstructions')}
+            </button>
+          )}
+        </div>
+
+        {event.paymentMode === 'manual' && (
+          <div className="mt-3">
+            {editingInstructions ? (
+              <div className="space-y-2">
+                <Textarea
+                  value={instructionsDraft}
+                  onChange={e => setInstructionsDraft(e.target.value)}
+                  placeholder={t('instructionsPlaceholder')}
+                  rows={4}
+                />
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={handleSaveInstructions}
+                    disabled={savingInstructions}
+                    className="px-3 py-1.5 text-xs"
+                  >
+                    {savingInstructions ? t('processing') : t('saveInstructions')}
+                  </Button>
+                  <button
+                    onClick={() => setEditingInstructions(false)}
+                    disabled={savingInstructions}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    {t('cancel')}
+                  </button>
+                </div>
+              </div>
+            ) : event.manualPaymentInstructions ? (
+              <p className="whitespace-pre-line text-sm text-gray-700">
+                {event.manualPaymentInstructions}
+              </p>
+            ) : (
+              <p className="text-sm text-gray-400">{t('instructionsEmpty')}</p>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm text-gray-500">

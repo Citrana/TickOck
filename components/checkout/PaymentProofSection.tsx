@@ -20,6 +20,7 @@ type Props = {
   paymentMethodChoice: 'manual' | 'cash';
   totalPrice: number;
   currency: string;
+  manualPaymentInstructions?: string;
 };
 
 // Shared post-purchase success / manual-payment-proof flow, used by both the
@@ -33,6 +34,7 @@ export default function PaymentProofSection({
   paymentMethodChoice,
   totalPrice,
   currency,
+  manualPaymentInstructions,
 }: Props) {
   const t = useTranslations('checkout');
   const submitProof = useMutation(api.tickets.submitPaymentProof);
@@ -102,6 +104,11 @@ export default function PaymentProofSection({
           <p className="mt-3 rounded-lg bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
             {t('transferInstruction', {amount: totalPrice, currency})}
           </p>
+          {manualPaymentInstructions && (
+            <p className="mt-3 whitespace-pre-line rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+              {manualPaymentInstructions}
+            </p>
+          )}
           <div className="mt-4 space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700">

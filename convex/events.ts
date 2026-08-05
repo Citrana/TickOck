@@ -385,6 +385,34 @@ export const update = mutation({
   },
 });
 
+// Updates how buyers should pay for a manual-payment event (bank details,
+// mobile money number, etc.). Separate from `update` so owners can edit it
+// on a live event, not just while the event is draft/rejected.
+export const updatePaymentInstructions = mutation({
+  args: {
+    eventId: v.id('events'),
+    manualPaymentInstructions: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const event = await ctx.db.get(args.eventId);
+    if (!event) throw new Error('Event not found');
+    const actorId = await requirePermission(ctx, 'events:edit', args.eventId);
+    requireEventNotEnded(event);
+
+    await ctx.db.patch(args.eventId, {
+      manualPaymentInstructions: args.manualPaymentInstructions,
+    });
+
+    await writeAuditLog(ctx, {
+      actorId,
+      action: 'events:edit',
+      targetType: 'events',
+      targetId: args.eventId,
+      metadata: {field: 'manualPaymentInstructions'},
+    });
+  },
+});
+
 // Attaches payment evidence and moves the event to pending_approval.
 // Event must be in draft or rejected state.
 export const submitForApproval = mutation({

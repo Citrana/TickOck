@@ -62,6 +62,10 @@ export default defineSchema({
       v.literal('unlisted'),
     ),
     paymentMode: v.union(v.literal('online'), v.literal('manual')),
+    // Free-text instructions shown to buyers for manual payments (bank
+    // details, mobile money number, etc.) — owner-editable from the
+    // Payments tab, independent of the wider draft/rejected-only edit form.
+    manualPaymentInstructions: v.optional(v.string()),
     cancellationPolicy: v.object({
       allowed: v.boolean(),
       cutoffHours: v.optional(v.number()),
