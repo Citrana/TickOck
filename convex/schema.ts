@@ -151,6 +151,9 @@ export default defineSchema({
     ),
     evidenceUrl: v.optional(v.string()),
     referenceNumber: v.optional(v.string()),
+    // Which of the event's manual payment destinations the buyer claims to
+    // have paid — set when they submit (or resubmit) proof.
+    paymentAccountId: v.optional(v.id('eventPaymentDestinations')),
     confirmedBy: v.optional(v.id('users')),
     confirmedAt: v.optional(v.number()),
     rejectedBy: v.optional(v.id('users')),
@@ -181,6 +184,19 @@ export default defineSchema({
     bio: v.optional(v.string()),
     photoStorageId: v.optional(v.id('_storage')),
     displayOrder: v.number(),
+  }).index('by_eventId', ['eventId']),
+
+  // Named manual-payment destinations for an event (e.g. mobile money
+  // numbers) — buyers pick one when submitting payment proof. Never hard
+  // deleted, only soft-deactivated, so past payments keep a valid reference.
+  eventPaymentDestinations: defineTable({
+    eventId: v.id('events'),
+    name: v.string(),
+    phone: v.string(),
+    note: v.optional(v.string()),
+    isActive: v.boolean(),
+    displayOrder: v.number(),
+    createdAt: v.number(),
   }).index('by_eventId', ['eventId']),
 
   // Pricing rules — multiple rules, first matching rule per tier wins.

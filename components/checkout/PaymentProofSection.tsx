@@ -1,12 +1,13 @@
 'use client';
 
 import {useState} from 'react';
-import {useMutation} from 'convex/react';
+import {useMutation, useQuery} from 'convex/react';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/lib/navigation';
 import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 import Button from '@/components/ui/Button';
+import Select from '@/components/ui/Select';
 
 export type OrderResult = {
   ticketIds: Id<'tickets'>[];
@@ -20,6 +21,7 @@ type Props = {
   paymentMethodChoice: 'manual' | 'cash';
   totalPrice: number;
   currency: string;
+  eventId: Id<'events'>;
 };
 
 // Shared post-purchase success / manual-payment-proof flow, used by both the
@@ -33,18 +35,32 @@ export default function PaymentProofSection({
   paymentMethodChoice,
   totalPrice,
   currency,
+  eventId,
 }: Props) {
   const t = useTranslations('checkout');
   const submitProof = useMutation(api.tickets.submitPaymentProof);
   const generateUploadUrl = useMutation(api.events.generateUploadUrl);
 
+  const showManualBlock = !isFree && isManual && paymentMethodChoice === 'manual';
+  const destinations = useQuery(
+    api.eventPaymentDestinations.listActiveForCheckout,
+    showManualBlock ? {eventId} : 'skip',
+  );
+
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [referenceNumber, setReferenceNumber] = useState('');
+  const [destinationId, setDestinationId] = useState('');
   const [uploadingProof, setUploadingProof] = useState(false);
   const [proofSubmitted, setProofSubmitted] = useState(false);
   const [proofError, setProofError] = useState('');
 
+  const selectedDestination = destinations?.find(d => d._id === destinationId);
+
   async function handleProofUpload() {
+    if (!destinationId) {
+      setProofError(t('errors.destinationRequired'));
+      return;
+    }
     if (!referenceNumber.trim()) {
       setProofError(t('errors.referenceRequired'));
       return;
@@ -65,7 +81,12 @@ export default function PaymentProofSection({
       });
       if (!res.ok) throw new Error('Upload failed');
       const {storageId} = (await res.json()) as {storageId: Id<'_storage'>};
-      await submitProof({paymentId: order.paymentId, storageId, referenceNumber: referenceNumber.trim()});
+      await submitProof({
+        paymentId: order.paymentId,
+        storageId,
+        referenceNumber: referenceNumber.trim(),
+        paymentAccountId: destinationId as Id<'eventPaymentDestinations'>,
+      });
       setProofSubmitted(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '';
@@ -105,6 +126,26 @@ export default function PaymentProofSection({
           <div className="mt-4 space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700">
+                {t('destinationLabel')}
+              </label>
+              <Select
+                value={destinationId}
+                onChange={e => setDestinationId(e.target.value)}
+                className="mt-1"
+              >
+                <option value="">{t('destinationPlaceholder')}</option>
+                {destinations?.map(d => (
+                  <option key={d._id} value={d._id}>
+                    {d.name} — {d.phone}
+                  </option>
+                ))}
+              </Select>
+              {selectedDestination?.note && (
+                <p className="mt-1 text-xs text-gray-500">{selectedDestination.note}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
                 {t('referenceLabel')}
                 <span className="ml-1 text-xs font-normal text-gray-400">{t('referenceHint')}</span>
               </label>
@@ -128,7 +169,11 @@ export default function PaymentProofSection({
             />
             {proofError && <p className="text-xs text-red-600">{proofError}</p>}
             {proofFile && <p className="text-xs text-gray-500">Selected: {proofFile.name}</p>}
-            <Button onClick={handleProofUpload} disabled={uploadingProof || !proofFile} className="w-full">
+            <Button
+              onClick={handleProofUpload}
+              disabled={uploadingProof || !proofFile || !destinationId}
+              className="w-full"
+            >
               {uploadingProof ? t('uploadingProof') : t('submitProof')}
             </Button>
           </div>

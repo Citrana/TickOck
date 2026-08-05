@@ -2,7 +2,7 @@
 
 import {useState} from 'react';
 import Image from 'next/image';
-import {useMutation} from 'convex/react';
+import {useMutation, useQuery} from 'convex/react';
 import {useTranslations} from 'next-intl';
 import {toast} from 'sonner';
 import {Link} from '@/lib/navigation';
@@ -10,6 +10,7 @@ import {api} from '@/convex/_generated/api';
 import {Id} from '@/convex/_generated/dataModel';
 import {parseConvexError} from '@/lib/errors';
 import Button from '@/components/ui/Button';
+import Select from '@/components/ui/Select';
 
 type TicketStatus = 'pending_payment' | 'confirmed' | 'cancelled' | 'used' | 'expired';
 
@@ -66,6 +67,7 @@ export default function TicketCard({ticket}: TicketCardProps) {
   );
   const [resubmitFile, setResubmitFile] = useState<File | null>(null);
   const [resubmitRef, setResubmitRef] = useState('');
+  const [resubmitDestinationId, setResubmitDestinationId] = useState('');
   const [resubmitting, setResubmitting] = useState(false);
   const [resubmitError, setResubmitError] = useState('');
   const [resubmitDone, setResubmitDone] = useState(false);
@@ -73,6 +75,11 @@ export default function TicketCard({ticket}: TicketCardProps) {
   const event = ticket.event;
   const tier = ticket.tier;
   const payment = ticket.payment;
+
+  const destinations = useQuery(
+    api.eventPaymentDestinations.listActiveForCheckout,
+    showResubmit && resubmitMethod === 'manual' && event ? {eventId: event._id} : 'skip',
+  );
 
   const formattedDate = event
     ? new Date(event.date).toLocaleDateString(undefined, {
@@ -103,6 +110,10 @@ export default function TicketCard({ticket}: TicketCardProps) {
   }
 
   async function handleResubmit() {
+    if (!resubmitDestinationId) {
+      setResubmitError(t('errors.destinationRequired'));
+      return;
+    }
     if (!resubmitRef.trim()) {
       setResubmitError(t('errors.referenceRequired'));
       return;
@@ -123,7 +134,12 @@ export default function TicketCard({ticket}: TicketCardProps) {
       });
       if (!res.ok) throw new Error('Upload failed');
       const {storageId} = await res.json() as {storageId: Id<'_storage'>};
-      await resubmitProof({paymentId: payment._id, storageId, referenceNumber: resubmitRef.trim()});
+      await resubmitProof({
+        paymentId: payment._id,
+        storageId,
+        referenceNumber: resubmitRef.trim(),
+        paymentAccountId: resubmitDestinationId as Id<'eventPaymentDestinations'>,
+      });
       setResubmitDone(true);
       setShowResubmit(false);
     } catch (err: unknown) {
@@ -331,6 +347,23 @@ export default function TicketCard({ticket}: TicketCardProps) {
             <>
               <div>
                 <label className="block text-xs font-medium text-gray-700">
+                  {t('resubmitDestinationLabel')}
+                </label>
+                <Select
+                  value={resubmitDestinationId}
+                  onChange={e => setResubmitDestinationId(e.target.value)}
+                  className="mt-1"
+                >
+                  <option value="">{t('resubmitDestinationPlaceholder')}</option>
+                  {destinations?.map(d => (
+                    <option key={d._id} value={d._id}>
+                      {d.name} — {d.phone}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700">
                   {t('resubmitReferenceLabel')}
                 </label>
                 <input
@@ -366,7 +399,10 @@ export default function TicketCard({ticket}: TicketCardProps) {
           )}
           <Button
             onClick={resubmitMethod === 'cash' ? handleResubmitCash : handleResubmit}
-            disabled={resubmitting || (resubmitMethod === 'manual' && !resubmitFile)}
+            disabled={
+              resubmitting ||
+              (resubmitMethod === 'manual' && (!resubmitFile || !resubmitDestinationId))
+            }
             className="w-full"
           >
             {resubmitting ? t('resubmitting') : t('resubmitPayment')}
