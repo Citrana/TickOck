@@ -45,6 +45,7 @@ export default function EventDetail({eventId}: Props) {
 
   const isOwner = user?._id === event.ownerId;
   const canEdit = isOwner && (event.status === 'draft' || event.status === 'rejected');
+  const displayStatus = event.status === 'live' && hasEventEnded ? 'ended' : event.status;
 
   const formattedDate = new Date(event.date).toLocaleDateString(undefined, {
     weekday: 'long',
@@ -82,7 +83,7 @@ export default function EventDetail({eventId}: Props) {
             <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
               {event.title}
             </h1>
-            {isOwner && <EventStatusBadge status={event.status} />}
+            {isOwner && <EventStatusBadge status={displayStatus} />}
           </div>
           {event.category && (
             <span className="mt-1 inline-block rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-700">
