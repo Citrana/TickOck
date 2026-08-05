@@ -6,6 +6,7 @@ import Image from 'next/image';
 import {Link} from '@/lib/navigation';
 import {api} from '@/convex/_generated/api';
 import {STAFF_PRESETS, StaffPreset} from '@/convex/eventStaff';
+import {hasEventEnded} from '@/lib/eventTiming';
 import EventStatusBadge from './EventStatusBadge';
 
 function inferRole(slugs: string[]): StaffPreset | null {
@@ -57,6 +58,7 @@ export default function StaffEventsList() {
 
         const role = inferRole(record.permissionSlugs);
         const isActive = record.isActive;
+        const displayStatus = record.status === 'live' && hasEventEnded(record) ? 'ended' : record.status;
 
         return (
           <div
@@ -89,7 +91,7 @@ export default function StaffEventsList() {
                     {date} · {record.venue.city}
                   </p>
                 </div>
-                <EventStatusBadge status={record.status} />
+                <EventStatusBadge status={displayStatus} />
               </div>
 
               {/* Role + inactive badge */}
