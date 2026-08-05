@@ -10,6 +10,7 @@
 
 import type * as __tests___helpers from "../__tests__/helpers.js";
 import type * as _helpers_audit from "../_helpers/audit.js";
+import type * as _helpers_eventTiming from "../_helpers/eventTiming.js";
 import type * as _helpers_featureFlags from "../_helpers/featureFlags.js";
 import type * as _helpers_permissions from "../_helpers/permissions.js";
 import type * as _helpers_qr from "../_helpers/qr.js";
@@ -42,6 +43,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   "__tests__/helpers": typeof __tests___helpers;
   "_helpers/audit": typeof _helpers_audit;
+  "_helpers/eventTiming": typeof _helpers_eventTiming;
   "_helpers/featureFlags": typeof _helpers_featureFlags;
   "_helpers/permissions": typeof _helpers_permissions;
   "_helpers/qr": typeof _helpers_qr;
